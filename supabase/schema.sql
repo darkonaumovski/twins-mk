@@ -38,15 +38,39 @@ create table if not exists public.records (
 );
 create index if not exists records_family_seq on public.records (family_id, seq);
 
--- The collections the app syncs. Kept as a separate, named constraint so re-running
--- this file (or a migration in supabase/migrations/) updates the list on older projects.
+-- The collections the app syncs, one row each. A record of any other collection is refused
+-- (foreign key below). Newer app versions add theirs with a file in supabase/migrations/;
+-- names are only ever added, so running an older file again never takes one away.
+create table if not exists public.sync_collections (name text primary key);
+insert into public.sync_collections (name) values
+  ('settings'),
+  ('categories'),
+  ('prepItems'),
+  ('babies'),
+  ('logs'),
+  ('appointments'),
+  ('routines'),
+  ('routineDone'),
+  ('tasks'),
+  ('doctorNotes'),
+  ('pumps'),
+  ('milkStash'),
+  ('supplies'),
+  ('caregivers')
+on conflict (name) do nothing;
+alter table public.sync_collections enable row level security;
+revoke all on public.sync_collections from anon, authenticated;
+
+-- Projects set up with the first version of schema.sql had a fixed list here instead.
 alter table public.records drop constraint if exists records_collection_check;
-alter table public.records add constraint records_collection_check check (
-  collection in (
-    'settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes',
-    'pumps', 'milkStash', 'supplies'
-  )
-);
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'records_collection_fkey') then
+    alter table public.records
+      add constraint records_collection_fkey foreign key (collection) references public.sync_collections (name);
+  end if;
+end;
+$$;
 
 -- ---------- Access rules ----------
 

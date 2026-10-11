@@ -2,6 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { beforeAll, describe, expect, it } from 'vitest';
 import schema from '../../../supabase/schema.sql?raw';
 import migration002 from '../../../supabase/migrations/002_pumping_stash_supplies.sql?raw';
+import migration003 from '../../../supabase/migrations/003_caregivers.sql?raw';
 import { COLLECTIONS } from '../repository';
 
 /**
@@ -129,20 +130,32 @@ describe('sync schema', () => {
     }
   });
 
-  it('upgrades a project made before pumping with migration 002', async () => {
-    // A project created with the first schema only knows the first ten collections.
+  it('upgrades a project made with the first schema through the migrations, in any order', async () => {
+    // A project created with the first schema: a fixed list of the first ten collections.
     await db.exec(`
-      alter table public.records drop constraint records_collection_check;
+      delete from public.records where collection not in
+        ('settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes');
+      alter table public.records drop constraint records_collection_fkey;
+      drop table public.sync_collections;
       alter table public.records add constraint records_collection_check check (collection in
-        ('settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes'))
-        not valid;
+        ('settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes'));
     `);
     const pump = { ...record('p-old', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'pumps' };
-    // 23514 is what the app turns into "the sync server needs an update".
+    const helper = { ...record('h-old', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'caregivers' };
+    // 23514 and 23503 are what the app turns into "the sync server needs an update".
     await expect(as(MOM, () => push(family, [pump]))).rejects.toMatchObject({ code: '23514' });
+
     await db.exec(migration002);
     await db.exec(migration002);
     expect(await as(MOM, () => push(family, [pump]))).toBe(1);
+    await expect(as(MOM, () => push(family, [helper]))).rejects.toMatchObject({ code: '23503' });
+
+    await db.exec(migration003);
+    expect(await as(MOM, () => push(family, [helper]))).toBe(1);
+    // Running an older migration (or schema.sql) again never takes a collection away.
+    await db.exec(migration002);
+    await db.exec(schema);
+    expect(await as(MOM, () => push(family, [{ ...helper, data: { ...helper.data, updatedAt: '2026-10-11T09:00:00.000Z' } }]))).toBe(1);
   });
 
   it('lets a phone leave', async () => {

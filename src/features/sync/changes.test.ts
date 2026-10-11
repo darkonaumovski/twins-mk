@@ -19,7 +19,8 @@ beforeAll(async () => {
     label: (r) => r.name,
     routineTitle: (id) => (id === 'r1' ? 'Vitamin D' : undefined),
     when: () => '14 Oct 10:30',
-    parentName: (p) => (p === 'p1' ? 'Darko' : 'Marija'),
+    parentName: (p) => (p === 'p1' ? 'Darko' : p === 'p2' ? 'Marija' : 'Baba'),
+    caregiverIds: ['p1', 'p2'],
   };
 });
 
@@ -106,6 +107,21 @@ describe('change notifications', () => {
     expect(changeLine({ collection: 'supplies', record: supply, previous: undefined }, h)).toBe('Supplies updated: Diapers');
     // A pumping session names the parent who logged it.
     expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
+  });
+
+  it('credits other changes to the other parent, or to "the other phone" when there are helpers', () => {
+    const change = { collection: 'tasks' as const, record: task(), previous: undefined };
+    expect(summarizeChanges([change], 'p1', h)?.title).toBe('Update from Marija');
+    const withHelper = { ...h, caregiverIds: ['p1', 'p2', 'h1'] };
+    expect(summarizeChanges([change], 'p1', withHelper)).toMatchObject({
+      title: 'Update from the other phone',
+      toast: 'Other phone: New task: Buy wipes',
+    });
+    // Log entries still name whoever logged them, helpers included.
+    expect(
+      summarizeChanges([{ collection: 'logs', record: bottle('baby-A', { loggedBy: 'h1' }), previous: undefined }], 'p1', withHelper)
+        ?.title,
+    ).toBe('Update from Baba');
   });
 
   it('summarises a "both twins" feed as one update from the parent who logged it', () => {

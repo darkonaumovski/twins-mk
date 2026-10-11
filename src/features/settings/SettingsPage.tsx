@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Info, Lock, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { CommitInput, Field, Page, Section, Segmented, Select, TextInput, Toggle } from '@/components/ui';
+import { Field, Page, Section, Segmented, Select, TextInput, Toggle } from '@/components/ui';
 import { useDevicePrefs, useSettings, useStore } from '@/data/StoreContext';
 import { CURRENCIES } from '@/data/defaults';
 import { LANGUAGES } from '@/i18n';
 import { pregnancyProgress } from '@/lib/pregnancy';
 import { ensurePersistentStorage, type PersistState } from '@/lib/storage';
-import type { Language, ParentId, ThemePref } from '@/data/types';
-import { useParentName } from '@/lib/parents';
+import type { Language, ThemePref } from '@/data/types';
+import { FamilySettings, NightDutySettings } from '@/features/family/FamilySettings';
 import { useBabies } from '@/features/twins/twins';
 import { RemindersSettings } from '@/features/plan/RemindersSettings';
 import { BackupSettings } from './BackupSettings';
@@ -24,7 +24,6 @@ export function SettingsPage() {
   const store = useStore();
   const settings = useSettings();
   const prefs = useDevicePrefs();
-  const parentName = useParentName();
   const babies = useBabies();
   const [persist, setPersist] = useState<PersistState | null>(null);
   const lockNow = useLockNow();
@@ -58,32 +57,9 @@ export function SettingsPage() {
         />
       </Section>
 
-      <Section title={t('settings.family')}>
-        <Segmented<ParentId>
-          label={t('settings.thisPhone')}
-          value={prefs.parent}
-          options={[
-            { value: 'p1', label: parentName('p1') },
-            { value: 'p2', label: parentName('p2') },
-          ]}
-          onChange={(parent) => store.device.update({ parent })}
-          hint={t('settings.thisPhoneHint')}
-        />
-        {(['p1', 'p2'] as const).map((p) => (
-          <Field key={p} label={t('settings.parentName', { parent: t(`parents.${p}`) })}>
-            {(props) => (
-              <CommitInput
-                {...props}
-                value={p === 'p1' ? settings.parent1Name : settings.parent2Name}
-                placeholder={t(`parents.${p}`)}
-                autoComplete="off"
-                maxLength={40}
-                onCommit={(name) => store.settings.update(p === 'p1' ? { parent1Name: name } : { parent2Name: name })}
-              />
-            )}
-          </Field>
-        ))}
-      </Section>
+      <FamilySettings />
+
+      {babies?.ready && <NightDutySettings />}
 
       <SyncSettings />
 

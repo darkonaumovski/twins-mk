@@ -3,11 +3,12 @@ import type { AppliedChange } from '@/data/sync/types';
 import type {
   Appointment,
   Baby,
+  Caregiver,
+  CaregiverId,
   Category,
   DoctorNote,
   LogEntry,
   MilkStashItem,
-  ParentId,
   ParentTask,
   PrepItem,
   PrepStatus,
@@ -50,7 +51,10 @@ export interface ChangeTextHelpers {
   routineTitle: (routineId: string) => string | undefined;
   /** Short date and time, e.g. "14 Oct 10:30". */
   when: (iso: string) => string;
-  parentName: (parent: ParentId) => string;
+  /** Name of a parent or helper. */
+  parentName: (id: CaregiverId) => string;
+  /** Everyone in the family (parents and helpers), to tell who else could have made a change. */
+  caregiverIds: readonly CaregiverId[];
 }
 
 const short = (text: string, max = 60) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
@@ -121,6 +125,8 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
     }
     case 'supplies':
       return t('changes.supplies', { name: t(`supplies.${(c.record as Supply).source}`) });
+    case 'caregivers':
+      return t(`changes.caregivers.${action}`, { name: (c.record as Caregiver).name });
   }
 }
 
@@ -134,18 +140,20 @@ export interface ChangeSummary {
 }
 
 /**
- * Summarises changes from the other phone. Log entries name the parent who
- * logged them; anything else is credited to the parent this phone is not set to.
+ * Summarises changes from another phone. Log entries and pumping sessions name who
+ * logged them; anything else is credited to the only other person in the family,
+ * or to "the other phone" when there are helpers too and it could have been anyone.
  */
-export function summarizeChanges(changes: readonly AppliedChange[], me: ParentId, h: ChangeTextHelpers, max = 3): ChangeSummary | null {
+export function summarizeChanges(changes: readonly AppliedChange[], me: CaregiverId, h: ChangeTextHelpers, max = 3): ChangeSummary | null {
   if (!changes.length) return null;
   // Newest first, and one line per distinct text (a "both twins" feed is two records).
   const ordered = [...changes].sort((a, b) => b.record.updatedAt.localeCompare(a.record.updatedAt));
   const lines = [...new Set(ordered.map((c) => changeLine(c, h)))];
   // Log entries and pumping sessions say who logged them.
   const log = ordered.find((c) => c.collection === 'logs' || c.collection === 'pumps');
-  const parent: ParentId = log ? (log.record as LogEntry | Pump).loggedBy : me === 'p1' ? 'p2' : 'p1';
-  const who = h.parentName(parent);
+  const others = h.caregiverIds.filter((id) => id !== me);
+  const author: CaregiverId | null = log ? (log.record as LogEntry | Pump).loggedBy : others.length === 1 ? others[0] : null;
+  const who = author ? h.parentName(author) : h.t('changes.otherPhone');
 
   const shown = lines.slice(0, max);
   const rest = lines.length - shown.length;
@@ -154,5 +162,5 @@ export function summarizeChanges(changes: readonly AppliedChange[], me: ParentId
     lines.length === 1
       ? h.t('changes.toastOne', { who, line: lines[0] })
       : h.t('changes.toastMany', { who, line: lines[0], count: lines.length - 1 });
-  return { title: h.t('changes.title', { who }), body, toast };
+  return { title: author ? h.t('changes.title', { who }) : h.t('changes.titleOtherPhone'), body, toast };
 }

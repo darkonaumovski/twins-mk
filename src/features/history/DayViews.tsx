@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useLive } from '@/data/StoreContext';
 import { useFormatMinutes } from '@/lib/useNow';
-import { useParentName } from '@/lib/parents';
+import { useCaregiverName } from '@/lib/caregivers';
 import { Milk } from 'lucide-react';
 import type { ISODate, LogEntry, Pump } from '@/data/types';
 import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
@@ -96,7 +96,7 @@ export function Timeline({ entries, pumps = [], babies, now }: { entries: LogEnt
   const { t } = useTranslation();
   const describe = useDescribeEntry();
   const name = useTwinName(babies);
-  const parentName = useParentName();
+  const parentName = useCaregiverName();
   const ui = useLogUI();
 
   type Row = { twins: Record<string, LogEntry[]>; pumps: Pump[] };

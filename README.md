@@ -28,6 +28,12 @@ A calm, phone-first app for parents expecting twins.
 - **Milk stash** (More → Milk stash): totals for fridge and freezer, every container oldest first, with its age. If you enter your own "use within" days, it also shows the days left. A bottle of breast milk can take its millilitres from the stash, oldest container first.
 - **Supplies** (More → Supplies): count your diapers once (and, for formula, how much one tin makes and how many tins you have). The count then goes down by itself as you log: one diaper per diaper entry for each twin, and the ml of formula bottles and top-ups. It shows about how many days are left at the last 3 days' pace. When that drops below your threshold, Today shows a note with **+ pack** and **Add to the shopping list** (which puts the checklist item back on the shopping list).
 
+### Family, handover and night duty
+
+- **Helpers:** besides the two parents, add grandparents or a nanny under **Settings → Family** (up to 8 people). Anyone can be chosen as "This phone is used by", as the person a task is for, and on night duty. Entries show who logged them. The parents keep their fixed ids (`p1`, `p2`) and their names stay in the shared settings, so existing entries and older phones are unaffected.
+- **Since you last opened:** when you come back to the app after a while, Today shows what happened since (per twin: feeds and ml, diapers, sleep, medicines) and who logged it. Tap **Seen** to dismiss it. The time you last left is kept on the phone only.
+- **Night duty:** under **Settings → Night duty**, set tonight's shifts (for example Marija 22:00–02:00, Darko 02:00–06:00). They repeat every night until changed. Today shows "On duty now: Marija until 02:00". Under **Sync between phones**, each phone can choose **Only when I'm on night duty**: while someone else has the shift, that phone stays quiet.
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -123,7 +129,7 @@ Sync uses a free [Supabase](https://supabase.com) project as the server. The app
 - **How it works.** Every change is saved on the phone first, then queued and uploaded. The server keeps the newest version of each record: newest `updatedAt` wins, ties are broken by device id, and deletes are tombstones, all exactly as in the backup merge. Each phone subscribes to its family's changes over a WebSocket (Supabase Realtime) and pulls them as soon as they happen. It also catches up when the app opens, comes back to the foreground or regains internet.
 - **Offline.** Both phones always work offline. The header shows a small cloud icon while changes are waiting to be sent.
 - **Access.** Each phone signs in anonymously, and that sign-in is remembered on the phone. Only phones that joined the family with its code can read or write its records (row-level security in `supabase/schema.sql`). If a phone loses its sign-in, it rejoins with the stored code automatically.
-- **Per-phone settings** (language, theme, which parent uses the phone, reminders) are not synced.
+- **Per-phone settings** (language, theme, who uses the phone, reminders, when the app was last opened) are not synced.
 - **What the other parent changed.** When sync brings in changes from the other phone, the app says what they were, for example "Марија: Шишенце · Ема · 90 ml Формула" or "Нова задача: Купи марамчиња". While the app is on screen this is a message at the bottom. While it is in the background (or the screen is off), it is a phone notification, once notifications are allowed. Several changes at once become one notification. You can turn this off per phone in **Sync between phones → Tell me what the other parent changes**. Nothing arrives while the app is fully closed, because that would need a push server. The first merge after joining is not announced.
 
 ### Setting up the sync server (once)
@@ -146,11 +152,12 @@ Without these two values the app builds exactly as before, local only with backu
 
 ### Updating an existing sync server
 
-Some app versions sync new kinds of records, and the server has to be told about them once. **Run each new file in [`supabase/migrations/`](supabase/migrations) once, in order, before the phones get that app version:** Supabase dashboard → **SQL Editor → New query** → paste the file → **Run**. Running one twice does no harm. A brand-new project only needs `supabase/schema.sql`, which already includes all of them.
+Some app versions sync new kinds of records, and the server has to be told about them once. **Run each new file in [`supabase/migrations/`](supabase/migrations) once before the phones get that app version:** Supabase dashboard → **SQL Editor → New query** → paste the file → **Run**. Running one twice, or in a different order, does no harm: they only ever add to the list of collections the server accepts. A brand-new project only needs `supabase/schema.sql`, which already includes all of them.
 
 | File                             | Needed for                           |
 | -------------------------------- | ------------------------------------ |
 | `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies |
+| `003_caregivers.sql`             | helpers (grandparents, a nanny…)     |
 
 If a migration was missed, the updated phone shows "The sync server needs an update" under **Sync between phones**. Its changes wait on the phone and go up as soon as the migration has run. The older phone keeps working; it simply ignores records it does not know.
 
@@ -232,7 +239,8 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 
 - the data layer (CRUD, soft delete and restore, live queries, merge, backup round trips between two simulated phones)
 - sync between two simulated phones (joining with existing data, real-time updates, offline catch-up, conflicts, deletes, leaving, data from a newer version) against an in-memory server
-- the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message
+- the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message (including helpers and "the other phone")
+- night duty (shifts past midnight, quiet alerts while someone else is on duty), the "since you last opened" handover and the caregiver list
 - the family password check
 - the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts, every synced collection accepted, and the migrations upgrading an older project
 - checklist quantities, filters and price parsing

@@ -2,6 +2,7 @@ import type { MergeStats } from './merge';
 import type {
   Appointment,
   Baby,
+  Caregiver,
   Category,
   DevicePrefs,
   DoctorNote,
@@ -86,6 +87,7 @@ export interface SyncedCollections {
   pumps: Repository<Pump>;
   milkStash: Repository<MilkStashItem>;
   supplies: Repository<Supply>;
+  caregivers: Repository<Caregiver>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -104,6 +106,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'pumps',
   'milkStash',
   'supplies',
+  'caregivers',
 ];
 
 export interface DataStore extends SyncedCollections {

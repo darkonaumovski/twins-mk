@@ -2,23 +2,26 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Plus, User } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { Segmented, TextInput, cx } from '@/components/ui';
+import { TextInput, cx } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useLive, useStore } from '@/data/StoreContext';
 import { formatShortDate, todayISO } from '@/lib/format';
-import { useParentName } from '@/lib/parents';
-import { oneOf, useRemembered } from '@/lib/remember';
+import { useCaregiverName, useCaregivers } from '@/lib/caregivers';
+import { useRemembered } from '@/lib/remember';
+import { CaregiverPicker } from '@/features/family/CaregiverPicker';
 import type { ParentTask } from '@/data/types';
 import { sortTasks } from './logic';
 import { TaskEditor } from './TaskEditor';
 
-type Filter = 'all' | 'p1' | 'p2';
+/** `all`, or one caregiver's id. */
+type Filter = string;
+const isFilter = (v: unknown): v is Filter => typeof v === 'string' && v.length > 0 && v.length <= 100;
 
 export function TaskRow({ task, onOpen }: { task: ParentTask; onOpen: () => void }) {
   const { t, i18n } = useTranslation();
   const store = useStore();
   const toast = useToast();
-  const parentName = useParentName();
+  const parentName = useCaregiverName();
   const today = todayISO();
   const overdue = !task.done && task.due !== null && task.due < today;
 
@@ -80,8 +83,10 @@ export function TasksView() {
   const { t } = useTranslation();
   const store = useStore();
   const prefs = useDevicePrefs();
-  const parentName = useParentName();
-  const [filter, setFilter] = useRemembered<Filter>('twinsmk.tasks.filter', 'all', oneOf('all', 'p1', 'p2'));
+  const caregivers = useCaregivers();
+  const [savedFilter, setFilter] = useRemembered<Filter>('twinsmk.tasks.filter', 'all', isFilter);
+  // A helper who was removed falls back to "all".
+  const filter = savedFilter === 'all' || !caregivers || caregivers.some((c) => c.id === savedFilter) ? savedFilter : 'all';
   const [showDone, setShowDone] = useState(false);
   const [title, setTitle] = useState('');
   const [editing, setEditing] = useState<ParentTask | null>(null);
@@ -112,13 +117,12 @@ export function TasksView() {
           <Plus aria-hidden size={20} />
         </Button>
       </form>
-      <Segmented<Filter>
+      <CaregiverPicker
         label={t('task.assignee')}
         value={filter}
         options={[
           { value: 'all', label: t('task.all') },
-          { value: 'p1', label: `${parentName('p1')}${prefs?.parent === 'p1' ? ` (${t('task.mine')})` : ''}` },
-          { value: 'p2', label: `${parentName('p2')}${prefs?.parent === 'p2' ? ` (${t('task.mine')})` : ''}` },
+          ...(caregivers ?? []).map((c) => ({ value: c.id, label: `${c.name}${prefs?.parent === c.id ? ` (${t('task.mine')})` : ''}` })),
         ]}
         onChange={setFilter}
       />

@@ -276,6 +276,16 @@ function ChangeAlertsToggle() {
     <div>
       <Toggle label={t('sync.alerts')} checked={prefs.changeAlerts !== false} onChange={toggle} />
       <p className="text-sm text-muted">{t('sync.alertsHint')}</p>
+      {prefs.changeAlerts !== false && (
+        <div>
+          <Toggle
+            label={t('sync.alertsOnDuty')}
+            checked={prefs.changeAlertsMode === 'onDuty'}
+            onChange={(on) => store.device.update({ changeAlertsMode: on ? 'onDuty' : 'always' })}
+          />
+          <p className="text-sm text-muted">{t('sync.alertsOnDutyHint')}</p>
+        </div>
+      )}
       {prefs.changeAlerts !== false && support === 'denied' && <p className="text-sm font-medium text-warn">{t('sync.alertsDenied')}</p>}
     </div>
   );

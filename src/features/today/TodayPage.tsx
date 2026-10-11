@@ -17,6 +17,7 @@ import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayV
 import { UpcomingSection } from '@/features/plan/UpcomingSection';
 import { DailyCareSection } from '@/features/plan/DailyCareSection';
 import { SuppliesBanner } from '@/features/supplies/SuppliesBanner';
+import { DutyLine, HandoverCard } from '@/features/family/Handover';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -172,6 +173,10 @@ export function TodayPage() {
           })}
         </section>
       )}
+
+      <DutyLine now={now} />
+
+      <HandoverCard babies={babies} now={now} />
 
       <SuppliesBanner now={now} />
 

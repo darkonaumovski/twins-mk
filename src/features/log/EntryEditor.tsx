@@ -11,7 +11,7 @@ import { useLive, useStore } from '@/data/StoreContext';
 import { isTimed } from '@/data/logTypes';
 import { parseAmount } from '@/features/checklist/logic';
 import { colorOf, tintFor, twinStyle, useBabies, useTwinName } from '@/features/twins/twins';
-import { useParentName } from '@/lib/parents';
+import { useCaregiverName } from '@/lib/caregivers';
 import { useFormatAgo } from '@/lib/useNow';
 import { medCheck } from '@/features/plan/logic';
 import { useMedData, useMedGuard } from '@/features/plan/useMeds';
@@ -122,7 +122,7 @@ export function EntryEditor(props: Props) {
   const toast = useToast();
   const babies = useBabies();
   const name = useTwinName(babies);
-  const parentName = useParentName();
+  const parentName = useCaregiverName();
   const { log } = useLogActions();
   const medData = useMedData();
   const medGuard = useMedGuard();

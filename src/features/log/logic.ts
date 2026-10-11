@@ -1,5 +1,5 @@
 import { isTimed } from '@/data/logTypes';
-import type { Entity, FeedData, ISODateTime, LogEntry, NewRecord, ParentId, TwinSlot } from '@/data/types';
+import type { CaregiverId, Entity, FeedData, ISODateTime, LogEntry, NewRecord, TwinSlot } from '@/data/types';
 
 /** Babies have fixed ids so both phones create the same two records and never duplicate them on merge. */
 export const BABY_IDS: Record<TwinSlot, string> = { A: 'baby-A', B: 'baby-B' };
@@ -26,7 +26,7 @@ export type LogDraft = Distribute<LogEntry>;
 export function buildEntries(
   who: Who,
   draft: LogDraft | ((babyId: string) => LogDraft),
-  loggedBy: ParentId,
+  loggedBy: CaregiverId,
   newGroupId: () => string,
 ): NewRecord<LogEntry>[] {
   const babyIds = babyIdsFor(who);

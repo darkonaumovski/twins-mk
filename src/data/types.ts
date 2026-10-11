@@ -23,7 +23,11 @@ export type RecordPatch<T extends Entity> = Partial<Omit<T, keyof Entity>>;
 
 export type Language = 'mk' | 'en';
 export type ThemePref = 'system' | 'light' | 'dark';
-export type ParentId = 'p1' | 'p2';
+/**
+ * Who logged or does something. The two parents are `p1` and `p2` (fixed ids, names in the
+ * shared settings); helpers such as a grandparent or a nanny are `caregivers` records.
+ */
+export type CaregiverId = string;
 export type Phase = 'prep' | 'planner';
 
 /** Settings shared by both parents; exported and merged like any other record. */
@@ -43,6 +47,21 @@ export interface SharedSettings extends Entity {
   feedNudgeMin: number;
   /** "Use within" days for stored breast milk, as the parents set them (null = not set). */
   stashUseWithinDays: { fridge: number | null; freezer: number | null };
+  /** Who is on duty at night, repeated every night until changed. */
+  nightShifts: NightShift[];
+}
+
+/** One night shift, e.g. 22:00–02:00. `to` earlier than `from` means it runs past midnight. */
+export interface NightShift {
+  caregiverId: CaregiverId;
+  from: string;
+  to: string;
+}
+
+/** A helper (grandparent, nanny…). The parents themselves are `p1` and `p2` and have no record. */
+export interface Caregiver extends Entity {
+  name: string;
+  order: number;
 }
 
 /** Preferences for this phone only. Never exported or merged. */
@@ -51,8 +70,8 @@ export interface DevicePrefs {
   deviceId: string;
   language: Language;
   theme: ThemePref;
-  /** Which parent normally uses this phone; stamped on new log entries. */
-  parent: ParentId;
+  /** Who normally uses this phone (a parent or a helper); stamped on new log entries. */
+  parent: CaregiverId;
   notifications: boolean;
   /** Version of the starter checklist already added on this device (absent on older installs). */
   seedVersion?: number;
@@ -60,6 +79,10 @@ export interface DevicePrefs {
   changeAlerts?: boolean;
   /** The family this phone syncs with, if sync is on. */
   sync?: SyncMembership | null;
+  /** When this phone last left the app (went to the background); powers "since you last opened". */
+  lastSeenAt?: ISODateTime | null;
+  /** `onDuty`: during a night shift that belongs to someone else, do not announce their changes. */
+  changeAlertsMode?: 'always' | 'onDuty';
 }
 
 /** Which family a phone syncs with. */
@@ -150,7 +173,7 @@ interface LogBase extends Entity {
   end: ISODateTime | null;
   /** Shared by the two entries created by one "both twins" action. */
   groupId: string | null;
-  loggedBy: ParentId;
+  loggedBy: CaregiverId;
 }
 
 export type LogEntry =
@@ -179,7 +202,7 @@ export interface Pump extends Entity {
   rightMl: number | null;
   /** Total millilitres (the sum of the sides when both are given). */
   totalMl: number;
-  loggedBy: ParentId;
+  loggedBy: CaregiverId;
 }
 
 export type StashLocation = 'fridge' | 'freezer';
@@ -263,7 +286,7 @@ export interface RoutineDone extends Entity {
 
 export interface ParentTask extends Entity {
   title: string;
-  assignee: ParentId | null;
+  assignee: CaregiverId | null;
   due: ISODate | null;
   done: boolean;
   notes: string;

@@ -3,21 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { Trash2, X } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { Button, IconButton } from '@/components/Button';
-import { Field, Segmented, TextArea, TextInput, Toggle } from '@/components/ui';
+import { Field, TextArea, TextInput, Toggle } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useStore } from '@/data/StoreContext';
-import { useParentName } from '@/lib/parents';
+import { useCaregivers } from '@/lib/caregivers';
+import { CaregiverPicker } from '@/features/family/CaregiverPicker';
 import type { ParentTask } from '@/data/types';
 
-type Assignee = 'p1' | 'p2' | 'any';
+/** A caregiver id, or `any` for nobody in particular. */
+type Assignee = string;
 
 export function TaskEditor({ task, onClose }: { task: ParentTask; onClose: () => void }) {
   const { t } = useTranslation();
   const store = useStore();
   const confirm = useConfirm();
   const toast = useToast();
-  const parentName = useParentName();
+  const caregivers = useCaregivers() ?? [];
   const [title, setTitle] = useState(task.title);
   const [assignee, setAssignee] = useState<Assignee>(task.assignee ?? 'any');
   const [due, setDue] = useState(task.due ?? '');
@@ -67,14 +69,10 @@ export function TaskEditor({ task, onClose }: { task: ParentTask; onClose: () =>
         <Field label={t('task.title')}>
           {(p) => <TextInput {...p} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />}
         </Field>
-        <Segmented<Assignee>
+        <CaregiverPicker
           label={t('task.assignee')}
           value={assignee}
-          options={[
-            { value: 'any', label: t('task.anyone') },
-            { value: 'p1', label: parentName('p1') },
-            { value: 'p2', label: parentName('p2') },
-          ]}
+          options={[{ value: 'any', label: t('task.anyone') }, ...caregivers.map((c) => ({ value: c.id, label: c.name }))]}
           onChange={setAssignee}
         />
         <Field label={t('task.due')}>

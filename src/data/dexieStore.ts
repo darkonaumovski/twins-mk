@@ -14,6 +14,7 @@ import type { AppliedChange, OutboxEntry, SyncLocal } from './sync/types';
 import type {
   Appointment,
   Baby,
+  Caregiver,
   Category,
   DevicePrefs,
   DoctorNote,
@@ -52,6 +53,7 @@ class TwinsDb extends Dexie {
   pumps!: Table<Pump, string>;
   milkStash!: Table<MilkStashItem, string>;
   supplies!: Table<Supply, string>;
+  caregivers!: Table<Caregiver, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -83,6 +85,10 @@ class TwinsDb extends Dexie {
         milkStash: 'id, pumpedAt',
         supplies: 'id',
       })
+      .upgrade(() => {});
+    // Helpers (grandparents, nannies). The parents stay p1/p2, so existing entries need no change.
+    this.version(4)
+      .stores({ caregivers: 'id, order' })
       .upgrade(() => {});
   }
 }
@@ -353,6 +359,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     pumps: repo(db.pumps),
     milkStash: repo(db.milkStash),
     supplies: repo(db.supplies),
+    caregivers: repo(db.caregivers),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 

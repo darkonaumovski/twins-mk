@@ -10,6 +10,7 @@ import { ChecklistPage } from '@/features/checklist/ChecklistPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
 import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
+import { LastSeenTracker } from '@/features/family/Handover';
 import { TodayPage } from '@/features/today/TodayPage';
 
 // Less-used screens load on demand (all are precached for offline use).
@@ -45,6 +46,7 @@ export function App() {
           <LogUIProvider>
             <ReminderSync />
             <ChangeNotifier />
+            <LastSeenTracker />
             <UpdatePrompt />
             <Routes>
               <Route element={<AppShell />}>
