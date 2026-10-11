@@ -25,6 +25,7 @@ const PlanPage = lazy(() => import('@/features/plan/PlanPage').then((m) => ({ de
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const StashPage = lazy(() => import('@/features/milk/StashPage').then((m) => ({ default: m.StashPage })));
 const SuppliesPage = lazy(() => import('@/features/supplies/SuppliesPage').then((m) => ({ default: m.SuppliesPage })));
+const MilestonesPage = lazy(() => import('@/features/milestones/MilestonesPage').then((m) => ({ default: m.MilestonesPage })));
 const ReportPage = lazy(() => import('@/features/report/ReportPage').then((m) => ({ default: m.ReportPage })));
 const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
@@ -63,6 +64,7 @@ export function App() {
                 <Route path="/stash" element={<StashPage />} />
                 <Route path="/supplies" element={<SuppliesPage />} />
                 <Route path="/report" element={<ReportPage />} />
+                <Route path="/milestones" element={<MilestonesPage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/budget" element={<BudgetPage />} />

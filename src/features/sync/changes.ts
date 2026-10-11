@@ -8,6 +8,7 @@ import type {
   Category,
   DoctorNote,
   LogEntry,
+  Milestone,
   MilkStashItem,
   ParentTask,
   PrepItem,
@@ -51,6 +52,8 @@ export interface ChangeTextHelpers {
   routineTitle: (routineId: string) => string | undefined;
   /** Short date and time, e.g. "14 Oct 10:30". */
   when: (iso: string) => string;
+  /** A calendar day, e.g. "14 Oct". */
+  day: (date: string) => string;
   /** Name of a parent or helper. */
   parentName: (id: CaregiverId) => string;
   /** Everyone in the family (parents and helpers), to tell who else could have made a change. */
@@ -127,6 +130,12 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       return t('changes.supplies', { name: t(`supplies.${(c.record as Supply).source}`) });
     case 'caregivers':
       return t(`changes.caregivers.${action}`, { name: (c.record as Caregiver).name });
+    case 'milestones': {
+      const m = c.record as Milestone;
+      const title = m.key ? t(`milestones.keys.${m.key}`) : m.title;
+      if (action === 'deleted' || !m.date) return t('changes.milestones.deleted', { title, twin: h.twin(m.babyId) });
+      return t('changes.milestones.added', { title, twin: h.twin(m.babyId), when: h.day(m.date) });
+    }
   }
 }
 

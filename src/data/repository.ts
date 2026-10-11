@@ -10,6 +10,7 @@ import type {
   ISODateTime,
   LogEntry,
   LogType,
+  Milestone,
   MilkStashItem,
   NewRecord,
   ParentTask,
@@ -88,6 +89,7 @@ export interface SyncedCollections {
   milkStash: Repository<MilkStashItem>;
   supplies: Repository<Supply>;
   caregivers: Repository<Caregiver>;
+  milestones: Repository<Milestone>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -107,6 +109,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'milkStash',
   'supplies',
   'caregivers',
+  'milestones',
 ];
 
 export interface DataStore extends SyncedCollections {

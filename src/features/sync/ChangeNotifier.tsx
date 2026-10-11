@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useStore } from '@/data/StoreContext';
 import { alertsAllowed } from '@/features/family/logic';
@@ -54,6 +54,7 @@ export function ChangeNotifier() {
           label: ctx.label,
           routineTitle: (id) => routines.get(id),
           when: (iso) => format(new Date(iso), 'd MMM HH:mm', { locale }),
+          day: (date) => format(parseISO(date), 'd MMM', { locale }),
           parentName: ctx.parentName,
           caregiverIds: ctx.caregiverIds,
         };

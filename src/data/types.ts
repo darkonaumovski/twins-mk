@@ -50,6 +50,8 @@ export interface SharedSettings extends Entity {
   stashUseWithinDays: { fridge: number | null; freezer: number | null };
   /** Who is on duty at night, repeated every night until changed. */
   nightShifts: NightShift[];
+  /** The family's time zone (e.g. "Europe/Skopje"), so the server reads routine times the same way. */
+  timeZone?: string;
 }
 
 /** One night shift, e.g. 22:00–02:00. `to` earlier than `from` means it runs past midnight. */
@@ -57,6 +59,27 @@ export interface NightShift {
   caregiverId: CaregiverId;
   from: string;
   to: string;
+}
+
+/**
+ * A milestone for one twin. The built-in ones (first smile…) have a `key` and the fixed id
+ * `milestone-<key>-<babyId>`, so both phones fill in the same record; custom ones have a title.
+ */
+export interface Milestone extends Entity {
+  babyId: string;
+  key: string | null;
+  title: string;
+  date: ISODate | null;
+  note: string;
+}
+
+/** What a phone wants push reminders for. */
+export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';
+
+/** This phone's push subscription, as saved on the sync server. */
+export interface PushPrefs {
+  endpoint: string;
+  kinds: ReminderKind[];
 }
 
 /** A helper (grandparent, nanny…). The parents themselves are `p1` and `p2` and have no record. */
@@ -84,6 +107,8 @@ export interface DevicePrefs {
   lastSeenAt?: ISODateTime | null;
   /** A short vibration after logging (absent means on). */
   haptics?: boolean;
+  /** Push reminders on this phone (also while the app is closed), if turned on. */
+  push?: PushPrefs | null;
   /** `onDuty`: during a night shift that belongs to someone else, do not announce their changes. */
   changeAlertsMode?: 'always' | 'onDuty';
 }

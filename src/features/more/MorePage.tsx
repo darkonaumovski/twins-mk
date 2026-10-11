@@ -9,6 +9,7 @@ import {
   Refrigerator,
   Settings,
   ShoppingCart,
+  Star,
   TrendingUp,
   Wallet,
   type LucideIcon,
@@ -44,6 +45,7 @@ export function MorePage() {
         title={t('more.babies')}
         items={[
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
+          { to: '/milestones', label: t('milestones.pageTitle'), icon: Star },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },
           { to: '/report', label: t('report.title'), icon: FileText },
           { to: '/stash', label: t('stash.title'), icon: Refrigerator },

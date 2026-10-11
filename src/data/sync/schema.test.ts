@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import schema from '../../../supabase/schema.sql?raw';
 import migration002 from '../../../supabase/migrations/002_pumping_stash_supplies.sql?raw';
 import migration003 from '../../../supabase/migrations/003_caregivers.sql?raw';
+import migration004 from '../../../supabase/migrations/004_push_milestones.sql?raw';
 import { COLLECTIONS } from '../repository';
 
 /**
@@ -158,8 +159,44 @@ describe('sync schema', () => {
     expect(await as(MOM, () => push(family, [{ ...helper, data: { ...helper.data, updatedAt: '2026-10-11T09:00:00.000Z' } }]))).toBe(1);
   });
 
-  it('lets a phone leave', async () => {
+  it('keeps push subscriptions per phone and family', async () => {
+    const save = (user: string, endpoint: string) =>
+      as(user, () =>
+        rpc('select public.save_push_subscription($1, $2::jsonb)', [
+          family,
+          JSON.stringify({ endpoint, p256dh: 'key', auth: 'secret', caregiverId: 'p2', kinds: ['routines'], lang: 'en' }),
+        ]),
+      );
+    await save(MOM, 'https://push.example/mom-phone');
+    await save(DAD, 'https://push.example/dad-phone');
+    // Saving again updates the same row.
+    await save(DAD, 'https://push.example/dad-phone');
+    await expect(save(STRANGER, 'https://push.example/stranger')).rejects.toThrow(/not_a_member/);
+
+    const own = await as(DAD, () =>
+      rpc<{ endpoint: string; caregiver_id: string; lang: string }>('select * from public.push_subscriptions'),
+    );
+    expect(own.map((r) => [r.endpoint, r.caregiver_id, r.lang])).toEqual([['https://push.example/dad-phone', 'p2', 'en']]);
+    // What was sent is not readable from the app.
+    await expect(as(DAD, () => rpc('select * from public.push_sent'))).rejects.toThrow();
+
+    // A phone can only remove its own subscription.
+    await as(MOM, () => rpc('select public.delete_push_subscription($1)', ['https://push.example/dad-phone']));
+    expect(await as(DAD, () => rpc('select * from public.push_subscriptions'))).toHaveLength(1);
+    await as(MOM, () => rpc('select public.delete_push_subscription($1)', ['https://push.example/mom-phone']));
+    expect(await as(MOM, () => rpc('select * from public.push_subscriptions'))).toHaveLength(0);
+  });
+
+  it('runs migration 004 on an existing project, more than once', async () => {
+    await db.exec(migration004);
+    await db.exec(migration004);
+    const milestone = { ...record('m-1', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'milestones' };
+    expect(await as(MOM, () => push(family, [milestone]))).toBe(1);
+  });
+
+  it('lets a phone leave, which also ends its push reminders', async () => {
     await as(DAD, () => rpc('select public.leave_family($1)', [family]));
     expect(await as(DAD, pullTitles)).toEqual([]);
+    expect(await as(DAD, () => rpc('select * from public.push_subscriptions'))).toHaveLength(0);
   });
 });

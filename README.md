@@ -39,6 +39,7 @@ A calm, phone-first app for parents expecting twins.
 - **Corrected age:** in the twin setup, enter the week of pregnancy each twin was born at (for example 35 + 4). For a twin born before 37 + 0, Today and Growth show both the actual age and the age corrected for prematurity. Growth also shows the change since the birth weight in grams and percent, without any judgement.
 - **In hospital:** the house/hospital button on a twin's card on Today marks where the twin is. A twin in hospital is dimmed on Today, and Today shows when milk was last pumped, with one tap to log pumping or a visit. Routines can be marked **Only when the twin is at home** (a bath, for example), and they then leave out a twin in hospital.
 - **Report for the doctor** (More → Report, or from Notes for the doctor): pick a twin or both and the last 7, 14 or 30 days. It shows a daily table per twin (feeds, ml, breast minutes, wet/dirty diapers, sleep hours, medicines) with averages, the growth measurements and the open questions for the doctor. **Print / Save as PDF** prints it on A4; **Share** sends it as text where the phone supports it.
+- **Milestones** (More → Milestones): firsts such as the first smile or first tooth, for both twins side by side, with the date, a note and the age on that day (and the corrected age for twins born early). Add your own too. The app shows no "usual" ages.
 
 ### At night
 
@@ -169,10 +170,11 @@ Without these two values the app builds exactly as before, local only with backu
 
 Some app versions sync new kinds of records, and the server has to be told about them once. **Run each new file in [`supabase/migrations/`](supabase/migrations) once before the phones get that app version:** Supabase dashboard → **SQL Editor → New query** → paste the file → **Run**. Running one twice, or in a different order, does no harm: they only ever add to the list of collections the server accepts. A brand-new project only needs `supabase/schema.sql`, which already includes all of them.
 
-| File                             | Needed for                           |
-| -------------------------------- | ------------------------------------ |
-| `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies |
-| `003_caregivers.sql`             | helpers (grandparents, a nanny…)     |
+| File                             | Needed for                                    |
+| -------------------------------- | --------------------------------------------- |
+| `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies          |
+| `003_caregivers.sql`             | helpers (grandparents, a nanny…)              |
+| `004_push_milestones.sql`        | milestones, and the tables for push reminders |
 
 If a migration was missed, the updated phone shows "The sync server needs an update" under **Sync between phones**. Its changes wait on the phone and go up as soon as the migration has run. The older phone keeps working; it simply ignores records it does not know.
 
@@ -267,6 +269,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
 - supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
 - routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital
+- milestones side by side (built-in ones with fixed ids, custom ones paired by title)
 - actual and corrected age, weight change since birth, and the doctor's report (daily rows, totals, open notes)
 - chart scales and colour-pair rules
 - the night appearance switch, "stop both" timers and the backup reminder

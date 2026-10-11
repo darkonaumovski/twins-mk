@@ -19,6 +19,7 @@ beforeAll(async () => {
     label: (r) => r.name,
     routineTitle: (id) => (id === 'r1' ? 'Vitamin D' : undefined),
     when: () => '14 Oct 10:30',
+    day: () => '14 Oct',
     parentName: (p) => (p === 'p1' ? 'Darko' : p === 'p2' ? 'Marija' : 'Baba'),
     caregiverIds: ['p1', 'p2'],
   };

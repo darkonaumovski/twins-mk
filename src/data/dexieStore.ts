@@ -22,6 +22,7 @@ import type {
   ISODateTime,
   LogEntry,
   LogType,
+  Milestone,
   MilkStashItem,
   NewRecord,
   ParentTask,
@@ -54,6 +55,7 @@ class TwinsDb extends Dexie {
   milkStash!: Table<MilkStashItem, string>;
   supplies!: Table<Supply, string>;
   caregivers!: Table<Caregiver, string>;
+  milestones!: Table<Milestone, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -89,6 +91,10 @@ class TwinsDb extends Dexie {
     // Helpers (grandparents, nannies). The parents stay p1/p2, so existing entries need no change.
     this.version(4)
       .stores({ caregivers: 'id, order' })
+      .upgrade(() => {});
+    // Milestones per twin. A new, empty table.
+    this.version(5)
+      .stores({ milestones: 'id, babyId' })
       .upgrade(() => {});
   }
 }
@@ -360,6 +366,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     milkStash: repo(db.milkStash),
     supplies: repo(db.supplies),
     caregivers: repo(db.caregivers),
+    milestones: repo(db.milestones),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 
