@@ -9,6 +9,7 @@ export function Stepper({
   onChange,
   min = 0,
   max = 999,
+  step = 1,
   hint,
 }: {
   label: string;
@@ -16,6 +17,7 @@ export function Stepper({
   onChange: (value: number) => void;
   min?: number;
   max?: number;
+  step?: number;
   hint?: string;
 }) {
   const { t } = useTranslation();
@@ -32,7 +34,7 @@ export function Stepper({
         <button
           type="button"
           className={btn}
-          onClick={() => onChange(clamp(value - 1))}
+          onClick={() => onChange(clamp(value - step))}
           disabled={value <= min}
           aria-label={t('common.decrease', { label })}
         >
@@ -52,7 +54,7 @@ export function Stepper({
         <button
           type="button"
           className={btn}
-          onClick={() => onChange(clamp(value + 1))}
+          onClick={() => onChange(clamp(value + step))}
           disabled={value >= max}
           aria-label={t('common.increase', { label })}
         >

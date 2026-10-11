@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarHeart } from 'lucide-react';
+import { AlertTriangle, Baby, CalendarHeart, ChevronRight } from 'lucide-react';
 import { ProgressBar } from '@/components/ProgressBar';
 import { pregnancyProgress } from '@/lib/pregnancy';
 import type { ISODate } from '@/data/types';
@@ -12,12 +12,15 @@ export function Countdown({
   overdueCount,
   overdueActive,
   onToggleOverdue,
+  showArrived,
 }: {
   dueDate: ISODate | null;
   overall: Progress;
   overdueCount: number;
   overdueActive: boolean;
   onToggleOverdue: () => void;
+  /** Offer the switch to the planner (only before birth). */
+  showArrived: boolean;
 }) {
   const { t } = useTranslation();
   const p = dueDate ? pregnancyProgress(dueDate, new Date()) : null;
@@ -54,6 +57,17 @@ export function Countdown({
         </p>
         <ProgressBar value={overall.done} max={overall.total} label={t('checklist.overall', { ...overall })} className="bg-surface!" />
       </div>
+
+      {showArrived && (
+        <Link to="/setup" className="flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4 py-2">
+          <Baby aria-hidden size={24} className="shrink-0 text-accent" />
+          <span className="flex-1">
+            <span className="block font-semibold">{t('twins.arrived')}</span>
+            <span className="block text-sm text-muted">{t('twins.arrivedHint')}</span>
+          </span>
+          <ChevronRight aria-hidden size={20} className="shrink-0 text-muted" />
+        </Link>
+      )}
 
       {overdueCount > 0 && (
         <button

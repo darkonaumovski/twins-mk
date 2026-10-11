@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { CommitInput, Field, Page, Section, Segmented, Select, TextInput } from '@/components/ui';
+import { Link } from 'react-router-dom';
+import { ChevronRight, Info, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { CommitInput, Field, Page, Section, Segmented, Select, TextInput, Toggle } from '@/components/ui';
 import { useDevicePrefs, useSettings, useStore } from '@/data/StoreContext';
 import { CURRENCIES } from '@/data/defaults';
 import { LANGUAGES } from '@/i18n';
@@ -9,6 +10,7 @@ import { pregnancyProgress } from '@/lib/pregnancy';
 import { ensurePersistentStorage, type PersistState } from '@/lib/storage';
 import type { Language, ParentId, ThemePref } from '@/data/types';
 import { useParentName } from '@/lib/parents';
+import { useBabies } from '@/features/twins/twins';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -16,6 +18,7 @@ export function SettingsPage() {
   const settings = useSettings();
   const prefs = useDevicePrefs();
   const parentName = useParentName();
+  const babies = useBabies();
   const [persist, setPersist] = useState<PersistState | null>(null);
 
   useEffect(() => {
@@ -72,6 +75,23 @@ export function SettingsPage() {
             )}
           </Field>
         ))}
+      </Section>
+
+      <Section title={t('settings.twins')}>
+        <Link to="/setup" className="-my-1 flex min-h-12 items-center gap-3 font-medium">
+          <span className="flex-1">{babies?.ready ? t('settings.editTwins') : t('settings.setUpTwins')}</span>
+          <ChevronRight aria-hidden size={20} className="text-muted" />
+        </Link>
+        {babies?.ready && (
+          <div>
+            <Toggle
+              label={t('settings.plannerMode')}
+              checked={settings.phase === 'planner'}
+              onChange={(on) => store.settings.update({ phase: on ? 'planner' : 'prep' })}
+            />
+            <p className="text-sm text-muted">{t('settings.plannerModeHint')}</p>
+          </div>
+        )}
       </Section>
 
       <Section title={t('settings.pregnancy')}>

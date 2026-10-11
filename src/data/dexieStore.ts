@@ -1,6 +1,7 @@
 import Dexie, { liveQuery, type Table } from 'dexie';
 import { planMerge, type MergeStats } from './merge';
-import type { DataStore, DevicePrefsRepository, Repository, SettingsRepository } from './repository';
+import { isTimed } from './logTypes';
+import type { DataStore, DevicePrefsRepository, LogRepository, Repository, SettingsRepository } from './repository';
 import type {
   Appointment,
   Baby,
@@ -8,7 +9,9 @@ import type {
   DevicePrefs,
   DoctorNote,
   Entity,
+  ISODateTime,
   LogEntry,
+  LogType,
   NewRecord,
   ParentTask,
   PrepItem,
@@ -145,6 +148,42 @@ class DexieRepository<T extends Entity> implements Repository<T> {
   }
 }
 
+class DexieLogRepository extends DexieRepository<LogEntry> implements LogRepository {
+  constructor(
+    private readonly logs: Table<LogEntry, string>,
+    ctx: Context,
+  ) {
+    super(logs, ctx);
+  }
+
+  async listBetween(from: ISODateTime, to: ISODateTime) {
+    const entries = await this.logs
+      .where('start')
+      .between(from, to, true, false)
+      .filter((e) => e.deletedAt === null)
+      .toArray();
+    // Same-minute entries (e.g. a "both" action) come back in id order; make it stable by twin.
+    return entries.sort((a, b) => a.start.localeCompare(b.start) || a.babyId.localeCompare(b.babyId));
+  }
+
+  latest(babyId: string, type: LogType) {
+    return this.logs
+      .where('[babyId+start]')
+      .between([babyId, Dexie.minKey], [babyId, Dexie.maxKey])
+      .reverse()
+      .filter((e) => e.deletedAt === null && e.type === type)
+      .first();
+  }
+
+  listRunning(since: ISODateTime) {
+    return this.logs
+      .where('start')
+      .aboveOrEqual(since)
+      .filter((e) => e.deletedAt === null && e.end === null && isTimed(e))
+      .toArray();
+  }
+}
+
 class DexieSettingsRepository implements SettingsRepository {
   private readonly repo: DexieRepository<SharedSettings>;
 
@@ -229,7 +268,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DataSto
     categories: repo(db.categories),
     prepItems: repo(db.prepItems),
     babies: repo(db.babies),
-    logs: repo(db.logs),
+    logs: new DexieLogRepository(db.logs, ctx),
     appointments: repo(db.appointments),
     routines: repo(db.routines),
     routineDone: repo(db.routineDone),

@@ -121,6 +121,7 @@ export function ChecklistPage() {
         overdueCount={view.overdueCount}
         overdueActive={filters.overdueOnly}
         onToggleOverdue={() => setFilters({ overdueOnly: !filters.overdueOnly })}
+        showArrived={settings.phase === 'prep'}
       />
 
       <div className="space-y-3">

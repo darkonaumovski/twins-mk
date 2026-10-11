@@ -6,7 +6,9 @@ import type {
   DevicePrefs,
   DoctorNote,
   Entity,
+  ISODateTime,
   LogEntry,
+  LogType,
   NewRecord,
   ParentTask,
   PrepItem,
@@ -37,6 +39,16 @@ export interface Repository<T extends Entity> {
   merge(incoming: T[]): Promise<MergeStats>;
 }
 
+/** Log entries need time-range queries that a generic repository does not offer. */
+export interface LogRepository extends Repository<LogEntry> {
+  /** Live entries whose start is in [from, to), oldest first. */
+  listBetween(from: ISODateTime, to: ISODateTime): Promise<LogEntry[]>;
+  /** The newest live entry of a type for one baby, if any. */
+  latest(babyId: string, type: LogType): Promise<LogEntry | undefined>;
+  /** Live timed entries (sleep, breastfeeding) still running, started after `since`. */
+  listRunning(since: ISODateTime): Promise<LogEntry[]>;
+}
+
 export interface SettingsRepository {
   get(): Promise<SharedSettings>;
   update(patch: Partial<Omit<SharedSettings, keyof Entity>>): Promise<SharedSettings>;
@@ -60,7 +72,7 @@ export interface SyncedCollections {
   categories: Repository<Category>;
   prepItems: Repository<PrepItem>;
   babies: Repository<Baby>;
-  logs: Repository<LogEntry>;
+  logs: LogRepository;
   appointments: Repository<Appointment>;
   routines: Repository<Routine>;
   routineDone: Repository<RoutineDone>;

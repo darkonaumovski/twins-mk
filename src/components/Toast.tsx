@@ -1,8 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface ToastOptions {
   message: string;
-  action?: { label: string; onClick: () => void };
+  action?: ToastAction;
+  /** A second, less prominent action (e.g. "Change" next to "Undo"). */
+  secondaryAction?: ToastAction;
 }
 
 interface ActiveToast extends ToastOptions {
@@ -42,17 +49,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className="pointer-events-auto flex w-full max-w-md items-center gap-2 rounded-2xl bg-ink py-2 pr-2 pl-4 text-bg shadow-lg"
           >
             <span className="flex-1 py-2">{toast.message}</span>
-            {toast.action && (
-              <button
-                type="button"
-                className="min-h-11 rounded-xl px-4 font-semibold text-bg underline-offset-2 hover:underline"
-                onClick={() => {
-                  toast.action!.onClick();
-                  setToast(null);
-                }}
-              >
-                {toast.action.label}
-              </button>
+            {[toast.secondaryAction, toast.action].map(
+              (action, i) =>
+                action && (
+                  <button
+                    key={i}
+                    type="button"
+                    className="min-h-11 rounded-xl px-3 font-semibold text-bg underline-offset-2 hover:underline"
+                    onClick={() => {
+                      action.onClick();
+                      setToast(null);
+                    }}
+                  >
+                    {action.label}
+                  </button>
+                ),
             )}
           </div>
         )}
