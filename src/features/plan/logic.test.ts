@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { Appointment, ParentTask, Routine, RoutineDone } from '@/data/types';
-import { reminderTime, scheduledOccurrences, sortTasks, upcomingItems, type UpcomingInput } from './logic';
+import {
+  dailyCareStatus,
+  medCheck,
+  reminderTime,
+  sameMed,
+  scheduledOccurrences,
+  sortTasks,
+  toMedLogs,
+  upcomingItems,
+  type MedLog,
+  type UpcomingInput,
+} from './logic';
 
 const meta = { createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '', deletedAt: null, deviceId: 'd' };
 const local = (d: number, h: number, m = 0) => new Date(2026, 9, d, h, m);
@@ -134,5 +145,86 @@ describe('sortTasks', () => {
       'c',
       'd',
     ]);
+  });
+});
+
+const vitD: Routine = {
+  ...meta,
+  id: 'vitd',
+  title: 'Vitamin D drops',
+  babies: 'both',
+  active: true,
+  rule: { kind: 'everyDays', days: 1, times: ['09:00'], startDate: '2026-10-01' },
+  med: { name: 'Vitamin D', dose: '1 drop', minIntervalHours: null },
+};
+const dose = (babyId: string, at: Date, name = 'vitamin d'): MedLog => ({ babyId, name, start: at.toISOString() });
+
+describe('medicines', () => {
+  it('matches medicine names ignoring case and spaces', () => {
+    expect(sameMed('Vitamin D', ' vitamin d ')).toBe(true);
+    expect(sameMed('Vitamin D', 'Vitamin K')).toBe(false);
+  });
+
+  it('shows daily medicine routines per twin with today’s doses', () => {
+    const logs = [dose('baby-A', local(11, 9, 5)), dose('baby-A', local(10, 9)), dose('baby-B', local(11, 8), 'Iron')];
+    const rows = dailyCareStatus([vitD, bath, { ...vitD, id: 'paused', active: false }], logs, local(11, 0), local(12, 0));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].cells).toEqual([
+      { slot: 'A', given: 1, planned: 1 },
+      { slot: 'B', given: 0, planned: 1 },
+    ]);
+  });
+
+  it('only warns when the parents set a minimum interval', () => {
+    const logs = [dose('baby-B', local(11, 9))];
+    const now = local(11, 11);
+    expect(medCheck(logs, 'B', 'Vitamin D', [vitD], now)).toEqual({
+      lastAt: local(11, 9).toISOString(),
+      minIntervalHours: null,
+      warn: false,
+    });
+
+    const withInterval = { ...vitD, med: { ...vitD.med!, minIntervalHours: 20 } };
+    expect(medCheck(logs, 'B', 'VITAMIN D', [withInterval], now)).toMatchObject({ minIntervalHours: 20, warn: true });
+    expect(medCheck(logs, 'B', 'Vitamin D', [withInterval], local(12, 6))).toMatchObject({ warn: false });
+    // The other twin has not had it, and an interval set for twin A only does not apply to B.
+    expect(medCheck(logs, 'A', 'Vitamin D', [withInterval], now)).toMatchObject({ lastAt: null, warn: false });
+    expect(medCheck(logs, 'B', 'Vitamin D', [{ ...withInterval, babies: 'A' }], now)).toMatchObject({
+      minIntervalHours: null,
+      warn: false,
+    });
+  });
+
+  it('marks a medicine routine as done in "Coming up" once each twin was given it that day', () => {
+    const base: UpcomingInput = {
+      routines: [{ ...vitD, rule: { kind: 'everyDays', days: 1, times: ['09:00', '21:00'], startDate: '2026-10-01' } }],
+      done: [],
+      latest: {},
+      appointments: [],
+      tasks: [],
+      now: local(11, 12),
+      pastMs: 12 * 3600_000,
+      aheadMs: 12 * 3600_000,
+    };
+    const keys = (medLogs: MedLog[]) => upcomingItems({ ...base, medLogs }).map((i) => i.at!.getHours());
+    expect(keys([])).toEqual([9, 21]);
+    // Only twin A had the morning dose: still open.
+    expect(keys([dose('baby-A', local(11, 9))])).toEqual([9, 21]);
+    expect(keys([dose('baby-A', local(11, 9)), dose('baby-B', local(11, 10))])).toEqual([21]);
+  });
+
+  it('reads medicine doses from log entries', () => {
+    const entry = {
+      ...meta,
+      id: 'm',
+      type: 'med',
+      babyId: 'baby-A',
+      start: 's',
+      end: null,
+      groupId: null,
+      loggedBy: 'p1',
+      data: { name: 'D', dose: '' },
+    };
+    expect(toMedLogs([entry as never, { ...entry, deletedAt: 'x' } as never])).toEqual([{ babyId: 'baby-A', name: 'D', start: 's' }]);
   });
 });

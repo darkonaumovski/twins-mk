@@ -19,6 +19,19 @@ export function useNow(intervalMs = 30_000): Date {
 }
 
 /** "1 h 05 min" / "1 ч 05 мин", or "12 min". */
+/** "just now" or "2 h 05 min ago" for a past moment. */
+export function useFormatAgo(): (since: string | Date, now?: Date) => string {
+  const { t } = useTranslation();
+  const formatMinutes = useFormatMinutes();
+  return useCallback(
+    (since, now = new Date()) => {
+      const minutes = Math.max(0, Math.floor((now.getTime() - new Date(since).getTime()) / 60_000));
+      return minutes < 1 ? t('today.justNow') : t('today.ago', { duration: formatMinutes(minutes) });
+    },
+    [t, formatMinutes],
+  );
+}
+
 export function useFormatMinutes(): (minutes: number) => string {
   const { t } = useTranslation();
   return useCallback(

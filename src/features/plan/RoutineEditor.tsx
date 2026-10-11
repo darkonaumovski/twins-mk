@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, X } from 'lucide-react';
+import { CalendarDays, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { Button, IconButton } from '@/components/Button';
 import { Stepper } from '@/components/Stepper';
@@ -9,10 +9,23 @@ import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useStore } from '@/data/StoreContext';
 import { todayISO } from '@/lib/format';
-import type { BabyScope, LogType, NewRecord, Routine, RoutineRule } from '@/data/types';
+import { parseAmount } from '@/features/checklist/logic';
+import type { BabyScope, LogType, NewRecord, Routine, RoutineMed, RoutineRule } from '@/data/types';
 import { ScopePicker, useLogTypeName } from './shared';
 
 const LOG_TYPES: LogType[] = ['feed', 'diaper', 'sleep', 'med'];
+
+/**
+ * Starting points for common routines. They only fill in a name and how often;
+ * the parents choose the times (and any dose) themselves.
+ */
+const TEMPLATES = [
+  { key: 'vitD', days: 1, med: true },
+  { key: 'bath', days: 2, med: false },
+  { key: 'tummy', days: 1, med: false },
+  { key: 'nails', days: 7, med: false },
+] as const;
+type TemplateKey = (typeof TEMPLATES)[number]['key'];
 
 export function useDescribeRoutine(): (rule: RoutineRule) => string {
   const { t } = useTranslation();
@@ -27,7 +40,16 @@ export function useDescribeRoutine(): (rule: RoutineRule) => string {
   );
 }
 
-export function RoutineEditor({ routine, onClose }: { routine: Routine | null; onClose: () => void }) {
+export function RoutineEditor({
+  routine,
+  onClose,
+  onAppointmentTemplate,
+}: {
+  routine: Routine | null;
+  onClose: () => void;
+  /** Opens a new appointment with the given title (from the "check-up" example). */
+  onAppointmentTemplate?: (title: string) => void;
+}) {
   const { t } = useTranslation();
   const store = useStore();
   const confirm = useConfirm();
@@ -43,6 +65,25 @@ export function RoutineEditor({ routine, onClose }: { routine: Routine | null; o
   const [times, setTimes] = useState<string[]>(rule?.kind === 'everyDays' ? rule.times : ['19:00']);
   const [startDate, setStartDate] = useState(rule?.kind === 'everyDays' ? rule.startDate : todayISO());
   const [active, setActive] = useState(routine?.active ?? true);
+  const [medOn, setMedOn] = useState(Boolean(routine?.med));
+  const [medName, setMedName] = useState(routine?.med?.name ?? '');
+  const [dose, setDose] = useState(routine?.med?.dose ?? '');
+  const [minHours, setMinHours] = useState(routine?.med?.minIntervalHours?.toString().replace('.', ',') ?? '');
+
+  const applyTemplate = (key: TemplateKey) => {
+    const template = TEMPLATES.find((x) => x.key === key)!;
+    const name = t(`routine.templates.${key}`);
+    setTitle(name);
+    setKind('everyDays');
+    setDays(template.days);
+    // The parents pick the time(s).
+    setTimes(['']);
+    setMedOn(template.med);
+    setMedName(template.med ? name : '');
+    setDose('');
+    setMinHours('');
+    setError(null);
+  };
   const [error, setError] = useState<string | null>(null);
 
   const save = async (e?: FormEvent) => {
@@ -51,11 +92,18 @@ export function RoutineEditor({ routine, onClose }: { routine: Routine | null; o
     if (kind === 'afterLast' && babies === 'none') return setError(t('routine.needsBaby'));
     const cleanTimes = [...new Set(times.filter(Boolean))].sort();
     if (kind === 'everyDays' && cleanTimes.length === 0) return setError(t('routine.needsTime'));
+    let med: RoutineMed | null = null;
+    if (medOn) {
+      const interval = minHours.trim() ? parseAmount(minHours) : null;
+      if (minHours.trim() && (interval === null || interval <= 0 || interval > 24 * 31)) return setError(t('med.invalidInterval'));
+      med = { name: (medName.trim() || title.trim()).slice(0, 80), dose: dose.trim(), minIntervalHours: interval };
+    }
     const record = {
       title: title.trim(),
       babies,
       active,
       rule: kind === 'afterLast' ? { kind, hours, logType } : { kind, days, times: cleanTimes, startDate },
+      med,
     } satisfies NewRecord<Routine>;
     if (routine) await store.routines.update(routine.id, record);
     else await store.routines.create(record);
@@ -92,6 +140,37 @@ export function RoutineEditor({ routine, onClose }: { routine: Routine | null; o
       }
     >
       <form id="routine-form" onSubmit={save} className="space-y-5" noValidate>
+        {!routine && (
+          <fieldset className="space-y-2 rounded-2xl bg-surface-2 p-3">
+            <legend className="sr-only">{t('routine.templatesTitle')}</legend>
+            <p className="flex items-start gap-2 text-sm text-muted">
+              <Sparkles aria-hidden size={16} className="mt-0.5 shrink-0 text-accent" />
+              {t('routine.templatesHint')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {TEMPLATES.map(({ key }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => applyTemplate(key)}
+                  className="min-h-11 rounded-full border border-line bg-surface px-4 text-sm font-medium"
+                >
+                  {t(`routine.templates.${key}`)}
+                </button>
+              ))}
+              {onAppointmentTemplate && (
+                <button
+                  type="button"
+                  onClick={() => onAppointmentTemplate(t('routine.templates.checkup'))}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-medium"
+                >
+                  <CalendarDays aria-hidden size={16} />
+                  {t('routine.templates.checkup')}
+                </button>
+              )}
+            </div>
+          </fieldset>
+        )}
         <Field label={t('routine.title')}>
           {(p) => (
             <TextInput
@@ -175,6 +254,35 @@ export function RoutineEditor({ routine, onClose }: { routine: Routine | null; o
             </Field>
           </>
         )}
+
+        <div className="space-y-3 rounded-2xl border border-line p-3">
+          <Toggle label={t('med.isMed')} checked={medOn} onChange={setMedOn} />
+          {medOn && (
+            <>
+              <Field label={t('med.name')} hint={t('med.nameHint')}>
+                {(p) => (
+                  <TextInput {...p} value={medName} placeholder={title} maxLength={80} onChange={(e) => setMedName(e.target.value)} />
+                )}
+              </Field>
+              <Field label={t('log.dose')} hint={t('med.doseHint')}>
+                {(p) => <TextInput {...p} value={dose} maxLength={80} onChange={(e) => setDose(e.target.value)} />}
+              </Field>
+              <Field label={t('med.minInterval')} hint={t('med.minIntervalHint')}>
+                {(p) => (
+                  <TextInput
+                    {...p}
+                    inputMode="decimal"
+                    value={minHours}
+                    onChange={(e) => {
+                      setMinHours(e.target.value);
+                      setError(null);
+                    }}
+                  />
+                )}
+              </Field>
+            </>
+          )}
+        </div>
 
         <Toggle label={t('routine.active')} checked={active} onChange={setActive} />
         {error && (

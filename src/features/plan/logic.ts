@@ -1,6 +1,7 @@
 import { addDays, differenceInCalendarDays, parseISO, startOfDay } from 'date-fns';
-import type { Appointment, BabyScope, ISODate, ParentTask, Routine, RoutineDone, TwinSlot } from '@/data/types';
+import type { Appointment, BabyScope, ISODate, ISODateTime, LogEntry, ParentTask, Routine, RoutineDone, TwinSlot } from '@/data/types';
 import { todayISO } from '@/lib/format';
+import { BABY_IDS } from '@/features/log/logic';
 
 export interface UpcomingItem {
   /** Stable key for one occurrence; used for "done" marks and to avoid duplicate notifications. */
@@ -64,6 +65,8 @@ export interface UpcomingInput {
   aheadMs: number;
   /** Appointments usually deserve a longer look-ahead than routines (default: `aheadMs`). */
   appointmentAheadMs?: number;
+  /** Logged medicine doses, so a medicine routine's occurrence counts as done once it was given that day. */
+  medLogs?: readonly MedLog[];
 }
 
 /**
@@ -83,6 +86,7 @@ export function upcomingItems(input: UpcomingInput): UpcomingItem[] {
       for (const at of scheduledOccurrences(r, from, to)) {
         const occurrence = at.toISOString();
         if (doneKeys.has(`${r.id}@${occurrence}`)) continue;
+        if (r.med && input.medLogs && medOccurrenceGiven(r, at, input.medLogs)) continue;
         items.push({ key: `routine:${r.id}:${occurrence}`, kind: 'routine', id: r.id, title: r.title, at, babies: r.babies, occurrence });
       }
     } else {
@@ -152,4 +156,115 @@ export function sortTasks(tasks: readonly ParentTask[]): ParentTask[] {
     if (b.due) return 1;
     return a.createdAt.localeCompare(b.createdAt);
   });
+}
+
+// ---------- Medicines ----------
+
+/** A logged medicine dose, reduced to what the medicine helpers need. */
+export interface MedLog {
+  babyId: string;
+  name: string;
+  start: ISODateTime;
+}
+
+export function toMedLogs(entries: readonly LogEntry[]): MedLog[] {
+  return entries.flatMap((e) =>
+    e.type === 'med' && e.deletedAt === null ? [{ babyId: e.babyId, name: e.data.name, start: e.start }] : [],
+  );
+}
+
+/** Medicine names match ignoring case and surrounding spaces ("Vitamin D" = "vitamin d "). */
+export function sameMed(a: string, b: string): boolean {
+  return a.trim().toLocaleLowerCase() === b.trim().toLocaleLowerCase();
+}
+
+/** Doses of one medicine for one twin in [from, to). */
+function dosesBetween(logs: readonly MedLog[], babyId: string, name: string, from: Date, to: Date): MedLog[] {
+  const f = from.toISOString();
+  const t = to.toISOString();
+  return logs.filter((l) => l.babyId === babyId && sameMed(l.name, name) && l.start >= f && l.start < t);
+}
+
+/**
+ * A medicine routine's occurrence counts as given when every twin it is for
+ * has at least as many doses that day as there are times up to this one
+ * (the second time of the day needs two doses, and so on).
+ */
+function medOccurrenceGiven(routine: Routine, at: Date, logs: readonly MedLog[]): boolean {
+  if (!routine.med || routine.rule.kind !== 'everyDays') return false;
+  const dayStart = startOfDay(at);
+  const dayEnd = addDays(dayStart, 1);
+  const index = [...routine.rule.times]
+    .sort()
+    .indexOf(`${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`);
+  const needed = Math.max(0, index) + 1;
+  const slots = slotsFor(routine.babies);
+  if (slots.length === 0) return false;
+  return slots.every((slot) => dosesBetween(logs, BABY_IDS[slot], routine.med!.name, dayStart, dayEnd).length >= needed);
+}
+
+/** Active medicine routines given every day: the ones shown in Today's "Daily care". */
+export function isDailyMed(routine: Routine): boolean {
+  return (
+    routine.deletedAt === null &&
+    routine.active &&
+    Boolean(routine.med?.name.trim()) &&
+    routine.rule.kind === 'everyDays' &&
+    routine.rule.days === 1
+  );
+}
+
+export interface CareCell {
+  slot: TwinSlot;
+  /** Doses logged today. */
+  given: number;
+  /** Doses planned per day (the routine's number of times). */
+  planned: number;
+}
+
+export interface CareRow {
+  routine: Routine;
+  cells: CareCell[];
+}
+
+/** For every daily medicine routine: how many doses each twin it is for got in [from, to). */
+export function dailyCareStatus(routines: readonly Routine[], logs: readonly MedLog[], from: Date, to: Date): CareRow[] {
+  return routines.filter(isDailyMed).map((routine) => ({
+    routine,
+    cells: slotsFor(routine.babies).map((slot) => ({
+      slot,
+      given: dosesBetween(logs, BABY_IDS[slot], routine.med!.name, from, to).length,
+      planned: routine.rule.kind === 'everyDays' ? Math.max(1, routine.rule.times.length) : 1,
+    })),
+  }));
+}
+
+export interface MedCheck {
+  /** When this twin last had this medicine, if ever (in the logs given). */
+  lastAt: ISODateTime | null;
+  /** The parents' minimum interval for this medicine and twin, if any routine sets one. */
+  minIntervalHours: number | null;
+  /** True only when a parent-set minimum interval has not passed yet. */
+  warn: boolean;
+}
+
+/**
+ * Before logging a dose: when did this twin last have it, and is that sooner than
+ * the minimum interval the parents set on a medicine routine? Without an interval
+ * there is never a warning.
+ */
+export function medCheck(logs: readonly MedLog[], slot: TwinSlot, name: string, routines: readonly Routine[], now: Date): MedCheck {
+  if (!name.trim()) return { lastAt: null, minIntervalHours: null, warn: false };
+  let lastAt: ISODateTime | null = null;
+  for (const l of logs) {
+    if (l.babyId === BABY_IDS[slot] && sameMed(l.name, name) && l.start <= now.toISOString() && (!lastAt || l.start > lastAt))
+      lastAt = l.start;
+  }
+  const intervals = routines
+    .filter((r) => r.deletedAt === null && r.med && sameMed(r.med.name, name) && slotsFor(r.babies).includes(slot))
+    .map((r) => r.med!.minIntervalHours)
+    .filter((h): h is number => typeof h === 'number' && h > 0);
+  const minIntervalHours = intervals.length ? Math.max(...intervals) : null;
+  const warn = lastAt !== null && minIntervalHours !== null && now.getTime() - new Date(lastAt).getTime() < minIntervalHours * 3600_000;
+  return { lastAt, minIntervalHours, warn };
 }

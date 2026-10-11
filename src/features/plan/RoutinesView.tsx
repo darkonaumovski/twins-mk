@@ -5,6 +5,7 @@ import { Button } from '@/components/Button';
 import { cx } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import type { Routine } from '@/data/types';
+import { AppointmentEditor } from './AppointmentEditor';
 import { RoutineEditor, useDescribeRoutine } from './RoutineEditor';
 import { ScopeBadges, useScopeLabel } from './shared';
 
@@ -13,6 +14,7 @@ export function RoutinesView() {
   const describe = useDescribeRoutine();
   const scopeLabel = useScopeLabel();
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
+  const [appointmentTitle, setAppointmentTitle] = useState<string | null>(null);
   const routines = useLive(async (s) => (await s.routines.list()).sort((a, b) => a.title.localeCompare(b.title)), []);
 
   return (
@@ -43,6 +45,7 @@ export function RoutinesView() {
                   </span>
                   <span className="block text-sm text-muted">
                     {describe(r.rule)} · {scopeLabel(r.babies)}
+                    {r.med?.dose && ` · ${r.med.dose}`}
                     {!r.active && ` · ${t('routine.paused')}`}
                   </span>
                 </span>
@@ -52,7 +55,19 @@ export function RoutinesView() {
           ))}
         </ul>
       )}
-      {editing && <RoutineEditor routine={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {editing && (
+        <RoutineEditor
+          routine={editing === 'new' ? null : editing}
+          onClose={() => setEditing(null)}
+          onAppointmentTemplate={(title) => {
+            setEditing(null);
+            setAppointmentTitle(title);
+          }}
+        />
+      )}
+      {appointmentTitle !== null && (
+        <AppointmentEditor appointment={null} defaultTitle={appointmentTitle} onClose={() => setAppointmentTitle(null)} />
+      )}
     </div>
   );
 }

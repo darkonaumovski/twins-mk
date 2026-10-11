@@ -15,6 +15,7 @@ import { useLastSides, useLogActions, useRunning } from '@/features/log/useLogAc
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } from '@/features/twins/twins';
 import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
 import { UpcomingSection } from '@/features/plan/UpcomingSection';
+import { DailyCareSection } from '@/features/plan/DailyCareSection';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -176,6 +177,8 @@ export function TodayPage() {
           <SinceCard key={slot} slot={slot} babies={babies} latest={latest} lastSide={lastSides?.[slot] ?? null} now={now} />
         ))}
       </div>
+
+      <DailyCareSection now={now} />
 
       <UpcomingSection now={now} />
 

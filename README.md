@@ -14,6 +14,13 @@ A calm, phone-first app for parents expecting twins.
 - **Feed the other twin too?** When one twin is fed and the other's next feed is due within 45 minutes (changeable in Settings, 0 turns it off), the app offers to open the feed sheet for the other twin.
 - Every log sheet is tinted with the chosen twin's colour, and the save button names the twin ("Save for Ema").
 
+### Medicines and care routines
+
+- **Medicine routines:** any routine can be marked "This is a medicine or supplement", with the name to log, the dose as your doctor gave it, and optionally a minimum time between doses. The app has no doses or intervals of its own.
+- **Daily care on Today:** each active daily medicine routine shows ✓ or – per twin for today. One tap logs the dose for that twin. A medicine routine in "Coming up" counts as done once each twin was given it that day.
+- **Before logging a dose:** if a twin had the same medicine sooner than the minimum time you set, the app asks "Ana already had Vitamin D 2 h ago. Log anyway?". Without a minimum time it only shows when it was last given.
+- **Examples:** the "Add routine" sheet offers Vitamin D, bath, tummy time, nail trim and a check-up / vaccination appointment as starting points. They fill in a name and how often; you choose the times. Check with your paediatrician.
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -217,7 +224,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight)
-- routine scheduling and upcoming items
+- routine scheduling and upcoming items, daily care per twin, and the medicine interval check (warns only with an interval the parents set)
 - chart scales and colour-pair rules
 - translation completeness (same keys, plural forms and placeholders in both languages)
 

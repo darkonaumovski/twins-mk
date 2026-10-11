@@ -174,11 +174,25 @@ export type RoutineRule =
   /** Every N days at fixed times of day (`HH:mm`), starting from `startDate`. */
   | { kind: 'everyDays'; days: number; times: string[]; startDate: ISODate };
 
+/**
+ * A medicine or supplement given on this routine. Everything here is entered by
+ * the parents (from their doctor); the app has no doses or intervals of its own.
+ */
+export interface RoutineMed {
+  /** Matched (ignoring case) against the name of logged medicine entries. */
+  name: string;
+  dose: string;
+  /** Minimum hours between two doses for one twin, if the parents set one. */
+  minIntervalHours: number | null;
+}
+
 export interface Routine extends Entity {
   title: string;
   babies: BabyScope;
   rule: RoutineRule;
   active: boolean;
+  /** Set when this routine is a medicine or supplement. Absent on older records. */
+  med?: RoutineMed | null;
 }
 
 /** Marks one generated occurrence of a routine as done. */

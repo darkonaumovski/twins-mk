@@ -1,7 +1,7 @@
 import { useLive } from '@/data/StoreContext';
 import type { TwinSlot } from '@/data/types';
 import { BABY_IDS } from '@/features/log/logic';
-import { slotsFor, upcomingItems, type UpcomingInput, type UpcomingItem } from './logic';
+import { slotsFor, toMedLogs, upcomingItems, type UpcomingInput, type UpcomingItem } from './logic';
 
 type Raw = Omit<UpcomingInput, 'now' | 'pastMs' | 'aheadMs' | 'appointmentAheadMs'>;
 
@@ -23,7 +23,14 @@ export function useUpcomingData(): Raw | undefined {
         if (found) latest[slot] = { ...latest[slot], [r.rule.logType]: found.start };
       }
     }
-    return { routines, done, appointments, tasks, latest };
+    // Recent medicine doses, so a medicine routine counts as done once it was given.
+    let medLogs: Raw['medLogs'] = [];
+    if (routines.some((r) => r.med && r.active)) {
+      const now = Date.now();
+      const entries = await s.logs.listBetween(new Date(now - 2 * 24 * 3600_000).toISOString(), new Date(now + 60_000).toISOString());
+      medLogs = toMedLogs(entries);
+    }
+    return { routines, done, appointments, tasks, latest, medLogs };
   }, []);
 }
 

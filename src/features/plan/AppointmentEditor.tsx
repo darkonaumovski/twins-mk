@@ -15,17 +15,20 @@ import { ScopePicker } from './shared';
 export function AppointmentEditor({
   appointment,
   defaultStart,
+  defaultTitle,
   onClose,
 }: {
   appointment: Appointment | null;
   defaultStart?: string;
+  /** Title for a new appointment, e.g. from an example. */
+  defaultTitle?: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const store = useStore();
   const confirm = useConfirm();
   const toast = useToast();
-  const [title, setTitle] = useState(appointment?.title ?? '');
+  const [title, setTitle] = useState(appointment?.title ?? defaultTitle ?? '');
   const [babies, setBabies] = useState<BabyScope>(appointment?.babies ?? 'both');
   const [start, setStart] = useState(toLocalInput(appointment?.start ?? defaultStart ?? new Date().toISOString()));
   const [location, setLocation] = useState(appointment?.location ?? '');

@@ -12,6 +12,9 @@ import { isTimed } from '@/data/logTypes';
 import { parseAmount } from '@/features/checklist/logic';
 import { colorOf, tintFor, twinStyle, useBabies, useTwinName } from '@/features/twins/twins';
 import { useParentName } from '@/lib/parents';
+import { useFormatAgo } from '@/lib/useNow';
+import { medCheck } from '@/features/plan/logic';
+import { useMedData, useMedGuard } from '@/features/plan/useMeds';
 import type { DiaperData, FeedData, LogEntry, LogType, Milk } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
@@ -102,6 +105,9 @@ export function EntryEditor(props: Props) {
   const name = useTwinName(babies);
   const parentName = useParentName();
   const { log } = useLogActions();
+  const medData = useMedData();
+  const medGuard = useMedGuard();
+  const ago = useFormatAgo();
   const entry = props.mode === 'edit' ? props.entry : null;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(entry, props.mode === 'edit' ? props.entry.type : props.type));
   const [who, setWho] = useState<Who>(props.mode === 'create' ? props.who : 'A');
@@ -182,6 +188,7 @@ export function EntryEditor(props: Props) {
     if (entry) {
       await store.logs.update(entry.id, { ...result, babyId: draft.babyId } as Partial<LogEntry>);
     } else {
+      if (result.type === 'med' && !(await medGuard(who === 'both' ? ['A', 'B'] : [who], result.data.name))) return;
       await log(who, result, t(titleKey[draft.type]));
     }
     props.onClose();
@@ -338,6 +345,21 @@ export function EntryEditor(props: Props) {
                 </>
               )}
             </Field>
+            {!entry && draft.medName.trim() && medData && (
+              <ul className="space-y-1 rounded-xl bg-surface-2 p-3 text-sm">
+                {(who === 'both' ? (['A', 'B'] as const) : [who]).map((slot) => {
+                  const check = medCheck(medData.logs, slot, draft.medName, medData.routines, new Date());
+                  return (
+                    <li key={slot} className={check.warn ? 'font-semibold text-danger' : 'text-muted'}>
+                      {check.lastAt
+                        ? t('med.lastGiven', { name: name(slot), when: ago(check.lastAt) })
+                        : t('med.neverGiven', { name: name(slot) })}
+                      {check.minIntervalHours !== null && ` · ${t('med.yourInterval', { hours: check.minIntervalHours })}`}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <Field label={t('log.dose')}>
               {(p) => <TextInput {...p} value={draft.dose} onChange={(e) => set('dose', e.target.value)} maxLength={80} />}
             </Field>
