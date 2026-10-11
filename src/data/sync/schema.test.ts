@@ -1,6 +1,8 @@
 import { PGlite } from '@electric-sql/pglite';
 import { beforeAll, describe, expect, it } from 'vitest';
 import schema from '../../../supabase/schema.sql?raw';
+import migration002 from '../../../supabase/migrations/002_pumping_stash_supplies.sql?raw';
+import { COLLECTIONS } from '../repository';
 
 /**
  * Runs supabase/schema.sql in an in-process Postgres with just enough of
@@ -118,6 +120,29 @@ describe('sync schema', () => {
     await expect(
       as(MOM, () => push(family, [{ ...record('z', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'secrets' }])),
     ).rejects.toThrow();
+  });
+
+  it('accepts every collection the app syncs', async () => {
+    for (const collection of COLLECTIONS) {
+      const row = { ...record(`c-${collection}`, '2026-10-11T08:00:00.000Z', 'mom'), collection };
+      expect(await as(MOM, () => push(family, [row])), collection).toBe(1);
+    }
+  });
+
+  it('upgrades a project made before pumping with migration 002', async () => {
+    // A project created with the first schema only knows the first ten collections.
+    await db.exec(`
+      alter table public.records drop constraint records_collection_check;
+      alter table public.records add constraint records_collection_check check (collection in
+        ('settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes'))
+        not valid;
+    `);
+    const pump = { ...record('p-old', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'pumps' };
+    // 23514 is what the app turns into "the sync server needs an update".
+    await expect(as(MOM, () => push(family, [pump]))).rejects.toMatchObject({ code: '23514' });
+    await db.exec(migration002);
+    await db.exec(migration002);
+    expect(await as(MOM, () => push(family, [pump]))).toBe(1);
   });
 
   it('lets a phone leave', async () => {

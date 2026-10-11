@@ -24,6 +24,25 @@ const { from, to } = localDay('2026-10-11');
 const late = new Date(2026, 9, 12, 12);
 
 describe('summarize', () => {
+  it('counts spit-ups, baths and tummy time', () => {
+    const s = summarize(
+      [
+        entry({ type: 'spitup', data: { size: 'small' } }),
+        entry({ type: 'spitup', data: { size: 'large' } }),
+        entry({ type: 'bath', data: {} }),
+        entry({ type: 'tummy', data: { minutes: 5 } }),
+        entry({ type: 'tummy', data: { minutes: 10 } }),
+        entry({ type: 'temp', data: { celsius: 37.2 } }),
+        entry({ type: 'bath', data: {}, babyId: 'baby-B' }),
+      ],
+      'baby-A',
+      from,
+      to,
+      late,
+    );
+    expect(s).toMatchObject({ spitups: 2, baths: 1, tummyMinutes: 15, feeds: 0 });
+  });
+
   it('adds top-up bottles after breastfeeds to the ml total', () => {
     const s = summarize(
       [

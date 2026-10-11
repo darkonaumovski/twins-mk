@@ -44,7 +44,8 @@ export interface SyncLocal {
   watchPending(onChange: (count: number) => void): () => void;
 }
 
-export type SyncErrorCode = 'offline' | 'notFound' | 'full' | 'serverSetup' | 'failed';
+/** `serverOutdated`: the server refuses a collection this version syncs (a migration in supabase/migrations/ was not run). */
+export type SyncErrorCode = 'offline' | 'notFound' | 'full' | 'serverSetup' | 'serverOutdated' | 'failed';
 
 export class SyncError extends Error {
   constructor(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAmountInput, formatMoney, safeUrl } from './format';
+import { formatAmountInput, formatMoney, formatNumber, safeUrl } from './format';
 
 describe('safeUrl', () => {
   it('allows http(s) and adds https to bare domains', () => {
@@ -32,5 +32,13 @@ describe('formatAmountInput', () => {
     expect(formatAmountInput(1234.5, 'mk')).toBe('1234,5');
     expect(formatAmountInput(1234.5, 'en')).toBe('1234.5');
     expect(formatAmountInput(null, 'en')).toBe('');
+  });
+});
+
+describe('formatNumber', () => {
+  it('uses a decimal comma in Macedonian and a point in English', () => {
+    expect(formatNumber(37.5, 'mk')).toBe('37,5');
+    expect(formatNumber(37.5, 'en')).toBe('37.5');
+    expect(formatNumber(2.46, 'mk')).toBe('2,5');
   });
 });

@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState, type PointerEvent } from 'react';
-import { TwinBadge } from '@/features/twins/twins';
 import { linear, niceTicks } from './scale';
-import { ChartFrame, ChartTable, type ChartSeries } from './ChartFrame';
+import { ChartFrame, ChartTable, SeriesMark, seriesFill, type ChartSeries } from './ChartFrame';
 import { useOutsideTap } from './useOutsideTap';
 
 export interface LinePoint {
@@ -113,14 +112,14 @@ export function LineChart({
               <polyline
                 points={s.points.map((p) => `${x(p.t)},${y(p.v)}`).join(' ')}
                 fill="none"
-                stroke={`var(--twin-${s.color})`}
+                stroke={seriesFill(s.color)}
                 strokeWidth={2}
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
             )}
             {s.points.map((p) => (
-              <circle key={p.t} cx={x(p.t)} cy={y(p.v)} r={4} fill={`var(--twin-${s.color})`} stroke="var(--c-surface)" strokeWidth={2} />
+              <circle key={p.t} cx={x(p.t)} cy={y(p.v)} r={4} fill={seriesFill(s.color)} stroke="var(--c-surface)" strokeWidth={2} />
             ))}
           </g>
         ))}
@@ -136,7 +135,7 @@ export function LineChart({
             ({ s, p }) =>
               p && (
                 <p key={s.id} className="flex items-center gap-2">
-                  <TwinBadge slot={s.slot} color={s.color} size="sm" />
+                  <SeriesMark series={s} />
                   <span className="flex-1 truncate">{s.label}</span>
                   <span className="font-semibold tabular-nums">{format(p.v)}</span>
                 </p>

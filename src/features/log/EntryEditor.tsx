@@ -15,7 +15,7 @@ import { useParentName } from '@/lib/parents';
 import { useFormatAgo } from '@/lib/useNow';
 import { medCheck } from '@/features/plan/logic';
 import { useMedData, useMedGuard } from '@/features/plan/useMeds';
-import type { DiaperData, FeedData, LogEntry, LogType, Milk } from '@/data/types';
+import type { DiaperData, FeedData, LogEntry, LogType, Milk, SpitupData } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
 import { WhoPicker } from './WhoPicker';
@@ -42,7 +42,14 @@ interface Draft {
   weight: string;
   length: string;
   text: string;
+  celsius: string;
+  spit: SpitupData['size'];
+  tummyMin: number;
 }
+
+/** Plausible body temperatures; only catches typing mistakes such as 375 for 37,5. */
+const TEMP_MIN = 30;
+const TEMP_MAX = 45;
 
 const hourAgo = () => new Date(Date.now() - 3600_000).toISOString();
 
@@ -67,6 +74,9 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
     weight: '',
     length: '',
     text: '',
+    celsius: '',
+    spit: 'small',
+    tummyMin: 5,
   };
   if (!entry) return d;
   switch (entry.type) {
@@ -89,6 +99,15 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
       break;
     case 'note':
       d.text = entry.data.text;
+      break;
+    case 'temp':
+      d.celsius = entry.data.celsius.toString().replace('.', ',');
+      break;
+    case 'spitup':
+      d.spit = entry.data.size;
+      break;
+    case 'tummy':
+      d.tummyMin = entry.data.minutes;
       break;
   }
   return d;
@@ -136,6 +155,10 @@ export function EntryEditor(props: Props) {
     med: 'log.med',
     measure: 'log.measure',
     note: 'log.note',
+    temp: 'log.temp',
+    spitup: 'log.spitup',
+    bath: 'log.bath',
+    tummy: 'log.tummy',
   } as const;
 
   const buildDraft = (): LogDraft | string => {
@@ -175,6 +198,17 @@ export function EntryEditor(props: Props) {
       case 'note':
         if (!draft.text.trim()) return t('log.required');
         return { type: 'note', data: { text: draft.text.trim() }, start, end: null };
+      case 'temp': {
+        const celsius = parseAmount(draft.celsius);
+        if (celsius === null || celsius < TEMP_MIN || celsius > TEMP_MAX) return t('log.tempInvalid');
+        return { type: 'temp', data: { celsius: Math.round(celsius * 10) / 10 }, start, end: null };
+      }
+      case 'spitup':
+        return { type: 'spitup', data: { size: draft.spit }, start, end: null };
+      case 'bath':
+        return { type: 'bath', data: {}, start, end: null };
+      case 'tummy':
+        return { type: 'tummy', data: { minutes: draft.tummyMin }, start, end: null };
     }
   };
 
@@ -390,6 +424,37 @@ export function EntryEditor(props: Props) {
               />
             )}
           </Field>
+        )}
+
+        {draft.type === 'temp' && (
+          <Field label={t('log.tempC')}>
+            {(p) => (
+              <TextInput
+                {...p}
+                inputMode="decimal"
+                value={draft.celsius}
+                onChange={(e) => set('celsius', e.target.value)}
+                placeholder="37,0"
+                data-autofocus={!entry || undefined}
+              />
+            )}
+          </Field>
+        )}
+
+        {draft.type === 'spitup' && (
+          <Segmented<SpitupData['size']>
+            label={t('log.spitup')}
+            value={draft.spit}
+            options={[
+              { value: 'small', label: t('log.spitSmall') },
+              { value: 'large', label: t('log.spitLarge') },
+            ]}
+            onChange={(v) => set('spit', v)}
+          />
+        )}
+
+        {draft.type === 'tummy' && (
+          <Stepper label={t('log.minutes')} value={draft.tummyMin} min={1} max={120} onChange={(v) => set('tummyMin', v)} />
         )}
 
         <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">

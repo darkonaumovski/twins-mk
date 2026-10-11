@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: Omit<SharedSettings, Exclude<keyof Entity, 'id'>>
   parent2Name: '',
   phase: 'prep',
   feedNudgeMin: 45,
+  stashUseWithinDays: { fridge: null, freezer: null },
 };
 
 export const DEFAULT_DEVICE_PREFS: Omit<DevicePrefs, 'deviceId'> = {

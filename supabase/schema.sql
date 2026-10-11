@@ -27,9 +27,7 @@ create sequence if not exists public.record_seq;
 
 create table if not exists public.records (
   family_id uuid not null references public.families (id) on delete cascade,
-  collection text not null check (
-    collection in ('settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes')
-  ),
+  collection text not null,
   id text not null check (length(id) between 1 and 100),
   -- ISO timestamps and device ids compare byte-wise, exactly like the app does.
   updated_at text collate "C" not null,
@@ -39,6 +37,16 @@ create table if not exists public.records (
   primary key (family_id, collection, id)
 );
 create index if not exists records_family_seq on public.records (family_id, seq);
+
+-- The collections the app syncs. Kept as a separate, named constraint so re-running
+-- this file (or a migration in supabase/migrations/) updates the list on older projects.
+alter table public.records drop constraint if exists records_collection_check;
+alter table public.records add constraint records_collection_check check (
+  collection in (
+    'settings', 'categories', 'prepItems', 'babies', 'logs', 'appointments', 'routines', 'routineDone', 'tasks', 'doctorNotes',
+    'pumps', 'milkStash', 'supplies'
+  )
+);
 
 -- ---------- Access rules ----------
 

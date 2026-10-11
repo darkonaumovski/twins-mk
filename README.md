@@ -21,6 +21,13 @@ A calm, phone-first app for parents expecting twins.
 - **Before logging a dose:** if a twin had the same medicine sooner than the minimum time you set, the app asks "Ana already had Vitamin D 2 h ago. Log anyway?". Without a minimum time it only shows when it was last given.
 - **Examples:** the "Add routine" sheet offers Vitamin D, bath, tummy time, nail trim and a check-up / vaccination appointment as starting points. They fill in a name and how often; you choose the times. Check with your paediatrician.
 
+### More to log, pumping, milk stash and supplies
+
+- **More:** the Quick Log panel keeps its main buttons; a "More" button opens temperature (°C), spit-up (small/large), bath and tummy time (minutes), plus pumping, the milk stash and supplies.
+- **Pumping** belongs to the mother, not a twin: ml per side (or a total) and minutes. One tap can add the milk to the **milk stash** (fridge or freezer). Pumping shows in the timeline and as "Pumped ml per day" in History.
+- **Milk stash** (More → Milk stash): totals for fridge and freezer, every container oldest first, with its age. If you enter your own "use within" days, it also shows the days left. A bottle of breast milk can take its millilitres from the stash, oldest container first.
+- **Supplies** (More → Supplies): count your diapers once (and, for formula, how much one tin makes and how many tins you have). The count then goes down by itself as you log: one diaper per diaper entry for each twin, and the ml of formula bottles and top-ups. It shows about how many days are left at the last 3 days' pace. When that drops below your threshold, Today shows a note with **+ pack** and **Add to the shopping list** (which puts the checklist item back on the shopping list).
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -137,6 +144,16 @@ Sync uses a free [Supabase](https://supabase.com) project as the server. The app
 
 Without these two values the app builds exactly as before, local only with backups.
 
+### Updating an existing sync server
+
+Some app versions sync new kinds of records, and the server has to be told about them once. **Run each new file in [`supabase/migrations/`](supabase/migrations) once, in order, before the phones get that app version:** Supabase dashboard → **SQL Editor → New query** → paste the file → **Run**. Running one twice does no harm. A brand-new project only needs `supabase/schema.sql`, which already includes all of them.
+
+| File                             | Needed for                           |
+| -------------------------------- | ------------------------------------ |
+| `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies |
+
+If a migration was missed, the updated phone shows "The sync server needs an update" under **Sync between phones**. Its changes wait on the phone and go up as soon as the migration has run. The older phone keeps working; it simply ignores records it does not know.
+
 Free Supabase projects are paused after a week with no activity at all. Daily use keeps the project awake. If it is paused, the phones keep working offline. Restore the project from the Supabase dashboard and they catch up.
 
 To try the sync screens locally without a server, run `VITE_SUPABASE_URL=memory npm run dev` (in-memory server, one browser tab, development only).
@@ -217,13 +234,15 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - sync between two simulated phones (joining with existing data, real-time updates, offline catch-up, conflicts, deletes, leaving, data from a newer version) against an in-memory server
 - the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message
 - the family password check
-- the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts
+- the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts, every synced collection accepted, and the migrations upgrading an older project
 - checklist quantities, filters and price parsing
 - the starter list and its v1 → v2 upgrade (edited or deleted items stay untouched, both phones end up identical)
 - the pregnancy countdown (due date, planned delivery date, pregnancy week)
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
-- daily summaries (including sleep across midnight)
+- daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
+- pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
+- supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
 - routine scheduling and upcoming items, daily care per twin, and the medicine interval check (warns only with an interval the parents set)
 - chart scales and colour-pair rules
 - translation completeness (same keys, plural forms and placeholders in both languages)

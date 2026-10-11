@@ -151,6 +151,32 @@ describe('sync engine', () => {
     expect(await dad.store.tasks.list()).toEqual([]);
   });
 
+  it('syncs pumping, the milk stash and supplies like everything else', async () => {
+    const { mom, dad } = await family();
+    const pump = await mom.store.pumps.create({
+      start: '2026-10-11T07:00:00.000Z',
+      minutes: 15,
+      leftMl: 60,
+      rightMl: 50,
+      totalMl: 110,
+      loggedBy: 'p1',
+    });
+    await mom.store.milkStash.create({ pumpedAt: pump.start, ml: 110, location: 'fridge', usedAt: null, pumpId: pump.id });
+    await dad.store.supplies.create({
+      id: 'supply-diapers',
+      source: 'diapers',
+      stock: 200,
+      countedAt: '2026-10-11T07:00:00.000Z',
+      packSize: 50,
+      lowThresholdDays: 3,
+    });
+    await Promise.all([mom.engine.syncNow(), dad.engine.syncNow()]);
+    await Promise.all([mom.engine.syncNow(), dad.engine.syncNow()]);
+    expect((await dad.store.pumps.list()).map((p) => p.totalMl)).toEqual([110]);
+    expect((await dad.store.milkStash.list()).map((s) => s.pumpId)).toEqual([pump.id]);
+    expect(await mom.store.supplies.get('supply-diapers')).toMatchObject({ stock: 200 });
+  });
+
   it('skips collections from a newer version instead of failing', async () => {
     const { server, mom, dad, membership } = await family();
     // A phone with a newer version uploads a collection this version does not know.

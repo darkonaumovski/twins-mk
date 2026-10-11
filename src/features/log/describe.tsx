@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Baby, Milk, Moon, NotebookPen, Pill, Ruler, type LucideIcon } from 'lucide-react';
+import { Baby, Bath, Droplets, Milk, Moon, NotebookPen, PersonStanding, Pill, Ruler, Thermometer, type LucideIcon } from 'lucide-react';
 import { useFormatMinutes } from '@/lib/useNow';
+import { formatNumber } from '@/lib/format';
 import type { LogEntry, LogType } from '@/data/types';
 import { minutesBetween } from './logic';
 
@@ -12,6 +13,10 @@ export const LOG_ICONS: Record<LogType, LucideIcon> = {
   med: Pill,
   measure: Ruler,
   note: NotebookPen,
+  temp: Thermometer,
+  spitup: Droplets,
+  bath: Bath,
+  tummy: PersonStanding,
 };
 
 export interface EntryText {
@@ -21,7 +26,7 @@ export interface EntryText {
 
 /** Human-readable title and detail for an entry, e.g. "Feed" / "Left · 15 min". */
 export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const formatMinutes = useFormatMinutes();
   return useCallback(
     (entry, now = new Date()) => {
@@ -65,11 +70,22 @@ export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
         }
         case 'note':
           return { title: t('log.note'), detail: entry.data.text };
+        case 'temp':
+          return {
+            title: t('log.temp'),
+            detail: t('log.summary.temp', { c: formatNumber(entry.data.celsius, i18n.language) }),
+          };
+        case 'spitup':
+          return { title: t('log.spitup'), detail: entry.data.size === 'large' ? t('log.spitLarge') : t('log.spitSmall') };
+        case 'bath':
+          return { title: t('log.bath'), detail: '' };
+        case 'tummy':
+          return { title: t('log.tummy'), detail: t('log.summary.minutes', { m: entry.data.minutes }) };
         default:
           // An entry type from a newer version of the app.
           return { title: t('log.unknown'), detail: '' };
       }
     },
-    [t, formatMinutes],
+    [t, i18n.language, formatMinutes],
   );
 }

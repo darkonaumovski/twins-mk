@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { History, Moon, Sun, type LucideIcon } from 'lucide-react';
+import { Ellipsis, History, Moon, Sun, type LucideIcon } from 'lucide-react';
 import { cx } from '@/components/ui';
 import { useBabies } from '@/features/twins/twins';
 import type { DiaperData } from '@/data/types';
@@ -96,6 +96,7 @@ export function QuickLogPanel({ onLogged }: { onLogged?: () => void }) {
         {forms.map((f) => (
           <BigButton key={f.type} icon={f.icon} label={f.label} onClick={() => ui.create(f.type, who)} className="min-h-14 text-sm" />
         ))}
+        <BigButton icon={Ellipsis} label={t('log.more')} onClick={() => ui.more(who)} className="col-span-2 min-h-14 text-sm" />
       </div>
     </div>
   );

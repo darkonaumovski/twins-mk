@@ -23,6 +23,14 @@ const MK_SYMBOLS: Record<string, string> = { MKD: 'ден.', EUR: '€', USD: '$
  * browsers ship without Macedonian number data and would fall back to "MKD 46,150".
  * German uses the same separators and is available everywhere.
  */
+/**
+ * A number for display: decimal comma in Macedonian (browsers often lack mk number data,
+ * so the German format, which matches it, is used), decimal point in English.
+ */
+export function formatNumber(value: number, language: string, maximumFractionDigits = 1): string {
+  return value.toLocaleString(language === 'mk' ? 'de-DE' : 'en-GB', { maximumFractionDigits });
+}
+
 export function formatMoney(amount: number, currency: string, language: string): string {
   const digits = { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 };
   if (language === 'mk') {

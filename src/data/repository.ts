@@ -9,13 +9,16 @@ import type {
   ISODateTime,
   LogEntry,
   LogType,
+  MilkStashItem,
   NewRecord,
   ParentTask,
   PrepItem,
+  Pump,
   RecordPatch,
   Routine,
   RoutineDone,
   SharedSettings,
+  Supply,
 } from './types';
 
 /**
@@ -80,6 +83,9 @@ export interface SyncedCollections {
   routineDone: Repository<RoutineDone>;
   tasks: Repository<ParentTask>;
   doctorNotes: Repository<DoctorNote>;
+  pumps: Repository<Pump>;
+  milkStash: Repository<MilkStashItem>;
+  supplies: Repository<Supply>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -95,6 +101,9 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'routineDone',
   'tasks',
   'doctorNotes',
+  'pumps',
+  'milkStash',
+  'supplies',
 ];
 
 export interface DataStore extends SyncedCollections {

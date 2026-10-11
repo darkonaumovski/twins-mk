@@ -21,6 +21,8 @@ const MorePage = lazy(() => import('@/features/more/MorePage').then((m) => ({ de
 const DoctorNotesPage = lazy(() => import('@/features/notes/DoctorNotesPage').then((m) => ({ default: m.DoctorNotesPage })));
 const PlanPage = lazy(() => import('@/features/plan/PlanPage').then((m) => ({ default: m.PlanPage })));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const StashPage = lazy(() => import('@/features/milk/StashPage').then((m) => ({ default: m.StashPage })));
+const SuppliesPage = lazy(() => import('@/features/supplies/SuppliesPage').then((m) => ({ default: m.SuppliesPage })));
 const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
 /** Home is the checklist before birth and Today after. */
@@ -53,6 +55,8 @@ export function App() {
                 <Route path="/plan" element={<PlanPage />} />
                 <Route path="/notes" element={<DoctorNotesPage />} />
                 <Route path="/more" element={<MorePage />} />
+                <Route path="/stash" element={<StashPage />} />
+                <Route path="/supplies" element={<SuppliesPage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/budget" element={<BudgetPage />} />

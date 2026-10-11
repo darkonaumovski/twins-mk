@@ -21,13 +21,16 @@ import type {
   ISODateTime,
   LogEntry,
   LogType,
+  MilkStashItem,
   NewRecord,
   ParentTask,
   PrepItem,
+  Pump,
   RecordPatch,
   Routine,
   RoutineDone,
   SharedSettings,
+  Supply,
 } from './types';
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
@@ -46,6 +49,9 @@ class TwinsDb extends Dexie {
   routineDone!: Table<RoutineDone, string>;
   tasks!: Table<ParentTask, string>;
   doctorNotes!: Table<DoctorNote, string>;
+  pumps!: Table<Pump, string>;
+  milkStash!: Table<MilkStashItem, string>;
+  supplies!: Table<Supply, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -70,6 +76,14 @@ class TwinsDb extends Dexie {
       outbox: '[collection+id]',
       syncMeta: 'key',
     });
+    // Pumping, milk stash and supplies. New, empty tables: nothing to convert.
+    this.version(3)
+      .stores({
+        pumps: 'id, start',
+        milkStash: 'id, pumpedAt',
+        supplies: 'id',
+      })
+      .upgrade(() => {});
   }
 }
 
@@ -336,6 +350,9 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     routineDone: repo(db.routineDone),
     tasks: repo(db.tasks),
     doctorNotes: repo(db.doctorNotes),
+    pumps: repo(db.pumps),
+    milkStash: repo(db.milkStash),
+    supplies: repo(db.supplies),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 

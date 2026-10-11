@@ -6,6 +6,8 @@ import { Button } from '@/components/Button';
 import { Stepper } from '@/components/Stepper';
 import { Segmented, Toggle, cx } from '@/components/ui';
 import { oneOf, positiveInt, useRemembered } from '@/lib/remember';
+import { useLive, useStore } from '@/data/StoreContext';
+import { drawFromStash, stashTotals } from '@/features/milk/logic';
 import { colorOf, tintFor, twinStyle, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
 import type { FeedData, Milk, TopUp, TwinSlot } from '@/data/types';
 import { BABY_IDS, SLOTS, slotOf, type BreastSide, type LogDraft, type Who } from './logic';
@@ -48,6 +50,11 @@ export function FeedSheet({ who: initialWho, onClose }: { who: Who; onClose: () 
   const name = useTwinName(babies);
   const lastSides = useLastSides();
   const { log } = useLogActions();
+  const store = useStore();
+  const stash = useLive((s) => s.milkStash.list(), []);
+  const stored = stash ? stashTotals(stash) : null;
+  const storedMl = stored ? stored.fridge + stored.freezer : 0;
+  const [fromStash, setFromStash] = useState(false);
   const [who, setWho] = useState<Who>(initialWho);
   const [method, setMethod] = useRemembered('twinsmk.feed.method', 'breast', oneOf('breast', 'bottle'));
   const [side, setSide] = useRemembered<BreastSide>('twinsmk.feed.side', 'left', oneOf('left', 'right', 'both'));
@@ -96,9 +103,18 @@ export function FeedSheet({ who: initialWho, onClose }: { who: Who; onClose: () 
     const start = new Date().toISOString();
     const amount = (babyId: string) => (both && splitMl && babyId === BABY_IDS.B ? mlB : ml);
     const what = both && splitMl ? `${t('log.bottle')} ${ml} + ${mlB} ml` : `${t('log.bottle')} ${ml} ml`;
-    return save(() =>
-      log(who, (babyId) => ({ type: 'feed', data: { method: 'bottle', ml: amount(babyId), milk }, start, end: null }), what),
-    );
+    const totalMl = both ? ml + (splitMl ? mlB : ml) : ml;
+    return save(async () => {
+      await log(who, (babyId) => ({ type: 'feed', data: { method: 'bottle', ml: amount(babyId), milk }, start, end: null }), what);
+      if (milk === 'breast' && fromStash && storedMl > 0) {
+        // Oldest milk first; a container only partly used keeps the rest.
+        const items = await store.milkStash.list();
+        const draw = drawFromStash(items, totalMl, new Date());
+        await store.transaction(async () => {
+          for (const c of draw.changes) await store.milkStash.update(c.id, { ml: c.ml, usedAt: c.usedAt });
+        });
+      }
+    });
   };
 
   return (
@@ -207,6 +223,12 @@ export function FeedSheet({ who: initialWho, onClose }: { who: Who; onClose: () 
               ]}
               onChange={setMilk}
             />
+            {milk === 'breast' && storedMl > 0 && (
+              <div className="rounded-2xl bg-surface-2 p-3">
+                <Toggle label={t('stash.useFromStash', { ml: storedMl })} checked={fromStash} onChange={setFromStash} />
+                <p className="text-sm text-muted">{t('stash.useFromStashHint')}</p>
+              </div>
+            )}
             <Button className="min-h-16 w-full text-lg" onClick={saveBottle}>
               {t('log.saveFor', { name: forWho })}
             </Button>

@@ -55,6 +55,10 @@ export function useLogTypeName(): (type: LogType) => string {
         med: t('log.med'),
         measure: t('log.measure'),
         note: t('log.note'),
+        temp: t('log.temp'),
+        spitup: t('log.spitup'),
+        bath: t('log.bath'),
+        tummy: t('log.tummy'),
       })[type],
     [t],
   );

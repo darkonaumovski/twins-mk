@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { TwinBadge } from '@/features/twins/twins';
 import { barPath, linear, niceTicks } from './scale';
-import { ChartFrame, ChartTable, type ChartSeries } from './ChartFrame';
+import { ChartFrame, ChartTable, SeriesMark, seriesFill, type ChartSeries } from './ChartFrame';
 import { useOutsideTap } from './useOutsideTap';
 
 export interface BarSeries extends ChartSeries {
@@ -72,7 +71,7 @@ export function BarChart({
               {active === i && <rect x={x0 + 1} y={M.top} width={band - 2} height={baseline - M.top} rx={4} fill="var(--c-surface-2)" />}
               {series.map((s, si) => {
                 const x = x0 + pad / 2 + si * (barW + GAP);
-                return <path key={s.id} d={barPath(x, y(s.values[i]), barW, baseline)} fill={`var(--twin-${s.color})`} />;
+                return <path key={s.id} d={barPath(x, y(s.values[i]), barW, baseline)} fill={seriesFill(s.color)} />;
               })}
               <text x={x0 + band / 2} y={height - 6} textAnchor="middle" fontSize={10} fill="var(--c-muted)">
                 {c.short}
@@ -108,7 +107,7 @@ export function BarChart({
           <p className="mb-1 font-semibold">{categories[active].long}</p>
           {series.map((s) => (
             <p key={s.id} className="flex items-center gap-2">
-              <TwinBadge slot={s.slot} color={s.color} size="sm" />
+              <SeriesMark series={s} />
               <span className="flex-1 truncate">{s.label}</span>
               <span className="font-semibold tabular-nums">{format(s.values[active])}</span>
             </p>

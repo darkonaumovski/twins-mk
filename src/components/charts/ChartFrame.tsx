@@ -8,8 +8,21 @@ import type { TwinColor, TwinSlot } from '@/data/types';
 export interface ChartSeries {
   id: string;
   label: string;
-  slot: TwinSlot;
-  color: TwinColor;
+  /** The twin this series belongs to; absent for a series about someone else (e.g. pumping). */
+  slot?: TwinSlot;
+  /** A twin colour, or `accent` for a series that is not about a twin. */
+  color: TwinColor | 'accent';
+}
+
+/** Fill colour for a series. */
+export function seriesFill(color: ChartSeries['color']): string {
+  return color === 'accent' ? 'var(--c-accent)' : `var(--twin-${color})`;
+}
+
+/** The twin's badge, or a plain dot for a series that is not about a twin. */
+export function SeriesMark({ series }: { series: ChartSeries }) {
+  if (series.slot && series.color !== 'accent') return <TwinBadge slot={series.slot} color={series.color} size="sm" />;
+  return <span aria-hidden className="inline-block size-3 shrink-0 rounded-full" style={{ background: seriesFill(series.color) }} />;
 }
 
 /**
@@ -39,7 +52,7 @@ export function ChartFrame({ title, series, chart, table }: { title: string; ser
         <ul className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {series.map((s) => (
             <li key={s.id} className="flex items-center gap-1.5">
-              <TwinBadge slot={s.slot} color={s.color} size="sm" />
+              <SeriesMark series={s} />
               {s.label}
             </li>
           ))}

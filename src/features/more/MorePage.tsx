@@ -1,6 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, ListChecks, NotebookPen, Settings, ShoppingCart, TrendingUp, Wallet, type LucideIcon } from 'lucide-react';
+import {
+  ChevronRight,
+  ListChecks,
+  NotebookPen,
+  Package,
+  Refrigerator,
+  Settings,
+  ShoppingCart,
+  TrendingUp,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react';
 import { Page } from '@/components/ui';
 
 function MenuGroup({ title, items }: { title?: string; items: { to: string; label: string; icon: LucideIcon }[] }) {
@@ -31,6 +42,8 @@ export function MorePage() {
         items={[
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },
+          { to: '/stash', label: t('stash.title'), icon: Refrigerator },
+          { to: '/supplies', label: t('supplies.title'), icon: Package },
         ]}
       />
       <MenuGroup

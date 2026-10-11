@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import en from '@/i18n/locales/en';
 import mk from '@/i18n/locales/mk';
 import type { AppliedChange } from '@/data/sync/types';
-import type { Entity, LogEntry, ParentTask, PrepItem } from '@/data/types';
+import type { Entity, LogEntry, MilkStashItem, ParentTask, PrepItem, Pump, Supply } from '@/data/types';
 import { changeAction, changeLine, fromOtherPhone, summarizeChanges, type ChangeTextHelpers } from './changes';
 
 const i18n = createInstance();
@@ -89,6 +89,23 @@ describe('change notifications', () => {
     expect(
       changeLine({ collection: 'routineDone', record: { ...meta(), routineId: 'r1', occurrence: 'x' } as Entity, previous: undefined }, h),
     ).toBe('Done: Vitamin D');
+  });
+
+  it('describes pumping, the milk stash and supplies', () => {
+    const pump = { ...meta({ id: 'p' }), start: 's', minutes: 15, leftMl: 60, rightMl: 50, totalMl: 110, loggedBy: 'p2' } as Pump;
+    expect(changeLine({ collection: 'pumps', record: pump, previous: undefined }, h)).toBe('Pumped 110 ml');
+    const stash = { ...meta({ id: 's' }), pumpedAt: 's', ml: 110, location: 'freezer', usedAt: null, pumpId: 'p' } as MilkStashItem;
+    expect(changeLine({ collection: 'milkStash', record: stash, previous: undefined }, h)).toBe('Milk stash: 110 ml in the freezer');
+    expect(changeLine({ collection: 'milkStash', record: { ...stash, ml: 30 } as MilkStashItem, previous: stash }, h)).toBe(
+      'Milk stash: 80 ml used, 30 ml left',
+    );
+    expect(changeLine({ collection: 'milkStash', record: { ...stash, usedAt: 'x' } as MilkStashItem, previous: stash }, h)).toBe(
+      'Milk stash: 110 ml used',
+    );
+    const supply = { ...meta({ id: 'supply-diapers' }), source: 'diapers' } as Supply;
+    expect(changeLine({ collection: 'supplies', record: supply, previous: undefined }, h)).toBe('Supplies updated: Diapers');
+    // A pumping session names the parent who logged it.
+    expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
   });
 
   it('summarises a "both twins" feed as one update from the parent who logged it', () => {

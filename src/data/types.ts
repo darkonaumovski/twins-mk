@@ -41,6 +41,8 @@ export interface SharedSettings extends Entity {
    * is due within this many minutes, offer to feed the other twin too.
    */
   feedNudgeMin: number;
+  /** "Use within" days for stored breast milk, as the parents set them (null = not set). */
+  stashUseWithinDays: { fridge: number | null; freezer: number | null };
 }
 
 /** Preferences for this phone only. Never exported or merged. */
@@ -124,7 +126,7 @@ export interface Baby extends Entity {
   feedIntervalMin?: number | null;
 }
 
-export type LogType = 'feed' | 'diaper' | 'sleep' | 'med' | 'measure' | 'note';
+export type LogType = 'feed' | 'diaper' | 'sleep' | 'med' | 'measure' | 'note' | 'temp' | 'spitup' | 'bath' | 'tummy';
 
 export type Milk = 'breast' | 'formula';
 /** A bottle given after a breastfeed (combination feeding). Absent on older entries. */
@@ -136,6 +138,10 @@ export type SleepData = Record<string, never>;
 export type MedData = { name: string; dose: string };
 export type MeasureData = { weightG: number | null; lengthCm: number | null };
 export type NoteData = { text: string };
+export type TempData = { celsius: number };
+export type SpitupData = { size: 'small' | 'large' };
+export type BathData = Record<string, never>;
+export type TummyData = { minutes: number };
 
 interface LogBase extends Entity {
   babyId: string;
@@ -153,7 +159,61 @@ export type LogEntry =
   | (LogBase & { type: 'sleep'; data: SleepData })
   | (LogBase & { type: 'med'; data: MedData })
   | (LogBase & { type: 'measure'; data: MeasureData })
-  | (LogBase & { type: 'note'; data: NoteData });
+  | (LogBase & { type: 'note'; data: NoteData })
+  | (LogBase & { type: 'temp'; data: TempData })
+  | (LogBase & { type: 'spitup'; data: SpitupData })
+  | (LogBase & { type: 'bath'; data: BathData })
+  | (LogBase & { type: 'tummy'; data: TummyData });
+
+// ---------- Pumping, milk stash and supplies ----------
+
+/**
+ * One pumping session. Kept apart from the twins' log entries: it belongs to the
+ * mother, and older app versions (which only know the `logs` collection) skip it.
+ */
+export interface Pump extends Entity {
+  start: ISODateTime;
+  minutes: number | null;
+  /** Millilitres per side, if noted separately. */
+  leftMl: number | null;
+  rightMl: number | null;
+  /** Total millilitres (the sum of the sides when both are given). */
+  totalMl: number;
+  loggedBy: ParentId;
+}
+
+export type StashLocation = 'fridge' | 'freezer';
+
+/** A container of stored breast milk. */
+export interface MilkStashItem extends Entity {
+  pumpedAt: ISODateTime;
+  /** What is left in it; a bottle can use part of it. */
+  ml: number;
+  location: StashLocation;
+  /** Set once it has been used up (or thrown away). */
+  usedAt: ISODateTime | null;
+  /** The pumping session it came from, if logged. */
+  pumpId: string | null;
+}
+
+/** What uses up a supply automatically. */
+export type SupplySource = 'diapers' | 'formula';
+
+/**
+ * A supply the app keeps count of. Stock is counted at `countedAt`; what is left now
+ * is that minus the use logged since (diaper entries, ml of formula). The stock itself
+ * is only written on a count or a restock, so two phones never race on a counter.
+ */
+export interface Supply extends Entity {
+  source: SupplySource;
+  /** Stock at `countedAt`, in pieces (diapers) or ml of prepared formula. */
+  stock: number;
+  countedAt: ISODateTime;
+  /** One pack: diapers per pack, or ml of prepared formula one tin makes. */
+  packSize: number;
+  /** Warn when fewer than this many days are left. */
+  lowThresholdDays: number;
+}
 
 // ---------- Planner ----------
 

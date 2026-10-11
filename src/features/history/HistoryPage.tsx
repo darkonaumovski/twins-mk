@@ -13,6 +13,7 @@ import { useNow } from '@/lib/useNow';
 import type { ISODate } from '@/data/types';
 import { BABY_IDS, SLOTS } from '@/features/log/logic';
 import { colorOf, useBabies, useTwinName } from '@/features/twins/twins';
+import { pumpedPerDay } from '@/features/milk/logic';
 import { DaySummaryView, Timeline, useDayEntries } from './DayViews';
 import { daysEnding, localDay, summarize, type DaySummary } from './summary';
 
@@ -28,6 +29,7 @@ function WeekCharts({ lastDay }: { lastDay: ISODate }) {
     (s) => s.logs.listBetween(addDays(parseISO(days[0]), -1).toISOString(), localDay(lastDay).to.toISOString()),
     [lastDay],
   );
+  const pumps = useLive((s) => s.pumps.list(), []);
   if (!entries || !babies) return null;
 
   const locale = dateLocale(i18n.language);
@@ -62,6 +64,14 @@ function WeekCharts({ lastDay }: { lastDay: ISODate }) {
       <BarChart title={t('history.ml')} categories={categories} series={series((s) => s.ml)} format={count} />
       <BarChart title={t('history.diapers')} categories={categories} series={series((s) => s.diapers)} format={count} />
       <BarChart title={t('history.sleep')} categories={categories} series={series((s) => s.sleepMinutes / 60)} format={hours} />
+      {pumps && pumps.length > 0 && (
+        <BarChart
+          title={t('history.pumped')}
+          categories={categories}
+          series={[{ id: 'mother', label: t('milk.mother'), color: 'accent', values: pumpedPerDay(pumps, days.map(localDay)) }]}
+          format={count}
+        />
+      )}
     </section>
   );
 }
@@ -109,7 +119,7 @@ export function HistoryPage() {
       {babies && day && (
         <>
           <DaySummaryView date={date} entries={day.all} babies={babies} now={now} />
-          <Timeline entries={day.starting} babies={babies} now={now} />
+          <Timeline entries={day.starting} pumps={day.pumps} babies={babies} now={now} />
           <WeekCharts lastDay={date} />
         </>
       )}

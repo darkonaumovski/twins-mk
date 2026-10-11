@@ -14,6 +14,9 @@ export interface DaySummary {
   /** Minutes asleep within the day; sleeps crossing midnight are split between the days. */
   sleepMinutes: number;
   meds: number;
+  spitups: number;
+  baths: number;
+  tummyMinutes: number;
 }
 
 export const EMPTY_SUMMARY: DaySummary = {
@@ -27,6 +30,9 @@ export const EMPTY_SUMMARY: DaySummary = {
   dirty: 0,
   sleepMinutes: 0,
   meds: 0,
+  spitups: 0,
+  baths: 0,
+  tummyMinutes: 0,
 };
 
 /** Minutes of [start, end) that fall inside [from, to). A running entry counts up to `now`. */
@@ -71,6 +77,15 @@ export function summarize(entries: readonly LogEntry[], babyId: string, from: Da
         break;
       case 'med':
         if (startsToday) sum.meds++;
+        break;
+      case 'spitup':
+        if (startsToday) sum.spitups++;
+        break;
+      case 'bath':
+        if (startsToday) sum.baths++;
+        break;
+      case 'tummy':
+        if (startsToday) sum.tummyMinutes += e.data.minutes;
         break;
     }
   }

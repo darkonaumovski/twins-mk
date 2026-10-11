@@ -16,6 +16,7 @@ import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } fr
 import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
 import { UpcomingSection } from '@/features/plan/UpcomingSection';
 import { DailyCareSection } from '@/features/plan/DailyCareSection';
+import { SuppliesBanner } from '@/features/supplies/SuppliesBanner';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -172,6 +173,8 @@ export function TodayPage() {
         </section>
       )}
 
+      <SuppliesBanner now={now} />
+
       <div className="grid grid-cols-2 gap-3">
         {SLOTS.map((slot) => (
           <SinceCard key={slot} slot={slot} babies={babies} latest={latest} lastSide={lastSides?.[slot] ?? null} now={now} />
@@ -192,7 +195,7 @@ export function TodayPage() {
           </section>
           <section className="space-y-2">
             <h2 className="px-1 text-sm font-semibold tracking-wide text-muted uppercase">{t('timeline.title')}</h2>
-            <Timeline entries={day.starting} babies={babies} now={now} />
+            <Timeline entries={day.starting} pumps={day.pumps} babies={babies} now={now} />
           </section>
         </>
       )}

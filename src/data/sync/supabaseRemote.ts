@@ -21,6 +21,8 @@ function toSyncError(error: { message?: string; code?: string } | null | undefin
   }
   if (message.includes('family_not_found')) return new SyncError('notFound');
   if (message.includes('family_full')) return new SyncError('full');
+  // A collection the server's check constraint does not list yet: a migration was not run.
+  if (code === '23514' && message.includes('records_collection_check')) return new SyncError('serverOutdated', message);
   // Anonymous sign-ins switched off, or schema.sql not run yet.
   if (code === 'anonymous_provider_disabled' || code === 'PGRST202' || code === 'PGRST205' || code === '42P01') {
     return new SyncError('serverSetup', `${code} ${message}`);

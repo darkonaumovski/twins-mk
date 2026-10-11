@@ -6,12 +6,15 @@ import type {
   Category,
   DoctorNote,
   LogEntry,
+  MilkStashItem,
   ParentId,
   ParentTask,
   PrepItem,
   PrepStatus,
+  Pump,
   Routine,
   RoutineDone,
+  Supply,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -105,6 +108,19 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       return t('changes.babies', { name: h.twin(c.record.id) || (c.record as Baby).name });
     case 'settings':
       return t('changes.settings');
+    case 'pumps':
+      return t(`changes.pumps.${action}`, { ml: (c.record as Pump).totalMl });
+    case 'milkStash': {
+      const item = c.record as MilkStashItem;
+      const prev = c.previous as MilkStashItem | undefined;
+      if (action === 'changed' && prev?.deletedAt === null) {
+        if (item.usedAt && !prev.usedAt) return t('changes.milkStash.used', { ml: prev.ml });
+        if (item.ml < prev.ml) return t('changes.milkStash.usedPart', { ml: prev.ml - item.ml, left: item.ml });
+      }
+      return t(`changes.milkStash.${action}`, { ml: item.ml, place: t(`stash.in.${item.location}`) });
+    }
+    case 'supplies':
+      return t('changes.supplies', { name: t(`supplies.${(c.record as Supply).source}`) });
   }
 }
 
@@ -126,8 +142,9 @@ export function summarizeChanges(changes: readonly AppliedChange[], me: ParentId
   // Newest first, and one line per distinct text (a "both twins" feed is two records).
   const ordered = [...changes].sort((a, b) => b.record.updatedAt.localeCompare(a.record.updatedAt));
   const lines = [...new Set(ordered.map((c) => changeLine(c, h)))];
-  const log = ordered.find((c) => c.collection === 'logs');
-  const parent: ParentId = log ? (log.record as LogEntry).loggedBy : me === 'p1' ? 'p2' : 'p1';
+  // Log entries and pumping sessions say who logged them.
+  const log = ordered.find((c) => c.collection === 'logs' || c.collection === 'pumps');
+  const parent: ParentId = log ? (log.record as LogEntry | Pump).loggedBy : me === 'p1' ? 'p2' : 'p1';
   const who = h.parentName(parent);
 
   const shown = lines.slice(0, max);

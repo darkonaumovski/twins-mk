@@ -5,7 +5,7 @@ import type { LogEntry, LogType } from './types';
  * from a phone running a newer version; they are kept (and synced) but not shown,
  * so an older screen never meets data it cannot draw.
  */
-export const KNOWN_LOG_TYPES: readonly LogType[] = ['feed', 'diaper', 'sleep', 'med', 'measure', 'note'];
+export const KNOWN_LOG_TYPES: readonly LogType[] = ['feed', 'diaper', 'sleep', 'med', 'measure', 'note', 'temp', 'spitup', 'bath', 'tummy'];
 
 const KNOWN = new Set<string>(KNOWN_LOG_TYPES);
 
