@@ -9,6 +9,7 @@ import {
   lastSide,
   nextFeedDue,
   shouldNudge,
+  stopBothGroups,
   fromLocalInput,
   minutesBetween,
   planSleepToggle,
@@ -218,5 +219,20 @@ describe('feeding helpers', () => {
     expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', otherFeeding: true })).toBe(false);
     expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', otherIntervalMin: null })).toBe(false);
     expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', windowMin: 0 })).toBe(false);
+  });
+});
+
+describe('stopBothGroups', () => {
+  const running = (babyId: string, type: 'sleep' | 'feed'): LogEntry =>
+    type === 'sleep' ? sleep(babyId) : { ...sleep(babyId), id: `f-${babyId}`, type: 'feed', data: { method: 'breast', side: 'left' } };
+
+  it('offers "stop both" only when both twins run the same kind of timer', () => {
+    expect(stopBothGroups([running(BABY_IDS.A, 'sleep'), running(BABY_IDS.B, 'sleep')]).map((g) => g.kind)).toEqual(['sleep']);
+    expect(stopBothGroups([running(BABY_IDS.A, 'sleep'), running(BABY_IDS.B, 'feed')])).toEqual([]);
+    expect(stopBothGroups([running(BABY_IDS.A, 'feed'), running(BABY_IDS.B, 'feed')])[0].entries.map((e) => e.babyId)).toEqual([
+      BABY_IDS.A,
+      BABY_IDS.B,
+    ]);
+    expect(stopBothGroups([running(BABY_IDS.A, 'sleep')])).toEqual([]);
   });
 });

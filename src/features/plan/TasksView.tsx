@@ -8,7 +8,7 @@ import { useDevicePrefs, useLive, useStore } from '@/data/StoreContext';
 import { formatShortDate, todayISO } from '@/lib/format';
 import { useCaregiverName, useCaregivers } from '@/lib/caregivers';
 import { useRemembered } from '@/lib/remember';
-import { CaregiverPicker } from '@/features/family/CaregiverPicker';
+import { Choice } from '@/components/Choice';
 import type { ParentTask } from '@/data/types';
 import { sortTasks } from './logic';
 import { TaskEditor } from './TaskEditor';
@@ -117,7 +117,7 @@ export function TasksView() {
           <Plus aria-hidden size={20} />
         </Button>
       </form>
-      <CaregiverPicker
+      <Choice
         label={t('task.assignee')}
         value={filter}
         options={[

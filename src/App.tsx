@@ -11,6 +11,7 @@ import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
 import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
 import { LastSeenTracker } from '@/features/family/Handover';
+import { TimerWakeLock } from '@/features/log/useLogActions';
 import { TodayPage } from '@/features/today/TodayPage';
 
 // Less-used screens load on demand (all are precached for offline use).
@@ -48,6 +49,7 @@ export function App() {
             <ReminderSync />
             <ChangeNotifier />
             <LastSeenTracker />
+            <TimerWakeLock />
             <UpdatePrompt />
             <Routes>
               <Route element={<AppShell />}>

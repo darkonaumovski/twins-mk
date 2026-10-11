@@ -1,16 +1,16 @@
 import { useId } from 'react';
-import { cx, Segmented } from '@/components/ui';
+import { cx, Segmented } from './ui';
 
-export interface PickerOption {
+export interface ChoiceOption {
   value: string;
   label: string;
 }
 
 /**
- * Picks one person (or "anyone"/"all"). Up to three options fit side by side;
- * with helpers there are more, so they wrap as large chips.
+ * Picks one of a few options. Up to three fit side by side as a segmented control;
+ * more (e.g. a family with helpers) wrap as large chips.
  */
-export function CaregiverPicker({
+export function Choice({
   label,
   value,
   options,
@@ -19,7 +19,7 @@ export function CaregiverPicker({
 }: {
   label: string;
   value: string;
-  options: PickerOption[];
+  options: ChoiceOption[];
   onChange: (value: string) => void;
   hint?: string;
 }) {

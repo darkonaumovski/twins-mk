@@ -10,15 +10,7 @@ import { useStore } from '@/data/StoreContext';
 import { BackupError, exportBackup, importBackup, parseBackup } from '@/data/backup';
 import { dateLocale } from '@/i18n';
 
-const LAST_BACKUP_KEY = 'twinsmk.lastBackup';
-
-function readLastBackup(): string | null {
-  try {
-    return localStorage.getItem(LAST_BACKUP_KEY);
-  } catch {
-    return null;
-  }
-}
+import { markBackupDone, readLastBackup } from './backupLogic';
 
 export function BackupSettings() {
   const { t, i18n } = useTranslation();
@@ -36,15 +28,7 @@ export function BackupSettings() {
     return new File([JSON.stringify(backup)], name, { type: 'application/json' });
   };
 
-  const remember = () => {
-    const now = new Date().toISOString();
-    setLastBackup(now);
-    try {
-      localStorage.setItem(LAST_BACKUP_KEY, now);
-    } catch {
-      /* only used for the "last backup" hint */
-    }
-  };
+  const remember = () => setLastBackup(markBackupDone());
 
   const download = async () => {
     const file = await makeFile();

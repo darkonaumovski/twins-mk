@@ -44,6 +44,27 @@ export default defineConfig({
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Long-press the home-screen icon: straight to logging a feed, a diaper or sleep.
+        shortcuts: [
+          {
+            name: 'Хранење · Feed',
+            short_name: 'Хранење',
+            url: './#/today?log=feed',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+          {
+            name: 'Пелена · Diaper',
+            short_name: 'Пелена',
+            url: './#/today?log=diaper',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+          {
+            name: 'Спиење · Sleep',
+            short_name: 'Спиење',
+            url: './#/today?log=sleep',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+        ],
       },
     }),
   ],

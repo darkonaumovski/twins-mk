@@ -118,6 +118,26 @@ body {
   }
 }
 
+/*
+ * Night: very dim and warm (little blue light) for feeds in the dark. Builds on .dark;
+ * text still meets 4.5:1 on its background. Twin colours stay as they are, so the
+ * twins remain easy to tell apart.
+ */
+.dark.night {
+  --c-bg: #0b0806;
+  --c-surface: #120d0a;
+  --c-surface-2: #1b1410;
+  --c-ink: #c8a07a;
+  --c-muted: #9a7a5f;
+  --c-line: #2b2018;
+  --c-accent: #b86d40;
+  --c-accent-soft: #24160e;
+  --c-on-accent: #0b0806;
+  --c-danger: #d0745a;
+  --c-ok: #a3a35e;
+  --c-warn: #c39050;
+}
+
 /* Printing (the doctor report): A4, black on white whatever the theme, no app chrome. */
 @media print {
   @page {

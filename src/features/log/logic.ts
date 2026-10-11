@@ -129,3 +129,22 @@ export function dayBounds(date: Date): { from: ISODateTime; to: ISODateTime } {
   const to = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
   return { from: from.toISOString(), to: to.toISOString() };
 }
+
+export interface StopBoth {
+  /** `sleep` or `feed` (breastfeeding). */
+  kind: 'sleep' | 'feed';
+  /** One running entry per twin. */
+  entries: LogEntry[];
+}
+
+/** Timers of the same kind running for both twins at once, so one tap can stop both. */
+export function stopBothGroups(running: readonly LogEntry[]): StopBoth[] {
+  const groups: StopBoth[] = [];
+  for (const kind of ['sleep', 'feed'] as const) {
+    const entries = [BABY_IDS.A, BABY_IDS.B].map((id) =>
+      running.find((e) => e.babyId === id && e.type === kind && e.end === null && isTimed(e)),
+    );
+    if (entries.every((e): e is LogEntry => e !== undefined)) groups.push({ kind, entries });
+  }
+  return groups;
+}

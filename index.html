@@ -19,8 +19,11 @@
       // Apply the saved theme before first paint so there is no white flash at night.
       try {
         var t = localStorage.getItem('twinsmk.theme');
-        var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        var h = new Date().getHours();
+        var night = t === 'night' || (t === 'autoNight' && (h >= 22 || h < 6));
+        var dark = night || t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
         if (dark) document.documentElement.classList.add('dark');
+        if (night) document.documentElement.classList.add('night');
       } catch (e) {}
     </script>
   </head>

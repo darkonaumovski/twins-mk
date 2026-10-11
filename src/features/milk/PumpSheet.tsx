@@ -9,6 +9,7 @@ import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useStore } from '@/data/StoreContext';
 import { oneOf, useRemembered } from '@/lib/remember';
+import { buzz } from '@/lib/device';
 import { fromLocalInput, toLocalInput } from '@/features/log/logic';
 import type { Pump, StashLocation } from '@/data/types';
 import { pumpTotal } from './logic';
@@ -57,6 +58,7 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
         toStash === 'yes' ? await store.milkStash.create({ pumpedAt: start, ml: totalMl, location, usedAt: null, pumpId: p.id }) : null;
       return { p, s };
     });
+    buzz(prefs);
     onClose();
     toast({
       message: created.s ? t('milk.loggedStash', { ml: totalMl, place: t(`stash.in.${location}`) }) : t('milk.logged', { ml: totalMl }),

@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Page } from '@/components/ui';
+import { BackupReminder } from '@/features/settings/BackupReminder';
 
 function MenuGroup({ title, items }: { title?: string; items: { to: string; label: string; icon: LucideIcon }[] }) {
   return (
@@ -38,6 +39,7 @@ export function MorePage() {
   const { t } = useTranslation();
   return (
     <Page title={t('more.title')}>
+      <BackupReminder link />
       <MenuGroup
         title={t('more.babies')}
         items={[

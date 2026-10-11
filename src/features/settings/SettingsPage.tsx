@@ -10,6 +10,8 @@ import { pregnancyProgress } from '@/lib/pregnancy';
 import { ensurePersistentStorage, type PersistState } from '@/lib/storage';
 import type { Language, ThemePref } from '@/data/types';
 import { FamilySettings, NightDutySettings } from '@/features/family/FamilySettings';
+import { Choice } from '@/components/Choice';
+import { BackupReminder } from './BackupReminder';
 import { useBabies } from '@/features/twins/twins';
 import { RemindersSettings } from '@/features/plan/RemindersSettings';
 import { BackupSettings } from './BackupSettings';
@@ -38,6 +40,8 @@ export function SettingsPage() {
 
   return (
     <Page title={t('settings.title')}>
+      <BackupReminder />
+
       <Section title={t('settings.general')}>
         <Segmented<Language>
           label={t('settings.language')}
@@ -45,16 +49,27 @@ export function SettingsPage() {
           options={LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
           onChange={(language) => store.device.update({ language })}
         />
-        <Segmented<ThemePref>
+        <Choice
           label={t('settings.theme')}
           value={prefs.theme}
           options={[
             { value: 'system', label: t('settings.themeSystem') },
             { value: 'light', label: t('settings.themeLight') },
             { value: 'dark', label: t('settings.themeDark') },
+            { value: 'night', label: t('settings.themeNight') },
+            { value: 'autoNight', label: t('settings.themeAutoNight') },
           ]}
-          onChange={(theme) => store.device.update({ theme })}
+          onChange={(theme) => store.device.update({ theme: theme as ThemePref })}
+          hint={t('settings.themeNightHint')}
         />
+        <div>
+          <Toggle
+            label={t('settings.haptics')}
+            checked={prefs.haptics !== false}
+            onChange={(haptics) => store.device.update({ haptics })}
+          />
+          <p className="text-sm text-muted">{t('settings.hapticsHint')}</p>
+        </div>
       </Section>
 
       <FamilySettings />

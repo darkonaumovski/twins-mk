@@ -22,7 +22,8 @@ export type NewRecord<T extends Entity> = Omit<T, keyof Entity> & { id?: string 
 export type RecordPatch<T extends Entity> = Partial<Omit<T, keyof Entity>>;
 
 export type Language = 'mk' | 'en';
-export type ThemePref = 'system' | 'light' | 'dark';
+/** `night`: a very dim, warm palette; `autoNight`: that palette from 22:00 to 06:00, otherwise the phone's setting. */
+export type ThemePref = 'system' | 'light' | 'dark' | 'night' | 'autoNight';
 /**
  * Who logged or does something. The two parents are `p1` and `p2` (fixed ids, names in the
  * shared settings); helpers such as a grandparent or a nanny are `caregivers` records.
@@ -81,6 +82,8 @@ export interface DevicePrefs {
   sync?: SyncMembership | null;
   /** When this phone last left the app (went to the background); powers "since you last opened". */
   lastSeenAt?: ISODateTime | null;
+  /** A short vibration after logging (absent means on). */
+  haptics?: boolean;
   /** `onDuty`: during a night shift that belongs to someone else, do not announce their changes. */
   changeAlertsMode?: 'always' | 'onDuty';
 }

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useLive, useStore } from '@/data/StoreContext';
 import { newId } from '@/lib/ids';
+import { buzz, useWakeLock } from '@/lib/device';
 import type { LogEntry, TwinSlot } from '@/data/types';
 import { useBabies, useTwinName } from '@/features/twins/twins';
 import { BABY_IDS, buildEntries, lastSide, planSleepToggle, SLOTS, shouldNudge, type BreastSide, type LogDraft, type Who } from './logic';
@@ -12,6 +13,13 @@ const RUNNING_WINDOW_MS = 7 * 24 * 3600_000;
 /** Running timers (sleep, breastfeeding) from the last week. */
 export function useRunning(): LogEntry[] | undefined {
   return useLive((s) => s.logs.listRunning(new Date(Date.now() - RUNNING_WINDOW_MS).toISOString()), []);
+}
+
+/** Keeps the screen on while any timer (sleep, breastfeeding) runs. */
+export function TimerWakeLock() {
+  const running = useRunning();
+  useWakeLock((running?.length ?? 0) > 0);
+  return null;
 }
 
 /** The side of each twin's latest breastfeed (looking back over its recent feeds). */
@@ -59,6 +67,7 @@ export function useLogActions() {
   /** Logs one draft (or one per twin) for one or both twins. `what` names it in the confirmation toast. */
   const log = async (who: Who, draft: LogDraft | ((babyId: string) => LogDraft), what: string) => {
     const created = await store.logs.createMany(buildEntries(who, draft, prefs?.parent ?? 'p1', newId));
+    buzz(prefs);
     const undo = {
       label: t('common.undo'),
       onClick: () => void store.transaction(async () => Promise.all(created.map((e) => store.logs.remove(e.id)))),
@@ -94,6 +103,7 @@ export function useLogActions() {
   const stopTimers = async (entries: readonly LogEntry[], what: string, who: Who) => {
     const end = new Date().toISOString();
     await store.transaction(async () => Promise.all(entries.map((e) => store.logs.update(e.id, { end }))));
+    buzz(prefs);
     toast({
       message: t('log.logged', { what, who: whoLabel(who) }),
       action: {

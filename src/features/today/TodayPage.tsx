@@ -1,16 +1,17 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Hospital, House, Square } from 'lucide-react';
 import { useToast } from '@/components/Toast';
-import { cx } from '@/components/ui';
-import { Page } from '@/components/ui';
+import { cx, Page } from '@/components/ui';
 import { useLive, useStore } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { useFormatMinutes, useNow } from '@/lib/useNow';
 import type { LogEntry, TwinSlot } from '@/data/types';
 import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
-import { BABY_IDS, minutesBetween, nextFeedDue, SLOTS, slotOf, type BreastSide } from '@/features/log/logic';
+import { BABY_IDS, minutesBetween, nextFeedDue, SLOTS, slotOf, stopBothGroups, type BreastSide } from '@/features/log/logic';
+import { useWho } from '@/features/log/WhoPicker';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { QuickLogPanel } from '@/features/log/QuickLogPanel';
 import { useLastSides, useLogActions, useRunning } from '@/features/log/useLogActions';
@@ -161,6 +162,17 @@ export function TodayPage() {
   const name = useTwinName(babies);
   const ui = useLogUI();
   const { stopTimers } = useLogActions();
+  const [who] = useWho();
+  const [params, setParams] = useSearchParams();
+  const shortcut = params.get('log');
+
+  // Home-screen shortcuts open Today with ?log=feed|diaper|sleep: open the matching sheet once.
+  useEffect(() => {
+    if (!shortcut || !babies?.ready) return;
+    if (shortcut === 'feed') ui.feed(who);
+    else if (shortcut === 'diaper' || shortcut === 'sleep') ui.quick();
+    setParams({}, { replace: true });
+  }, [shortcut, babies?.ready, ui, who, setParams]);
   const dayKey = format(now, 'yyyy-MM-dd');
   const day = useDayEntries(dayKey);
 
@@ -182,6 +194,20 @@ export function TodayPage() {
     >
       {running.length > 0 && (
         <section aria-label={t('today.running')} className="space-y-2">
+          {stopBothGroups(running).map((group) => {
+            const what = group.kind === 'sleep' ? t('log.sleep') : t('log.breast');
+            return (
+              <button
+                key={group.kind}
+                type="button"
+                onClick={() => stopTimers(group.entries, what, 'both')}
+                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-ink px-5 font-semibold text-bg"
+              >
+                <Square aria-hidden size={18} fill="currentColor" />
+                {t('today.stopBoth', { what })}
+              </button>
+            );
+          })}
           {running.map((e) => {
             const slot = slotOf(e.babyId);
             const what = describe(e, now);

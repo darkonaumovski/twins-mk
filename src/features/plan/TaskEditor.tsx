@@ -8,7 +8,7 @@ import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useStore } from '@/data/StoreContext';
 import { useCaregivers } from '@/lib/caregivers';
-import { CaregiverPicker } from '@/features/family/CaregiverPicker';
+import { Choice } from '@/components/Choice';
 import type { ParentTask } from '@/data/types';
 
 /** A caregiver id, or `any` for nobody in particular. */
@@ -69,7 +69,7 @@ export function TaskEditor({ task, onClose }: { task: ParentTask; onClose: () =>
         <Field label={t('task.title')}>
           {(p) => <TextInput {...p} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} />}
         </Field>
-        <CaregiverPicker
+        <Choice
           label={t('task.assignee')}
           value={assignee}
           options={[{ value: 'any', label: t('task.anyone') }, ...caregivers.map((c) => ({ value: c.id, label: c.name }))]}

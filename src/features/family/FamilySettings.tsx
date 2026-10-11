@@ -6,7 +6,7 @@ import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useLive, useSettings, useStore } from '@/data/StoreContext';
 import { MAX_CAREGIVERS, PARENT_IDS, useCaregivers } from '@/lib/caregivers';
 import type { NightShift } from '@/data/types';
-import { CaregiverPicker } from './CaregiverPicker';
+import { Choice } from '@/components/Choice';
 
 /** Who uses this phone, the parents' names and helpers (grandparents, a nanny…). */
 export function FamilySettings() {
@@ -31,7 +31,7 @@ export function FamilySettings() {
 
   return (
     <Section title={t('settings.family')}>
-      <CaregiverPicker
+      <Choice
         label={t('settings.thisPhone')}
         value={caregivers.some((c) => c.id === prefs.parent) ? prefs.parent : 'p1'}
         options={caregivers.map((c) => ({ value: c.id, label: c.name }))}

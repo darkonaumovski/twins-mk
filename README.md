@@ -40,6 +40,15 @@ A calm, phone-first app for parents expecting twins.
 - **In hospital:** the house/hospital button on a twin's card on Today marks where the twin is. A twin in hospital is dimmed on Today, and Today shows when milk was last pumped, with one tap to log pumping or a visit. Routines can be marked **Only when the twin is at home** (a bath, for example), and they then leave out a twin in hospital.
 - **Report for the doctor** (More → Report, or from Notes for the doctor): pick a twin or both and the last 7, 14 or 30 days. It shows a daily table per twin (feeds, ml, breast minutes, wet/dirty diapers, sleep hours, medicines) with averages, the growth measurements and the open questions for the doctor. **Print / Save as PDF** prints it on A4; **Share** sends it as text where the phone supports it.
 
+### At night
+
+- **Night appearance:** **Settings → Appearance → Night** is a very dim, warm palette with little blue light for feeds in the dark. **Auto night (22–06)** switches to it in the evening and back in the morning.
+- **Screen stays on** while a sleep or breastfeeding timer runs (where the phone allows it), and turns off normally again when the timer stops or the app goes to the background.
+- **Vibration** confirms each entry with a short buzz (Android; can be turned off per phone in Settings).
+- **Stop both:** when both twins have a sleep (or breastfeeding) timer running, one button stops both.
+- **Home-screen shortcuts:** long-press the app icon (Android) for **Feed**, **Diaper** and **Sleep**, which open Today with the right sheet.
+- **Backup reminder:** with sync off, Settings and More show a gentle note when this phone has not made a backup for over a week.
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -260,6 +269,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital
 - actual and corrected age, weight change since birth, and the doctor's report (daily rows, totals, open notes)
 - chart scales and colour-pair rules
+- the night appearance switch, "stop both" timers and the backup reminder
 - translation completeness (same keys, plural forms and placeholders in both languages)
 
 ## Privacy
