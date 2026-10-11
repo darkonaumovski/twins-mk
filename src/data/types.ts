@@ -47,6 +47,17 @@ export interface DevicePrefs {
   notifications: boolean;
   /** Version of the starter checklist already added on this device (absent on older installs). */
   seedVersion?: number;
+  /** Tell this phone about the other parent's synced changes (absent means on). */
+  changeAlerts?: boolean;
+  /** The family this phone syncs with, if sync is on. */
+  sync?: SyncMembership | null;
+}
+
+/** Which family a phone syncs with. */
+export interface SyncMembership {
+  familyId: string;
+  /** Join code, kept so the other phone can be added later and to rejoin after a lost sign-in. */
+  code: string;
 }
 
 // ---------- Preparation checklist ----------

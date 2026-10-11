@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Info, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ChevronRight, Info, Lock, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { CommitInput, Field, Page, Section, Segmented, Select, TextInput, Toggle } from '@/components/ui';
 import { useDevicePrefs, useSettings, useStore } from '@/data/StoreContext';
 import { CURRENCIES } from '@/data/defaults';
@@ -14,6 +14,9 @@ import { useBabies } from '@/features/twins/twins';
 import { RemindersSettings } from '@/features/plan/RemindersSettings';
 import { BackupSettings } from './BackupSettings';
 import { InstallSettings } from './InstallSettings';
+import { SyncSettings } from './SyncSettings';
+import { useLockNow } from '@/features/lock/LockGate';
+import { Button } from '@/components/Button';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -23,6 +26,7 @@ export function SettingsPage() {
   const parentName = useParentName();
   const babies = useBabies();
   const [persist, setPersist] = useState<PersistState | null>(null);
+  const lockNow = useLockNow();
 
   useEffect(() => {
     void ensurePersistentStorage().then(setPersist);
@@ -79,6 +83,8 @@ export function SettingsPage() {
           </Field>
         ))}
       </Section>
+
+      <SyncSettings />
 
       <Section title={t('settings.twins')}>
         <Link to="/setup" className="-my-1 flex min-h-12 items-center gap-3 font-medium">
@@ -144,6 +150,16 @@ export function SettingsPage() {
       <BackupSettings />
 
       <InstallSettings />
+
+      {lockNow && (
+        <Section title={t('lock.title')}>
+          <p className="text-sm text-muted">{t('lock.explain')}</p>
+          <Button variant="secondary" className="w-full" onClick={lockNow}>
+            <Lock aria-hidden size={18} />
+            {t('lock.lockNow')}
+          </Button>
+        </Section>
+      )}
 
       <Section title={t('settings.storage')}>
         {persist && (

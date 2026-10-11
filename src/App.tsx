@@ -9,6 +9,7 @@ import { useSettings } from '@/data/StoreContext';
 import { ChecklistPage } from '@/features/checklist/ChecklistPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
+import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
 import { TodayPage } from '@/features/today/TodayPage';
 
 // Less-used screens load on demand (all are precached for offline use).
@@ -41,6 +42,7 @@ export function App() {
         <ConfirmProvider>
           <LogUIProvider>
             <ReminderSync />
+            <ChangeNotifier />
             <UpdatePrompt />
             <Routes>
               <Route element={<AppShell />}>

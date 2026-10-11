@@ -28,8 +28,8 @@ export default defineConfig({
       },
       includeAssets: ['icon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Twins.MK',
-        short_name: 'Twins.MK',
+        name: 'Twins Organizer',
+        short_name: 'Twins Organizer',
         description: 'Подготовка и дневен планер за близнаци · Preparation checklist and daily planner for twins',
         lang: 'mk',
         start_url: './',
@@ -51,7 +51,8 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         // Libraries change less often than the app: a separate chunk keeps updates small.
-        codeSplitting: { groups: [{ name: 'vendor', test: /node_modules/ }] },
+        // The sync client (Supabase) is left out: it loads on demand, only on phones that sync.
+        codeSplitting: { groups: [{ name: 'vendor', test: /node_modules[\\/](?!@supabase[\\/])/ }] },
       },
     },
   },

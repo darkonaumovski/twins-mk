@@ -4,7 +4,7 @@ import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<{ url: string; revision: string | null }> };
 
 // The whole app (HTML, JS, CSS, icons) is precached, so it works fully offline.
-// There are no runtime network requests to cache: all data lives in IndexedDB.
+// Data lives in IndexedDB; sync requests (if turned on) go straight to the network.
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 

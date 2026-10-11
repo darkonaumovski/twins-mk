@@ -32,7 +32,7 @@ export function BackupSettings() {
 
   const makeFile = async () => {
     const backup = await exportBackup(store);
-    const name = `twins-mk-backup-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
+    const name = `twins-organizer-backup-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
     return new File([JSON.stringify(backup)], name, { type: 'application/json' });
   };
 

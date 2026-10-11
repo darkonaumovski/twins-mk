@@ -3,7 +3,7 @@ import seed from './seed.en';
 const en = {
   seed,
   app: {
-    name: 'Twins.MK',
+    name: 'Twins Organizer',
     loadError: 'Could not open the app’s storage. If you are in a private window, try a normal one.',
   },
   nav: {
@@ -427,7 +427,7 @@ const en = {
     title: 'Backup',
     export: 'Download backup',
     share: 'Send backup',
-    shareTitle: 'Twins.MK backup',
+    shareTitle: 'Twins Organizer backup',
     import: 'Import a backup',
     importHint:
       'The backup is combined with the data on this phone: for every record the most recent version is kept. Nothing is removed except what was deleted on the other phone.',
@@ -438,13 +438,135 @@ const en = {
     confirmLabel: 'Import',
     done: 'Imported: {{added}} new, {{updated}} updated.',
     nothingNew: 'This phone already had everything in the backup.',
-    twoPhones: 'Two phones? Send a backup from one phone to the other and import it there, then do the same the other way round.',
+    twoPhones:
+      'Two phones? Turn on “Sync between phones” above. Without sync, send a backup from one phone to the other and import it there, then do the same the other way round.',
     errors: {
-      notJson: 'This file is not a Twins.MK backup.',
-      notBackup: 'This file is not a Twins.MK backup.',
-      newerVersion: 'This backup comes from a newer version of Twins.MK. Update the app first.',
+      notJson: 'This file is not a Twins Organizer backup.',
+      notBackup: 'This file is not a Twins Organizer backup.',
+      newerVersion: 'This backup comes from a newer version of Twins Organizer. Update the app first.',
       invalidRecord: 'This backup file is damaged and was not imported.',
     },
+  },
+  sync: {
+    title: 'Sync between phones',
+    intro:
+      'Both parents see the same data. A change on one phone shows up on the other within seconds. Without internet, changes wait on the phone and are sent later.',
+    start: 'Start sync on this phone',
+    startHint: 'Start on one phone only. On the other phone, choose “I have a code”.',
+    haveCode: 'I have a code',
+    codeLabel: 'Code from the other phone',
+    join: 'Join',
+    joinConfirmTitle: 'Join this family?',
+    joinConfirmBody:
+      'The data on this phone is combined with the family’s data. Nothing is lost: for every record the most recent version is kept.',
+    started: 'Sync is on. Now enter the code on the other phone.',
+    joined: 'Joined. The data is being combined.',
+    familyCode: 'Family code',
+    familyCodeHint:
+      'On the other parent’s phone: Settings → Sync between phones → I have a code. Keep the code private: anyone with it can see your data.',
+    copy: 'Copy code',
+    copied: 'Code copied',
+    shareCode: 'Send code',
+    shareText: 'Twins Organizer family code: {{code}}',
+    alerts: 'Tell me what the other parent changes',
+    alertsHint:
+      'A message on screen while the app is open, and a phone notification while it is in the background. Nothing arrives while the app is fully closed.',
+    alertsDenied:
+      'Phone notifications are blocked for this app, so you only see messages inside the app. Allow notifications in the phone settings.',
+    syncNow: 'Sync now',
+    leave: 'Stop syncing on this phone',
+    leaveConfirmTitle: 'Stop syncing on this phone?',
+    leaveConfirmBody: 'The data stays on this phone but no longer updates. You can join again later with the same code.',
+    leaveConfirmLabel: 'Stop syncing',
+    left: 'Sync is off on this phone.',
+    privacy: 'Synced data is kept on the app’s sync server (Supabase) and only phones with the family code can read it.',
+    status: {
+      connecting: 'Connecting…',
+      synced: 'Up to date',
+      syncedAgo: 'Up to date · {{when}}',
+      live: 'Live',
+      offline: 'No internet. Changes will be sent when the phone is back online.',
+      pending_one: '{{count}} change waiting to be sent',
+      pending_other: '{{count}} changes waiting to be sent',
+    },
+    errors: {
+      offline: 'No internet connection. Try again when the phone is online.',
+      notFound: 'No family with this code. Check the code and try again.',
+      full: 'This family already has the most phones allowed.',
+      serverSetup: 'The sync server is not set up yet (see the README).',
+      failed: 'Sync did not work. The app keeps trying on its own.',
+    },
+    badgeOffline: 'Sync: waiting for internet',
+    badgeError: 'Sync problem',
+  },
+  changes: {
+    title: 'Update from {{who}}',
+    toastOne: '{{who}}: {{line}}',
+    toastMany_one: '{{who}}: {{line}} and {{count}} more change',
+    toastMany_other: '{{who}}: {{line}} and {{count}} more changes',
+    more_one: 'and {{count}} more change',
+    more_other: 'and {{count}} more changes',
+    logs: {
+      added: '{{what}} · {{twin}}',
+      addedDetail: '{{what}} · {{twin}} · {{detail}}',
+      finished: 'Finished: {{what}} · {{twin}} · {{detail}}',
+      changed: 'Edited: {{what}} · {{twin}}',
+      deleted: 'Deleted: {{what}} · {{twin}}',
+    },
+    prepItems: {
+      added: 'Added to the checklist: {{name}}',
+      changed: 'Checklist updated: {{name}}',
+      deleted: 'Removed from the checklist: {{name}}',
+      status: '{{name}}: {{status}}',
+      done: 'Done: {{name}}',
+      undone: 'Not done yet: {{name}}',
+    },
+    categories: {
+      added: 'New checklist category: {{name}}',
+      changed: 'Checklist category changed: {{name}}',
+      deleted: 'Checklist category removed: {{name}}',
+    },
+    tasks: {
+      added: 'New task: {{title}}',
+      changed: 'Task changed: {{title}}',
+      deleted: 'Task deleted: {{title}}',
+      done: 'Task done: {{title}}',
+      undone: 'Task reopened: {{title}}',
+    },
+    appointments: {
+      added: 'New appointment: {{title}} · {{when}}',
+      changed: 'Appointment changed: {{title}} · {{when}}',
+      deleted: 'Appointment removed: {{title}}',
+    },
+    routines: {
+      added: 'New routine: {{title}}',
+      changed: 'Routine changed: {{title}}',
+      deleted: 'Routine removed: {{title}}',
+    },
+    routineDone: {
+      done: 'Done: {{title}}',
+      undone: 'No longer done: {{title}}',
+      unknown: 'a routine',
+    },
+    doctorNotes: {
+      added: 'New note for the doctor: {{text}}',
+      changed: 'Note for the doctor edited: {{text}}',
+      deleted: 'Note for the doctor deleted',
+    },
+    babies: 'Twin details updated: {{name}}',
+    settings: 'Shared settings updated',
+  },
+  lock: {
+    prompt: 'Enter the family password',
+    password: 'Password',
+    unlock: 'Unlock',
+    wrong: 'Wrong password. Try again.',
+    show: 'Show password',
+    hide: 'Hide password',
+    insecure: 'The password can only be checked over a secure (https) connection. Open the app from its normal address.',
+    title: 'Password',
+    explain: 'The app asks for the family password when it opens and after 5 minutes in the background.',
+    lockNow: 'Lock now',
   },
   install: {
     title: 'Install',
@@ -457,7 +579,7 @@ const en = {
   pwa: {
     updateReady: 'A new version is ready.',
     reload: 'Reload',
-    offlineReady: 'Twins.MK now works offline.',
+    offlineReady: 'Twins Organizer now works offline.',
   },
   error: {
     title: 'Something went wrong',
@@ -515,9 +637,9 @@ const en = {
   },
   about: {
     title: 'About',
-    privacy: 'All data stays on this device. No accounts, no analytics, no trackers.',
+    privacy: 'All data stays on this device unless you turn on sync between phones. No accounts, no analytics, no trackers.',
     disclaimer:
-      'Twins.MK is an organiser, not a medical tool, and gives no medical advice. Checklist quantities and routines are editable suggestions, not recommendations. Always follow the advice of your doctor, midwife or pediatrician.',
+      'Twins Organizer is an organiser, not a medical tool, and gives no medical advice. Checklist quantities and routines are editable suggestions, not recommendations. Always follow the advice of your doctor, midwife or pediatrician.',
     version: 'Version {{version}}',
   },
 };

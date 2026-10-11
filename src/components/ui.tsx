@@ -2,11 +2,13 @@ import {
   useEffect,
   useId,
   useState,
+  type ComponentProps,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
+import { SyncBadge } from './SyncBadge';
 
 export function cx(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(' ');
@@ -17,6 +19,7 @@ export function PageHeader({ title, children }: { title: string; children?: Reac
     <header className="sticky top-0 z-10 border-b border-line bg-bg/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur">
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         <h1 className="flex-1 text-xl font-semibold">{title}</h1>
+        <SyncBadge />
         {children}
       </div>
     </header>
@@ -25,7 +28,7 @@ export function PageHeader({ title, children }: { title: string; children?: Reac
 
 export function Page({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   useEffect(() => {
-    document.title = `${title} · Twins.MK`;
+    document.title = `${title} · Twins Organizer`;
   }, [title]);
   return (
     <>
@@ -77,7 +80,7 @@ export function Field({
 const control =
   'block min-h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink placeholder:text-muted focus-visible:border-accent';
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput(props: ComponentProps<'input'>) {
   return <input {...props} className={cx(control, props.className)} />;
 }
 

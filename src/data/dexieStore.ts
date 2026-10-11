@@ -1,7 +1,16 @@
 import Dexie, { liveQuery, type Table } from 'dexie';
 import { planMerge, type MergeStats } from './merge';
 import { isTimed } from './logTypes';
-import type { DataStore, DevicePrefsRepository, LogRepository, Repository, SettingsRepository } from './repository';
+import {
+  COLLECTIONS,
+  type CollectionName,
+  type DataStore,
+  type DevicePrefsRepository,
+  type LogRepository,
+  type Repository,
+  type SettingsRepository,
+} from './repository';
+import type { AppliedChange, OutboxEntry, SyncLocal } from './sync/types';
 import type {
   Appointment,
   Baby,
@@ -23,6 +32,8 @@ import type {
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
 
+type OutboxTable = Table<OutboxEntry, [string, string]>;
+
 class TwinsDb extends Dexie {
   settings!: Table<SharedSettings, string>;
   device!: Table<DevicePrefs, string>;
@@ -35,6 +46,10 @@ class TwinsDb extends Dexie {
   routineDone!: Table<RoutineDone, string>;
   tasks!: Table<ParentTask, string>;
   doctorNotes!: Table<DoctorNote, string>;
+  /** Records changed on this phone that the sync server has not confirmed yet. */
+  outbox!: OutboxTable;
+  /** Sync bookkeeping, such as the last server change this phone has seen. */
+  syncMeta!: Table<{ key: string; value: number }, string>;
 
   constructor(name: string) {
     super(name);
@@ -50,6 +65,10 @@ class TwinsDb extends Dexie {
       routineDone: 'id, routineId, occurrence',
       tasks: 'id, due',
       doctorNotes: 'id, createdAt',
+    });
+    this.version(2).stores({
+      outbox: '[collection+id]',
+      syncMeta: 'key',
     });
   }
 }
@@ -70,7 +89,19 @@ class DexieRepository<T extends Entity> implements Repository<T> {
   constructor(
     private readonly table: Table<T, string>,
     private readonly ctx: Context,
+    private readonly outbox: OutboxTable,
   ) {}
+
+  /** Runs `fn` in one transaction over this table and the outbox. */
+  private tx<R>(fn: () => Promise<R>) {
+    return this.table.db.transaction('rw', this.table, this.outbox, fn);
+  }
+
+  /** Marks records for upload to the sync server; call inside `tx`. */
+  private enqueue(records: readonly T[]) {
+    const collection = this.table.name as CollectionName;
+    return this.outbox.bulkPut(records.map((r) => ({ collection, id: r.id, updatedAt: r.updatedAt })));
+  }
 
   async get(id: string) {
     const record = await this.table.get(id);
@@ -98,19 +129,21 @@ class DexieRepository<T extends Entity> implements Repository<T> {
   }
 
   async create(data: NewRecord<T>) {
-    const record = this.stamp(data);
-    await this.table.add(record);
+    const [record] = await this.createMany([data]);
     return record;
   }
 
   async createMany(data: NewRecord<T>[]) {
     const records = data.map((d) => this.stamp(d));
-    await this.table.bulkAdd(records);
+    await this.tx(async () => {
+      await this.table.bulkAdd(records);
+      await this.enqueue(records);
+    });
     return records;
   }
 
   private async write(id: string, change: (existing: T) => Partial<T>): Promise<T> {
-    return this.table.db.transaction('rw', this.table, async () => {
+    return this.tx(async () => {
       const existing = await this.table.get(id);
       if (!existing) throw new Error(`Record ${id} not found`);
       const next = {
@@ -121,6 +154,7 @@ class DexieRepository<T extends Entity> implements Repository<T> {
         deviceId: this.ctx.deviceId,
       } as T;
       await this.table.put(next);
+      await this.enqueue([next]);
       return next;
     });
   }
@@ -137,13 +171,26 @@ class DexieRepository<T extends Entity> implements Repository<T> {
     await this.write(id, () => ({ deletedAt: null }) as Partial<T>);
   }
 
+  /** Merges records from a backup or the starter list; what changes is uploaded like a local edit. */
   async merge(incoming: T[]): Promise<MergeStats> {
-    return this.table.db.transaction('rw', this.table, async () => {
+    return (await this.mergeRecords(incoming, true)).stats;
+  }
+
+  /** Merges records downloaded from the sync server (no upload). Returns what changed, with the version it replaced. */
+  async applyRemote(incoming: T[]): Promise<{ record: T; previous: T | undefined }[]> {
+    const { toWrite, local } = await this.mergeRecords(incoming, false);
+    const before = new Map(local.map((r) => [r.id, r]));
+    return toWrite.map((record) => ({ record, previous: before.get(record.id) }));
+  }
+
+  private async mergeRecords(incoming: T[], upload: boolean) {
+    return this.tx(async () => {
       const ids = incoming.map((r) => r.id);
       const local = (await this.table.bulkGet(ids)).filter((r): r is T => r !== undefined);
       const { toWrite, stats } = planMerge(local, incoming);
       await this.table.bulkPut(toWrite);
-      return stats;
+      if (upload) await this.enqueue(toWrite);
+      return { toWrite, stats, local };
     });
   }
 }
@@ -152,8 +199,9 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
   constructor(
     private readonly logs: Table<LogEntry, string>,
     ctx: Context,
+    outbox: OutboxTable,
   ) {
-    super(logs, ctx);
+    super(logs, ctx, outbox);
   }
 
   async listBetween(from: ISODateTime, to: ISODateTime) {
@@ -185,13 +233,14 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
 }
 
 class DexieSettingsRepository implements SettingsRepository {
-  private readonly repo: DexieRepository<SharedSettings>;
+  readonly repo: DexieRepository<SharedSettings>;
 
   constructor(
     private readonly table: Table<SharedSettings, string>,
     private readonly ctx: Context,
+    private readonly outbox: OutboxTable,
   ) {
-    this.repo = new DexieRepository(table, ctx);
+    this.repo = new DexieRepository(table, ctx, outbox);
   }
 
   async get(): Promise<SharedSettings> {
@@ -200,7 +249,7 @@ class DexieSettingsRepository implements SettingsRepository {
   }
 
   async update(patch: Partial<Omit<SharedSettings, keyof Entity>>) {
-    return this.table.db.transaction('rw', this.table, async () => {
+    return this.table.db.transaction('rw', this.table, this.outbox, async () => {
       if (!(await this.table.get('shared'))) {
         const { id: _id, ...defaults } = DEFAULT_SETTINGS;
         await this.repo.create({ ...defaults, id: 'shared' } as NewRecord<SharedSettings>);
@@ -244,7 +293,9 @@ export interface OpenOptions {
   initialLanguage?: DevicePrefs['language'];
 }
 
-export async function openDexieStore(options: OpenOptions = {}): Promise<DataStore & { db: TwinsDb }> {
+export type DexieStore = DataStore & { db: TwinsDb; sync: SyncLocal };
+
+export async function openDexieStore(options: OpenOptions = {}): Promise<DexieStore> {
   const db = new TwinsDb(options.name ?? 'twins-mk');
   await db.open();
 
@@ -259,22 +310,93 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DataSto
   }
 
   const ctx: Context = { deviceId: prefs.deviceId, now: options.now ?? (() => new Date()) };
-  const repo = <T extends Entity>(table: Table<T, string>) => new DexieRepository(table, ctx);
-
-  return {
-    db,
-    settings: new DexieSettingsRepository(db.settings, ctx),
-    device: new DexieDevicePrefsRepository(db.device),
+  const repo = <T extends Entity>(table: Table<T, string>) => new DexieRepository(table, ctx, db.outbox);
+  const settings = new DexieSettingsRepository(db.settings, ctx, db.outbox);
+  const logs = new DexieLogRepository(db.logs, ctx, db.outbox);
+  const collections = {
+    settings,
     categories: repo(db.categories),
     prepItems: repo(db.prepItems),
     babies: repo(db.babies),
-    logs: new DexieLogRepository(db.logs, ctx),
+    logs,
     appointments: repo(db.appointments),
     routines: repo(db.routines),
     routineDone: repo(db.routineDone),
     tasks: repo(db.tasks),
     doctorNotes: repo(db.doctorNotes),
+  };
+  const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
+
+  return {
+    db,
+    ...collections,
+    device: new DexieDevicePrefsRepository(db.device),
     live: (query) => liveQuery(query),
     transaction: (fn) => db.transaction('rw', db.tables, fn),
+    sync: createSyncLocal(db, raw),
+  };
+}
+
+const CURSOR_KEY = 'cursor';
+const outboxKey = (e: OutboxEntry): [string, string] => [e.collection, e.id];
+
+/** The sync engine's view of this phone's storage: what to upload, and where downloads go. */
+function createSyncLocal(db: TwinsDb, repos: Record<CollectionName, DexieRepository<Entity>>): SyncLocal {
+  const table = (name: CollectionName) => db.table<Entity, string>(name);
+  return {
+    pending: () => db.outbox.toArray(),
+
+    async read(entries) {
+      const out: { collection: CollectionName; record: Entity }[] = [];
+      for (const name of COLLECTIONS) {
+        const ids = entries.filter((e) => e.collection === name).map((e) => e.id);
+        if (!ids.length) continue;
+        for (const record of await table(name).bulkGet(ids)) if (record) out.push({ collection: name, record });
+      }
+      return out;
+    },
+
+    async acknowledge(entries) {
+      await db.transaction('rw', db.outbox, async () => {
+        const current = await db.outbox.bulkGet(entries.map(outboxKey));
+        // Keep entries that changed again while the upload was in flight.
+        const done = entries.filter((e, i) => current[i]?.updatedAt === e.updatedAt);
+        await db.outbox.bulkDelete(done.map(outboxKey));
+      });
+    },
+
+    async applyRemote(collection, records): Promise<AppliedChange[]> {
+      const applied = await repos[collection].applyRemote(records);
+      return applied.map((a) => ({ collection, ...a }));
+    },
+
+    async enqueueAll() {
+      await db.transaction('rw', [db.outbox, ...COLLECTIONS.map(table)], async () => {
+        for (const name of COLLECTIONS) {
+          const records = await table(name).toArray();
+          await db.outbox.bulkPut(records.map((r) => ({ collection: name, id: r.id, updatedAt: r.updatedAt })));
+        }
+      });
+    },
+
+    async getCursor() {
+      return (await db.syncMeta.get(CURSOR_KEY))?.value ?? 0;
+    },
+
+    async setCursor(value) {
+      await db.syncMeta.put({ key: CURSOR_KEY, value });
+    },
+
+    async reset() {
+      await db.transaction('rw', db.outbox, db.syncMeta, async () => {
+        await db.outbox.clear();
+        await db.syncMeta.clear();
+      });
+    },
+
+    watchPending(onChange) {
+      const sub = liveQuery(() => db.outbox.count()).subscribe({ next: onChange, error: () => {} });
+      return () => sub.unsubscribe();
+    },
   };
 }
