@@ -72,8 +72,6 @@ It is local-first. All data lives in the browser on the phone (IndexedDB), and t
 
 **Already installed under the old name (Twins.MK)?** Android updates the home-screen name by itself within a day or so. On iPhone the home-screen label is fixed when the app is added. To change it, first make sure sync is on and up to date (removing the icon on iPhone also removes that copy of the data), then remove the icon and add the app again from Safari.
 
-**Opening the app** asks for the family password. It asks again after the app has been in the background for 5 minutes. **Поставки → Лозинка → Заклучи сега** (Settings → Password → Lock now) locks it right away.
-
 **First time on each phone**
 
 1. **Поставки → Овој телефон го користи** (Settings → This phone is used by): choose which parent uses this phone.
@@ -194,18 +192,6 @@ Without sync, you can bring two phones in line by hand: send a backup from phone
 
 **Make a backup regularly.** If a phone is lost or reset, the backup is the only copy. Preferences that belong to one phone (language, theme, which parent uses it, reminders) are not part of the backup.
 
-## Family password
-
-The app asks for a password when it opens and after 5 minutes in the background. A reload within those 5 minutes, for example to install an update, does not ask again. Half-filled forms stay as they were under the lock screen.
-
-The code only contains a salted PBKDF2 hash of the password (`src/features/lock/password.ts`), never the password itself, because the repository is public. To change the password, generate a new salt and hash and paste them into that file:
-
-```bash
-node -e "const c=require('crypto'),s=c.randomBytes(16).toString('hex');console.log(s,c.pbkdf2Sync(process.argv[1],Buffer.from(s,'hex'),210000,32,'sha256').toString('hex'))" "NewPassword"
-```
-
-The password is a privacy screen against someone picking up an unlocked phone. It does not encrypt the data stored on the phone, and the synced data on the server is protected by the family code, not by this password.
-
 ## Push reminders (also when the app is closed)
 
 With **Settings → Reminders → Push reminders on this phone**, routines, medicines, appointments (an hour before) and "feed due" (from each twin's feed interval) arrive as phone notifications even when the app is closed, with the details ("Vitamin D · Ema"). Each phone chooses which kinds it wants. During a night shift, reminders go only to the phones of whoever is on duty; if that person has no phone with push on, every phone gets them, so nothing is lost. They need sync between phones, and on iPhone the app added to the Home Screen (iOS 16.4 or newer).
@@ -280,7 +266,6 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - sync between two simulated phones (joining with existing data, real-time updates, offline catch-up, conflicts, deletes, leaving, data from a newer version) against an in-memory server
 - the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message (including helpers and "the other phone")
 - night duty (shifts past midnight, quiet alerts while someone else is on duty), the "since you last opened" handover and the caregiver list
-- the family password check
 - push reminders: Web Push encryption checked against Mozilla's reference implementation, VAPID signatures, what is due in the family's time zone (whatever zone the server runs in), night-duty recipients, sending each reminder once, and that the function's bundle matches the source
 - the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts, every synced collection accepted, and the migrations upgrading an older project
 - checklist quantities, filters and price parsing

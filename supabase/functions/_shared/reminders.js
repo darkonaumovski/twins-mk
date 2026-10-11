@@ -5447,18 +5447,6 @@ var en = {
 			deleted: "Milestone removed: {{title}} · {{twin}}"
 		}
 	},
-	lock: {
-		prompt: "Enter the family password",
-		password: "Password",
-		unlock: "Unlock",
-		wrong: "Wrong password. Try again.",
-		show: "Show password",
-		hide: "Hide password",
-		insecure: "The password can only be checked over a secure (https) connection. Open the app from its normal address.",
-		title: "Password",
-		explain: "The app asks for the family password when it opens and after 5 minutes in the background.",
-		lockNow: "Lock now"
-	},
 	install: {
 		title: "Install",
 		why: "Installed on the home screen, the app opens like any other, works without internet and keeps its data safer.",
@@ -6516,18 +6504,6 @@ var mk = {
 			added: "{{title}} · {{twin}} · {{when}}",
 			deleted: "Избришан момент: {{title}} · {{twin}}"
 		}
-	},
-	lock: {
-		prompt: "Внесете ја лозинката на семејството",
-		password: "Лозинка",
-		unlock: "Отклучи",
-		wrong: "Погрешна лозинка. Обидете се повторно.",
-		show: "Прикажи ја лозинката",
-		hide: "Скриј ја лозинката",
-		insecure: "Лозинката може да се провери само преку безбедна (https) врска. Отворете ја апликацијата од нејзината вообичаена адреса.",
-		title: "Лозинка",
-		explain: "Апликацијата бара лозинка на семејството кога се отвора и по 5 минути во позадина.",
-		lockNow: "Заклучи сега"
 	},
 	install: {
 		title: "Инсталирање",

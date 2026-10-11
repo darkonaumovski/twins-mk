@@ -11,7 +11,6 @@ import { ensurePersistentStorage } from './lib/storage';
 import { SyncEngine } from './data/sync/engine';
 import { SyncProvider } from './data/sync/SyncContext';
 import { syncConnector } from './data/sync/config';
-import { LockGate } from './features/lock/LockGate';
 // Starts listening for the browser's install prompt as early as possible.
 import './lib/install';
 import en from './i18n/locales/en';
@@ -31,9 +30,7 @@ async function start() {
       <ErrorBoundary>
         <StoreProvider store={store}>
           <SyncProvider engine={sync}>
-            <LockGate>
-              <App />
-            </LockGate>
+            <App />
           </SyncProvider>
         </StoreProvider>
       </ErrorBoundary>

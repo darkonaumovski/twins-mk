@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Info, Lock, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ChevronRight, Info, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Field, Page, Section, Segmented, Select, TextInput, Toggle } from '@/components/ui';
 import { useDevicePrefs, useSettings, useStore } from '@/data/StoreContext';
 import { CURRENCIES } from '@/data/defaults';
@@ -17,8 +17,6 @@ import { RemindersSettings } from '@/features/plan/RemindersSettings';
 import { BackupSettings } from './BackupSettings';
 import { InstallSettings } from './InstallSettings';
 import { SyncSettings } from './SyncSettings';
-import { useLockNow } from '@/features/lock/LockGate';
-import { Button } from '@/components/Button';
 import { Stepper } from '@/components/Stepper';
 
 export function SettingsPage() {
@@ -28,7 +26,6 @@ export function SettingsPage() {
   const prefs = useDevicePrefs();
   const babies = useBabies();
   const [persist, setPersist] = useState<PersistState | null>(null);
-  const lockNow = useLockNow();
 
   useEffect(() => {
     void ensurePersistentStorage().then(setPersist);
@@ -163,16 +160,6 @@ export function SettingsPage() {
       <BackupSettings />
 
       <InstallSettings />
-
-      {lockNow && (
-        <Section title={t('lock.title')}>
-          <p className="text-sm text-muted">{t('lock.explain')}</p>
-          <Button variant="secondary" className="w-full" onClick={lockNow}>
-            <Lock aria-hidden size={18} />
-            {t('lock.lockNow')}
-          </Button>
-        </Section>
-      )}
 
       <Section title={t('settings.storage')}>
         {persist && (
