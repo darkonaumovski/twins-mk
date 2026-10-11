@@ -45,6 +45,8 @@ export interface LogRepository extends Repository<LogEntry> {
   listBetween(from: ISODateTime, to: ISODateTime): Promise<LogEntry[]>;
   /** The newest live entry of a type for one baby, if any. */
   latest(babyId: string, type: LogType): Promise<LogEntry | undefined>;
+  /** Up to `limit` newest live entries of a type for one baby, newest first. */
+  recent(babyId: string, type: LogType, limit: number): Promise<LogEntry[]>;
   /** Live timed entries (sleep, breastfeeding) still running, started after `since`. */
   listRunning(since: ISODateTime): Promise<LogEntry[]>;
 }

@@ -5,6 +5,15 @@ A calm, phone-first app for parents expecting twins.
 - **Before birth:** a preparation checklist with a starter list for twins (must-haves aimed to be ready by week 32, because twins often come early), a countdown to the due date or a planned delivery date, a budget and a shopping mode.
 - **After birth:** a daily planner and tracker for feeds, diapers, sleep, medicines, growth, appointments, routines and parent tasks, always for Twin A, Twin B or both.
 
+### Feeding twins
+
+- **Tandem breastfeeding:** with both twins selected, each twin gets its own side (Twin A left, Twin B right by default). The feed sheet and Today show each twin's last side, so you can alternate.
+- **Bottles for both:** one amount for each, or "different amounts" with a stepper per twin. Both entries stay linked as one feed.
+- **Top-up bottle:** a breastfeed can include a bottle afterwards (ml and milk type). It counts in the day's ml, the charts and the messages to the other phone.
+- **Feed interval (optional):** in the twin setup, enter how often each twin feeds, as you were told or as you follow it. Today then shows "next feed ~14:30" or "feed due 20 min ago". The app never suggests an interval.
+- **Feed the other twin too?** When one twin is fed and the other's next feed is due within 45 minutes (changeable in Settings, 0 turns it off), the app offers to open the feed sheet for the other twin.
+- Every log sheet is tinted with the chosen twin's colour, and the save button names the twin ("Save for Ema").
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -206,7 +215,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - the starter list and its v1 → v2 upgrade (edited or deleted items stay untouched, both phones end up identical)
 - the pregnancy countdown (due date, planned delivery date, pregnancy week)
 - budget and shopping totals
-- logging helpers and log queries
+- logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight)
 - routine scheduling and upcoming items
 - chart scales and colour-pair rules

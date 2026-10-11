@@ -24,6 +24,20 @@ const { from, to } = localDay('2026-10-11');
 const late = new Date(2026, 9, 12, 12);
 
 describe('summarize', () => {
+  it('adds top-up bottles after breastfeeds to the ml total', () => {
+    const s = summarize(
+      [
+        entry({ type: 'feed', data: { method: 'breast', side: 'left', topUp: { ml: 30, milk: 'formula' } }, end: at(11, 10, 15) }),
+        entry({ type: 'feed', data: { method: 'bottle', ml: 60, milk: 'breast' } }),
+      ],
+      'baby-A',
+      from,
+      to,
+      late,
+    );
+    expect(s).toMatchObject({ feeds: 2, breastFeeds: 1, bottleFeeds: 1, ml: 90 });
+  });
+
   it('counts feeds, bottle volume and diapers for one baby', () => {
     const s = summarize(
       [

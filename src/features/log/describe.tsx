@@ -33,9 +33,16 @@ export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
             return { title: t('log.bottle'), detail: t('log.summary.bottle', { ml: entry.data.ml, milk }) };
           }
           const side = { left: t('log.left'), right: t('log.right'), both: t('log.bothSides') }[entry.data.side];
+          const topUp = entry.data.topUp;
+          const base = entry.end ? t('log.summary.breast', { side, duration: duration() }) : t('log.summary.breastRunning', { side });
           return {
             title: t('log.breast'),
-            detail: entry.end ? t('log.summary.breast', { side, duration: duration() }) : t('log.summary.breastRunning', { side }),
+            detail: topUp
+              ? t('log.summary.withTopUp', {
+                  base,
+                  topUp: t('log.summary.bottle', { ml: topUp.ml, milk: topUp.milk === 'breast' ? t('log.breastMilk') : t('log.formula') }),
+                })
+              : base,
           };
         }
         case 'diaper':

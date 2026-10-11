@@ -17,6 +17,8 @@ interface TwinDraft {
   born: string;
   weight: string;
   length: string;
+  /** Hours between feeds, as typed (e.g. "3" or "2,5"); empty means not set. */
+  feedHours: string;
 }
 
 function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
@@ -26,6 +28,7 @@ function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
     born: toLocalInput(baby?.birthDateTime ?? new Date().toISOString()),
     weight: baby?.birthWeightG?.toString() ?? '',
     length: baby?.birthLengthCm?.toString().replace('.', ',') ?? '',
+    feedHours: baby?.feedIntervalMin ? String(Math.round((baby.feedIntervalMin / 60) * 100) / 100).replace('.', ',') : '',
   };
 }
 
@@ -38,6 +41,7 @@ export function SetupPage() {
   const [drafts, setDrafts] = useState<Record<TwinSlot, TwinDraft> | null>(null);
   const [bornBTouched, setBornBTouched] = useState(false);
   const [error, setError] = useState<TwinSlot | null>(null);
+  const [intervalError, setIntervalError] = useState<TwinSlot | null>(null);
   const editing = Boolean(babies?.ready);
 
   useEffect(() => {
@@ -67,6 +71,11 @@ export function SetupPage() {
         setError(slot);
         return;
       }
+      const feedHours = d.feedHours.trim() ? parseAmount(d.feedHours) : null;
+      if (d.feedHours.trim() && (feedHours === null || feedHours <= 0 || feedHours > 24)) {
+        setIntervalError(slot);
+        return;
+      }
       records[slot] = {
         slot,
         name: d.name.trim(),
@@ -74,6 +83,7 @@ export function SetupPage() {
         birthDateTime: fromLocalInput(d.born),
         birthWeightG: weight === null ? null : Math.round(weight),
         birthLengthCm: d.length.trim() ? parseAmount(d.length) : null,
+        feedIntervalMin: feedHours === null ? null : Math.round(feedHours * 60),
       };
     }
     await store.transaction(async () => {
@@ -188,6 +198,25 @@ export function SetupPage() {
                   )}
                 </Field>
               </div>
+              <Field
+                label={t('twins.feedInterval')}
+                hint={
+                  intervalError === slot ? <span className="text-danger">{t('twins.invalidInterval')}</span> : t('twins.feedIntervalHint')
+                }
+              >
+                {(p) => (
+                  <TextInput
+                    {...p}
+                    inputMode="decimal"
+                    value={d.feedHours}
+                    aria-invalid={intervalError === slot}
+                    onChange={(e) => {
+                      setIntervalError(null);
+                      update(slot, { feedHours: e.target.value });
+                    }}
+                  />
+                )}
+              </Field>
             </fieldset>
           );
         })}

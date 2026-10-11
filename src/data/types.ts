@@ -36,6 +36,11 @@ export interface SharedSettings extends Entity {
   parent1Name: string;
   parent2Name: string;
   phase: Phase;
+  /**
+   * When one twin starts a feed and the other's next feed (from its feed interval)
+   * is due within this many minutes, offer to feed the other twin too.
+   */
+  feedNudgeMin: number;
 }
 
 /** Preferences for this phone only. Never exported or merged. */
@@ -115,11 +120,17 @@ export interface Baby extends Entity {
   birthDateTime: ISODateTime | null;
   birthWeightG: number | null;
   birthLengthCm: number | null;
+  /** Minutes between feeds as the parents set it (never a built-in default); absent or null means not set. */
+  feedIntervalMin?: number | null;
 }
 
 export type LogType = 'feed' | 'diaper' | 'sleep' | 'med' | 'measure' | 'note';
 
-export type FeedData = { method: 'breast'; side: 'left' | 'right' | 'both' } | { method: 'bottle'; ml: number; milk: 'breast' | 'formula' };
+export type Milk = 'breast' | 'formula';
+/** A bottle given after a breastfeed (combination feeding). Absent on older entries. */
+export type TopUp = { ml: number; milk: Milk };
+export type FeedData =
+  { method: 'breast'; side: 'left' | 'right' | 'both'; topUp?: TopUp | null } | { method: 'bottle'; ml: number; milk: Milk };
 export type DiaperData = { kind: 'wet' | 'dirty' | 'both' };
 export type SleepData = Record<string, never>;
 export type MedData = { name: string; dose: string };

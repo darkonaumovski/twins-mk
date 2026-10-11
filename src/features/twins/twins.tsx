@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cx } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import type { Baby, TwinColor, TwinSlot } from '@/data/types';
-import { BABY_IDS, slotOf } from '@/features/log/logic';
+import { BABY_IDS, slotOf, type Who } from '@/features/log/logic';
 
 export const TWIN_COLORS: readonly TwinColor[] = ['teal', 'amber', 'violet', 'rose', 'blue', 'green'];
 export const DEFAULT_COLORS: Record<TwinSlot, TwinColor> = { A: 'teal', B: 'amber' };
@@ -50,6 +50,11 @@ export function twinStyle(color: TwinColor): CSSProperties {
     '--tw-ink': `var(--twin-${color}-ink)`,
     '--tw-soft': `var(--twin-${color}-soft)`,
   } as CSSProperties;
+}
+
+/** Header tint for a sheet about one twin; none when it is for both. */
+export function tintFor(babies: Babies | undefined, who: Who): CSSProperties | undefined {
+  return who === 'both' ? undefined : twinStyle(colorOf(babies, who));
 }
 
 /** Display names, falling back to "Twin A/B" in the current language. */

@@ -8,10 +8,10 @@ import { dateLocale } from '@/i18n';
 import { useFormatMinutes, useNow } from '@/lib/useNow';
 import type { LogEntry, TwinSlot } from '@/data/types';
 import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
-import { BABY_IDS, minutesBetween, SLOTS, slotOf } from '@/features/log/logic';
+import { BABY_IDS, minutesBetween, nextFeedDue, SLOTS, slotOf, type BreastSide } from '@/features/log/logic';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { QuickLogPanel } from '@/features/log/QuickLogPanel';
-import { useLogActions, useRunning } from '@/features/log/useLogActions';
+import { useLastSides, useLogActions, useRunning } from '@/features/log/useLogActions';
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } from '@/features/twins/twins';
 import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
 import { UpcomingSection } from '@/features/plan/UpcomingSection';
@@ -28,8 +28,20 @@ function useLatest() {
   }, []);
 }
 
-function SinceCard({ slot, babies, latest, now }: { slot: TwinSlot; babies: Babies; latest: ReturnType<typeof useLatest>; now: Date }) {
-  const { t } = useTranslation();
+function SinceCard({
+  slot,
+  babies,
+  latest,
+  lastSide,
+  now,
+}: {
+  slot: TwinSlot;
+  babies: Babies;
+  latest: ReturnType<typeof useLatest>;
+  lastSide: BreastSide | null;
+  now: Date;
+}) {
+  const { t, i18n } = useTranslation();
   const name = useTwinName(babies);
   const fmt = useFormatMinutes();
   const last = latest?.[slot] ?? {};
@@ -49,8 +61,22 @@ function SinceCard({ slot, babies, latest, now }: { slot: TwinSlot; babies: Babi
       ? t('today.sleeping', { duration: fmt(minutesBetween(last.sleep.start, now)) })
       : t('today.awake', { duration: fmt(minutesBetween(last.sleep.end, now)) });
 
+  const feeding = last.feed?.end === null && last.feed.type === 'feed' && last.feed.data.method === 'breast';
+  const due = feeding ? null : nextFeedDue(last.feed?.start, babies[slot]?.feedIntervalMin);
+  const dueText = !due
+    ? null
+    : due > now
+      ? t('today.nextFeed', { time: format(due, 'HH:mm', { locale: dateLocale(i18n.language) }) })
+      : minutesBetween(due, now) < 1
+        ? t('today.feedDueNow')
+        : t('today.feedDue', { duration: fmt(minutesBetween(due, now)) });
+  const sideText = lastSide
+    ? t('today.lastSide', { side: { left: t('log.left'), right: t('log.right'), both: t('log.bothSides') }[lastSide] })
+    : null;
+  const feedExtra = [dueText, sideText].filter(Boolean).join(' · ');
+
   const rows = [
-    { label: t('today.lastFeed'), icon: LOG_ICONS.feed, text: feedText },
+    { label: t('today.lastFeed'), icon: LOG_ICONS.feed, text: feedText, extra: feedExtra },
     { label: t('today.lastDiaper'), icon: LOG_ICONS.diaper, text: ago(last.diaper?.start) },
     { label: t('today.lastSleep'), icon: LOG_ICONS.sleep, text: sleepText },
   ];
@@ -66,11 +92,14 @@ function SinceCard({ slot, babies, latest, now }: { slot: TwinSlot; babies: Babi
         <span className="truncate">{name(slot)}</span>
       </h2>
       <dl className="space-y-1.5 text-sm">
-        {rows.map(({ label, icon: Icon, text }) => (
+        {rows.map(({ label, icon: Icon, text, extra }) => (
           <div key={label} className="flex items-start gap-1.5">
             <Icon aria-hidden size={16} className="mt-0.5 shrink-0 text-muted" />
             <dt className="sr-only">{label}</dt>
-            <dd className="font-medium">{text}</dd>
+            <dd className="font-medium">
+              {text}
+              {extra && <span className="block text-xs font-normal text-muted">{extra}</span>}
+            </dd>
           </div>
         ))}
       </dl>
@@ -85,6 +114,7 @@ export function TodayPage() {
   const babies = useBabies();
   const latest = useLatest();
   const running = useRunning() ?? [];
+  const lastSides = useLastSides();
   const describe = useDescribeEntry();
   const fmt = useFormatMinutes();
   const name = useTwinName(babies);
@@ -143,7 +173,7 @@ export function TodayPage() {
 
       <div className="grid grid-cols-2 gap-3">
         {SLOTS.map((slot) => (
-          <SinceCard key={slot} slot={slot} babies={babies} latest={latest} now={now} />
+          <SinceCard key={slot} slot={slot} babies={babies} latest={latest} lastSide={lastSides?.[slot] ?? null} now={now} />
         ))}
       </div>
 

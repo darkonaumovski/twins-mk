@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
@@ -12,12 +12,15 @@ export function Sheet({
   title,
   children,
   footer,
+  tint,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Twin colour variables (from `twinStyle`): tints the header so it is clear which twin this is for. */
+  tint?: CSSProperties;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -50,7 +53,14 @@ export function Sheet({
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">
-          <div className="flex items-center gap-2 border-b border-line px-4 py-2">
+          <div
+            style={tint}
+            className={
+              tint
+                ? 'flex items-center gap-2 border-b-2 border-(--tw) bg-(--tw-soft) px-4 py-2 text-(--tw-ink)'
+                : 'flex items-center gap-2 border-b border-line px-4 py-2'
+            }
+          >
             <h2 id={titleId} className="flex-1 text-lg font-semibold">
               {title}
             </h2>

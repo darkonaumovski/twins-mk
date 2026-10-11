@@ -187,6 +187,10 @@ const en = {
     start: 'Start the planner',
     saved: 'Saved',
     invalidWeight: 'Enter a weight in grams, e.g. 2450.',
+    feedInterval: 'Feeds about every (hours)',
+    feedIntervalHint:
+      'Optional, e.g. 3 or 2,5. Enter what you were told or what you follow. Today then shows roughly when the next feed is due. The app has no default.',
+    invalidInterval: 'Enter hours, e.g. 3 or 2,5, or leave it empty.',
     colors: {
       teal: 'Teal',
       amber: 'Amber',
@@ -248,6 +252,17 @@ const en = {
     measureEmpty: 'Enter a weight or a length.',
     groupNote: 'Logged for both twins; changes here apply to {{name}} only.',
     by: 'by {{name}}',
+    lastSide: 'Last side: {{side}}',
+    topUp: 'Top-up bottle after the breastfeed',
+    topUpHint: 'Saved with this feed and counted in the day’s ml.',
+    topUpHintBoth: 'The same top-up is saved for each twin. Change one later from the timeline if they differ.',
+    startTimerFor: 'Start timer for {{name}}',
+    saveFor: 'Save for {{name}}',
+    differentAmounts: 'Different amounts for each twin',
+    amountFor: 'Amount for {{name}} (ml)',
+    amountEach: 'Amount for each (ml)',
+    nudge: '{{what}} · {{who}}. Feed {{other}} too?',
+    nudgeAction: 'Feed {{other}}',
     summary: {
       breast: '{{side}} · {{duration}}',
       breastRunning: '{{side}} · feeding now',
@@ -256,6 +271,7 @@ const en = {
       sleepRunning: 'sleeping now',
       weight: '{{g}} g',
       length: '{{cm}} cm',
+      withTopUp: '{{base}} + {{topUp}}',
     },
   },
   today: {
@@ -270,6 +286,10 @@ const en = {
     awake: 'awake {{duration}}',
     feeding: 'feeding {{duration}}',
     running: 'Running now',
+    lastSide: 'last side: {{side}}',
+    nextFeed: 'next feed ~{{time}}',
+    feedDue: 'feed due {{duration}} ago',
+    feedDueNow: 'feed due now',
   },
   duration: {
     hm: '{{h}} h {{m}} min',
@@ -301,7 +321,7 @@ const en = {
     today: 'Today',
     week: '7 days to {{date}}',
     feeds: 'Feeds per day',
-    ml: 'Bottle ml per day',
+    ml: 'Bottle ml per day (including top-ups)',
     diapers: 'Diapers per day',
     sleep: 'Hours of sleep per day',
     showTable: 'Show as table',
@@ -639,6 +659,9 @@ const en = {
     money: 'Money',
     currency: 'Currency',
     currencyHint: 'Changing the currency does not convert amounts you already entered.',
+    feedNudge: 'Offer to feed the other twin',
+    feedNudgeHint:
+      'When one twin is fed and the other’s next feed (from the interval set for each twin) is due within this many minutes, the app asks “Feed the other twin too?”. 0 turns it off.',
     storage: 'Storage',
     persisted: 'Protected: the browser will not clear your data on its own.',
     notPersisted:

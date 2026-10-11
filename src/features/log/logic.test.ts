@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { openDexieStore } from '@/data/dexieStore';
-import type { LogEntry } from '@/data/types';
+import type { FeedData, LogEntry } from '@/data/types';
 import {
   BABY_IDS,
   buildEntries,
   dayBounds,
+  feedMl,
+  lastSide,
+  nextFeedDue,
+  shouldNudge,
   fromLocalInput,
   minutesBetween,
   planSleepToggle,
@@ -140,5 +144,79 @@ describe('log repository queries', () => {
       ['feed', BABY_IDS.B],
       ['sleep', BABY_IDS.A],
     ]);
+  });
+});
+
+const feed = (babyId: string, start: string, data: FeedData): LogEntry => ({
+  id: `f-${babyId}-${start}`,
+  createdAt: '',
+  updatedAt: '',
+  deletedAt: null,
+  deviceId: 'd',
+  babyId,
+  type: 'feed',
+  data,
+  start,
+  end: null,
+  groupId: null,
+  loggedBy: 'p1',
+});
+
+describe('feeding helpers', () => {
+  it('builds per-twin entries in one group (tandem feed on different sides)', () => {
+    const entries = buildEntries(
+      'both',
+      (babyId) => ({
+        type: 'feed',
+        data: { method: 'breast', side: babyId === BABY_IDS.A ? 'left' : 'right' },
+        start: '2026-10-11T10:00:00.000Z',
+        end: null,
+      }),
+      'p1',
+      () => 'g1',
+    );
+    expect(entries.map((e) => [e.babyId, e.groupId, (e.data as { side?: string }).side])).toEqual([
+      [BABY_IDS.A, 'g1', 'left'],
+      [BABY_IDS.B, 'g1', 'right'],
+    ]);
+  });
+
+  it('finds the side of the latest breastfeed per twin, skipping bottles and deleted entries', () => {
+    const entries = [
+      feed(BABY_IDS.A, '2026-10-11T06:00:00.000Z', { method: 'breast', side: 'left' }),
+      feed(BABY_IDS.A, '2026-10-11T09:00:00.000Z', { method: 'breast', side: 'right' }),
+      feed(BABY_IDS.A, '2026-10-11T11:00:00.000Z', { method: 'bottle', ml: 60, milk: 'formula' }),
+      { ...feed(BABY_IDS.A, '2026-10-11T12:00:00.000Z', { method: 'breast', side: 'left' }), deletedAt: 'x' },
+      feed(BABY_IDS.B, '2026-10-11T10:00:00.000Z', { method: 'breast', side: 'both' }),
+    ];
+    expect(lastSide(entries, BABY_IDS.A)).toBe('right');
+    expect(lastSide(entries, BABY_IDS.B)).toBe('both');
+    expect(lastSide([], BABY_IDS.A)).toBeNull();
+  });
+
+  it('counts bottle and top-up millilitres', () => {
+    expect(feedMl({ method: 'bottle', ml: 90, milk: 'formula' })).toBe(90);
+    expect(feedMl({ method: 'breast', side: 'left', topUp: { ml: 30, milk: 'breast' } })).toBe(30);
+    expect(feedMl({ method: 'breast', side: 'left' })).toBe(0);
+  });
+
+  it('computes the next feed only from an interval the parents set', () => {
+    expect(nextFeedDue('2026-10-11T09:00:00.000Z', 180)?.toISOString()).toBe('2026-10-11T12:00:00.000Z');
+    expect(nextFeedDue('2026-10-11T09:00:00.000Z', null)).toBeNull();
+    expect(nextFeedDue(undefined, 180)).toBeNull();
+  });
+
+  it('offers to feed the other twin when its next feed is close or due', () => {
+    const base = { otherIntervalMin: 180, otherFeeding: false, windowMin: 45, now: new Date('2026-10-11T11:30:00.000Z') };
+    // Due at 12:00, 30 min away.
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z' })).toBe(true);
+    // Due at 13:00, 90 min away.
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T10:00:00.000Z' })).toBe(false);
+    // Already overdue.
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T07:00:00.000Z' })).toBe(true);
+    // Already feeding, no interval set, or the nudge is off.
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', otherFeeding: true })).toBe(false);
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', otherIntervalMin: null })).toBe(false);
+    expect(shouldNudge({ ...base, otherLastFeedStart: '2026-10-11T09:00:00.000Z', windowMin: 0 })).toBe(false);
   });
 });

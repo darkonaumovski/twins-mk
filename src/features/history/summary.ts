@@ -5,7 +5,7 @@ export interface DaySummary {
   feeds: number;
   bottleFeeds: number;
   breastFeeds: number;
-  /** Total bottle volume. */
+  /** Total bottle volume, including top-up bottles after breastfeeds. */
   ml: number;
   breastMinutes: number;
   diapers: number;
@@ -50,7 +50,10 @@ export function summarize(entries: readonly LogEntry[], babyId: string, from: Da
       case 'feed':
         if (e.data.method === 'breast') {
           sum.breastMinutes += overlapMinutes(e.start, e.end, from, to, now);
-          if (startsToday) sum.breastFeeds++;
+          if (startsToday) {
+            sum.breastFeeds++;
+            sum.ml += e.data.topUp?.ml ?? 0;
+          }
         } else if (startsToday) {
           sum.bottleFeeds++;
           sum.ml += e.data.ml;

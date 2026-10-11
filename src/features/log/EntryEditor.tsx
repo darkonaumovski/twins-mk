@@ -10,16 +10,15 @@ import { useToast } from '@/components/Toast';
 import { useLive, useStore } from '@/data/StoreContext';
 import { isTimed } from '@/data/logTypes';
 import { parseAmount } from '@/features/checklist/logic';
-import { useBabies, useTwinName } from '@/features/twins/twins';
+import { colorOf, tintFor, twinStyle, useBabies, useTwinName } from '@/features/twins/twins';
 import { useParentName } from '@/lib/parents';
-import type { DiaperData, FeedData, LogEntry, LogType } from '@/data/types';
+import type { DiaperData, FeedData, LogEntry, LogType, Milk } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
 import { WhoPicker } from './WhoPicker';
 import type { FormType } from './LogUIContext';
 
 type Side = Extract<FeedData, { method: 'breast' }>['side'];
-type Milk = Extract<FeedData, { method: 'bottle' }>['milk'];
 
 interface Draft {
   type: LogType;
@@ -31,6 +30,9 @@ interface Draft {
   side: Side;
   ml: number;
   milk: Milk;
+  topUpOn: boolean;
+  topUpMl: number;
+  topUpMilk: Milk;
   diaper: DiaperData['kind'];
   medName: string;
   dose: string;
@@ -53,6 +55,9 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
     side: 'left',
     ml: 60,
     milk: 'breast',
+    topUpOn: false,
+    topUpMl: 30,
+    topUpMilk: 'formula',
     diaper: 'wet',
     medName: '',
     dose: '',
@@ -64,8 +69,10 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
   switch (entry.type) {
     case 'feed':
       d.feedMethod = entry.data.method;
-      if (entry.data.method === 'breast') d.side = entry.data.side;
-      else Object.assign(d, { ml: entry.data.ml, milk: entry.data.milk });
+      if (entry.data.method === 'breast') {
+        d.side = entry.data.side;
+        if (entry.data.topUp) Object.assign(d, { topUpOn: true, topUpMl: entry.data.topUp.ml, topUpMilk: entry.data.topUp.milk });
+      } else Object.assign(d, { ml: entry.data.ml, milk: entry.data.milk });
       break;
     case 'diaper':
       d.diaper = entry.data.kind;
@@ -137,7 +144,14 @@ export function EntryEditor(props: Props) {
     switch (draft.type) {
       case 'feed':
         return draft.feedMethod === 'breast'
-          ? { type: 'feed', data: { method: 'breast', side: draft.side }, start, end }
+          ? {
+              type: 'feed',
+              data: draft.topUpOn
+                ? { method: 'breast', side: draft.side, topUp: { ml: draft.topUpMl, milk: draft.topUpMilk } }
+                : { method: 'breast', side: draft.side },
+              start,
+              end,
+            }
           : { type: 'feed', data: { method: 'bottle', ml: draft.ml, milk: draft.milk }, start, end: null };
       case 'diaper':
         return { type: 'diaper', data: { kind: draft.diaper }, start, end: null };
@@ -182,10 +196,14 @@ export function EntryEditor(props: Props) {
     toast({ message: t('log.deleted'), action: { label: t('common.undo'), onClick: () => void store.logs.restore(entry.id) } });
   };
 
+  const forWho = entry ? name(draft.babyId) : who === 'both' ? t('twins.both') : name(who);
+  const tint = entry ? twinStyle(colorOf(babies, slotOf(draft.babyId))) : tintFor(babies, who);
+
   return (
     <Sheet
       open
       onClose={props.onClose}
+      tint={tint}
       title={entry ? t('log.editEntry') : t(titleKey[draft.type])}
       footer={
         <>
@@ -198,7 +216,7 @@ export function EntryEditor(props: Props) {
             {t('common.cancel')}
           </Button>
           <Button type="submit" form="entry-form" className="flex-1">
-            {t('common.save')}
+            {t('log.saveFor', { name: forWho })}
           </Button>
         </>
       }
@@ -249,6 +267,25 @@ export function EntryEditor(props: Props) {
                 ]}
                 onChange={(s) => set('side', s)}
               />
+            ) : null}
+            {draft.feedMethod === 'breast' ? (
+              <div className="space-y-3 rounded-2xl bg-surface-2 p-3">
+                <Toggle label={t('log.topUp')} checked={draft.topUpOn} onChange={(v) => set('topUpOn', v)} />
+                {draft.topUpOn && (
+                  <>
+                    <Stepper label={t('log.amount')} value={draft.topUpMl} min={5} max={300} step={5} onChange={(v) => set('topUpMl', v)} />
+                    <Segmented<Milk>
+                      label={t('log.milk')}
+                      value={draft.topUpMilk}
+                      options={[
+                        { value: 'breast', label: t('log.breastMilk') },
+                        { value: 'formula', label: t('log.formula') },
+                      ]}
+                      onChange={(m) => set('topUpMilk', m)}
+                    />
+                  </>
+                )}
+              </div>
             ) : (
               <>
                 <Stepper label={t('log.amount')} value={draft.ml} min={5} max={500} step={5} onChange={(v) => set('ml', v)} />

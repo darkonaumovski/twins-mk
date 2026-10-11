@@ -1,5 +1,5 @@
 import { isTimed } from '@/data/logTypes';
-import type { Entity, ISODateTime, LogEntry, NewRecord, ParentId, TwinSlot } from '@/data/types';
+import type { Entity, FeedData, ISODateTime, LogEntry, NewRecord, ParentId, TwinSlot } from '@/data/types';
 
 /** Babies have fixed ids so both phones create the same two records and never duplicate them on merge. */
 export const BABY_IDS: Record<TwinSlot, string> = { A: 'baby-A', B: 'baby-B' };
@@ -19,11 +19,60 @@ type Distribute<T> = T extends LogEntry ? Omit<T, keyof Entity | 'babyId' | 'gro
 /** What the user entered once; it becomes one entry per selected baby. */
 export type LogDraft = Distribute<LogEntry>;
 
-/** One entry per baby; a "both" action links its two entries with a shared groupId. */
-export function buildEntries(who: Who, draft: LogDraft, loggedBy: ParentId, newGroupId: () => string): NewRecord<LogEntry>[] {
+/**
+ * One entry per baby; a "both" action links its two entries with a shared groupId.
+ * `draft` can differ per baby (e.g. tandem breastfeeding on different sides).
+ */
+export function buildEntries(
+  who: Who,
+  draft: LogDraft | ((babyId: string) => LogDraft),
+  loggedBy: ParentId,
+  newGroupId: () => string,
+): NewRecord<LogEntry>[] {
   const babyIds = babyIdsFor(who);
   const groupId = babyIds.length > 1 ? newGroupId() : null;
-  return babyIds.map((babyId) => ({ ...draft, babyId, groupId, loggedBy }) as NewRecord<LogEntry>);
+  return babyIds.map(
+    (babyId) => ({ ...(typeof draft === 'function' ? draft(babyId) : draft), babyId, groupId, loggedBy }) as NewRecord<LogEntry>,
+  );
+}
+
+export type BreastSide = Extract<FeedData, { method: 'breast' }>['side'];
+
+/** The side of a twin's most recent breastfeed, so parents can alternate. */
+export function lastSide(entries: readonly LogEntry[], babyId: string): BreastSide | null {
+  let newest: LogEntry | null = null;
+  for (const e of entries) {
+    if (e.babyId !== babyId || e.deletedAt !== null || e.type !== 'feed' || e.data.method !== 'breast') continue;
+    if (!newest || e.start > newest.start) newest = e;
+  }
+  return newest?.type === 'feed' && newest.data.method === 'breast' ? newest.data.side : null;
+}
+
+/** Bottle millilitres in a feed: the bottle itself, or the top-up after a breastfeed. */
+export function feedMl(data: FeedData): number {
+  return data.method === 'bottle' ? data.ml : (data.topUp?.ml ?? 0);
+}
+
+/** When the next feed is due, from the parents' own interval. `null` without an interval or a previous feed. */
+export function nextFeedDue(lastFeedStart: ISODateTime | undefined, intervalMin: number | null | undefined): Date | null {
+  if (!lastFeedStart || !intervalMin || intervalMin <= 0) return null;
+  return new Date(new Date(lastFeedStart).getTime() + intervalMin * 60_000);
+}
+
+/**
+ * Whether to offer feeding the other twin as well: its next feed (from its own
+ * interval) is due within `windowMin` minutes, or already due, and it is not feeding now.
+ */
+export function shouldNudge(input: {
+  otherLastFeedStart: ISODateTime | undefined;
+  otherIntervalMin: number | null | undefined;
+  otherFeeding: boolean;
+  windowMin: number;
+  now: Date;
+}): boolean {
+  if (input.otherFeeding || input.windowMin <= 0) return false;
+  const due = nextFeedDue(input.otherLastFeedStart, input.otherIntervalMin);
+  return due !== null && due.getTime() - input.now.getTime() <= input.windowMin * 60_000;
 }
 
 export interface SleepPlan {

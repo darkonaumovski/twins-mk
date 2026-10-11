@@ -17,6 +17,7 @@ import { InstallSettings } from './InstallSettings';
 import { SyncSettings } from './SyncSettings';
 import { useLockNow } from '@/features/lock/LockGate';
 import { Button } from '@/components/Button';
+import { Stepper } from '@/components/Stepper';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -100,6 +101,17 @@ export function SettingsPage() {
             />
             <p className="text-sm text-muted">{t('settings.plannerModeHint')}</p>
           </div>
+        )}
+        {babies?.ready && (
+          <Stepper
+            label={t('settings.feedNudge')}
+            hint={t('settings.feedNudgeHint')}
+            value={settings.feedNudgeMin}
+            min={0}
+            max={180}
+            step={15}
+            onChange={(feedNudgeMin) => store.settings.update({ feedNudgeMin })}
+          />
         )}
       </Section>
 

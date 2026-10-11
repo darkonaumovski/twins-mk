@@ -223,6 +223,16 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
       .first();
   }
 
+  recent(babyId: string, type: LogType, limit: number) {
+    return this.logs
+      .where('[babyId+start]')
+      .between([babyId, Dexie.minKey], [babyId, Dexie.maxKey])
+      .reverse()
+      .filter((e) => e.deletedAt === null && e.type === type && isKnownLog(e))
+      .limit(limit)
+      .toArray();
+  }
+
   listRunning(since: ISODateTime) {
     return this.logs
       .where('start')
