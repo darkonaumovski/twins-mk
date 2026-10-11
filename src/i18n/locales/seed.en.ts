@@ -20,6 +20,8 @@ const seedEn = {
     monitor: 'Baby monitor',
     whiteNoise: 'White noise machine',
     blackoutBlind: 'Blackout blind',
+    bassinet: 'Bassinet or bedside crib',
+    bouncer: 'Bouncer or rocker',
 
     bottles: 'Baby bottles',
     bottleBrush: 'Bottle brush',
@@ -32,6 +34,7 @@ const seedEn = {
     bottleWarmer: 'Bottle warmer',
     muslins: 'Muslin burp cloths',
     bibs: 'Bibs',
+    formula: 'Infant formula',
 
     diapers: 'Newborn diapers (packs)',
     wipes: 'Baby wipes (packs)',
@@ -52,6 +55,8 @@ const seedEn = {
     cardigans: 'Cardigans',
     outerwear: 'Outdoor suit',
     washClothes: 'Wash baby clothes and bedding',
+    bodysuitsPreemie: 'Bodysuits, preemie size',
+    sleepsuitsPreemie: 'Sleepsuits, preemie size',
 
     twinStroller: 'Twin stroller',
     carSeat: 'Infant car seat',
@@ -78,6 +83,8 @@ const seedEn = {
     hbBabyBlanket: 'Babies: blanket',
     hbBabyDiapers: 'Babies: diapers and wipes',
     packBag: 'Pack the hospital bag',
+    hbPumpingBra: 'Mother: hands-free pumping bra (for the hospital or NICU)',
+    hbMilkBottles: 'Bottles and labels for expressed milk',
 
     changingStation: 'Changing table or station',
     changingMats: 'Changing mats',
@@ -90,6 +97,11 @@ const seedEn = {
     admin1: 'Admin task 1 (edit me)',
     admin2: 'Admin task 2 (edit me)',
     admin3: 'Admin task 3 (edit me)',
+    paediatrician: 'Choose a paediatrician',
+    maternityLeave: 'Maternity-leave paperwork with the employer',
+    registerBirths: 'Register the births at the registry office',
+    healthInsurance: 'Register the babies for health insurance (FZOM)',
+    childBenefits: 'Check which newborn and child benefits apply to you',
   },
 };
 

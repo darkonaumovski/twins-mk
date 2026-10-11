@@ -2,7 +2,7 @@
 
 A calm, phone-first app for parents expecting twins.
 
-- **Before birth:** a preparation checklist with a starter list for twins, a budget and a shopping mode.
+- **Before birth:** a preparation checklist with a starter list for twins (must-haves aimed to be ready by week 32, because twins often come early), a countdown to the due date or a planned delivery date, a budget and a shopping mode.
 - **After birth:** a daily planner and tracker for feeds, diapers, sleep, medicines, growth, appointments, routines and parent tasks, always for Twin A, Twin B or both.
 
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
@@ -189,16 +189,22 @@ Sync (`src/data/sync/`) keeps Dexie as the local database. Every local write als
 
 Records that both phones create on their own use fixed ids, so they never duplicate when merged: the starter checklist (`seed-…`) and the two babies (`baby-A`, `baby-B`).
 
+The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/seed.ts`). Each version stamps its changes with its own fixed, very old timestamp (v1 `2000-01-01`, v2 `2000-01-02`). An upgrade only rewrites seed records nobody has touched, and both phones produce identical records, so a parent's edit or delete always wins and nothing duplicates.
+
+**Newer and older phones together.** A phone skips synced collections and log entry types it does not know (they come from a newer version on the other phone): they stay stored and synced, but are not shown. If a screen still crashes, its **Reload** button switches to a waiting app update first.
+
 ### Tests
 
 `npm test` runs the unit tests for:
 
 - the data layer (CRUD, soft delete and restore, live queries, merge, backup round trips between two simulated phones)
-- sync between two simulated phones (joining with existing data, real-time updates, offline catch-up, conflicts, deletes, leaving) against an in-memory server
+- sync between two simulated phones (joining with existing data, real-time updates, offline catch-up, conflicts, deletes, leaving, data from a newer version) against an in-memory server
 - the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message
 - the family password check
 - the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts
 - checklist quantities, filters and price parsing
+- the starter list and its v1 → v2 upgrade (edited or deleted items stay untouched, both phones end up identical)
+- the pregnancy countdown (due date, planned delivery date, pregnancy week)
 - budget and shopping totals
 - logging helpers and log queries
 - daily summaries (including sleep across midnight)

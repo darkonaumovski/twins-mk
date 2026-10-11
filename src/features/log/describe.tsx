@@ -58,6 +58,9 @@ export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
         }
         case 'note':
           return { title: t('log.note'), detail: entry.data.text };
+        default:
+          // An entry type from a newer version of the app.
+          return { title: t('log.unknown'), detail: '' };
       }
     },
     [t, formatMinutes],

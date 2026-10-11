@@ -31,6 +31,8 @@ export interface SharedSettings extends Entity {
   id: 'shared';
   currency: string;
   dueDate: ISODate | null;
+  /** Planned delivery date (e.g. a planned caesarean or induction), if one has been set. Filled from the defaults on older records. */
+  expectedDelivery: ISODate | null;
   parent1Name: string;
   parent2Name: string;
   phase: Phase;

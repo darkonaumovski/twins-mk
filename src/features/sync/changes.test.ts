@@ -74,6 +74,11 @@ describe('change notifications', () => {
     expect(fromOtherPhone(changes, 'me')).toHaveLength(1);
   });
 
+  it('does not announce log entries of a type from a newer version', () => {
+    const future = { ...bottle('baby-A'), type: 'hiccups' } as unknown as LogEntry;
+    expect(fromOtherPhone([{ collection: 'logs', record: future, previous: undefined }], 'me')).toEqual([]);
+  });
+
   it('describes changes in words', () => {
     expect(changeLine({ collection: 'logs', record: bottle('baby-A'), previous: undefined }, h)).toBe('Bottle · Ema · 120 ml');
     expect(changeLine({ collection: 'tasks', record: task({ done: true }), previous: task() }, h)).toBe('Task done: Buy wipes');

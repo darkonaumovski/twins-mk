@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { openDexieStore, type DexieStore } from '../dexieStore';
+import type { CollectionName } from '../repository';
 import type { NewRecord, ParentTask } from '../types';
 import { SyncEngine, formatCode, normalizeCode, type RemoteUpdate } from './engine';
 import { MemoryServer, type MemoryRemote } from './memoryRemote';
@@ -148,6 +149,18 @@ describe('sync engine', () => {
     await mom.engine.syncNow();
     await dad.engine.syncNow();
     expect(await dad.store.tasks.list()).toEqual([]);
+  });
+
+  it('skips collections from a newer version instead of failing', async () => {
+    const { server, mom, dad, membership } = await family();
+    // A phone with a newer version uploads a collection this version does not know.
+    const future = { id: 'x1', createdAt: 'a', updatedAt: '2026-10-11T09:00:00.000Z', deletedAt: null, deviceId: 'newer', ml: 90 };
+    server.push(membership.familyId, [{ collection: 'futureThings' as CollectionName, record: future }]);
+    await mom.store.tasks.create(task('After the unknown record'));
+    await mom.engine.syncNow();
+    await dad.engine.syncNow();
+    expect(dad.engine.getSnapshot().state).toBe('synced');
+    expect(await titles(dad)).toEqual(['After the unknown record']);
   });
 
   it('keeps working offline and catches up afterwards', async () => {

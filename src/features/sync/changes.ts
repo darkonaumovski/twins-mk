@@ -1,3 +1,4 @@
+import { isKnownLog } from '@/data/logTypes';
 import type { AppliedChange } from '@/data/sync/types';
 import type {
   Appointment,
@@ -26,7 +27,14 @@ export function changeAction(c: AppliedChange): ChangeAction | null {
 
 /** Changes made on another phone that are worth telling this phone's user about. */
 export function fromOtherPhone(changes: readonly AppliedChange[], ownDeviceId: string): AppliedChange[] {
-  return changes.filter((c) => c.record.deviceId !== ownDeviceId && c.record.deviceId !== 'seed' && changeAction(c) !== null);
+  return changes.filter(
+    (c) =>
+      c.record.deviceId !== ownDeviceId &&
+      c.record.deviceId !== 'seed' &&
+      changeAction(c) !== null &&
+      // Entries of a type this version cannot describe (from a newer version) are not announced.
+      !(c.collection === 'logs' && !isKnownLog(c.record as LogEntry)),
+  );
 }
 
 export interface ChangeTextHelpers {

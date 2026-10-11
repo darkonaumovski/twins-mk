@@ -129,6 +129,16 @@ export function SettingsPage() {
             />
           )}
         </Field>
+        <Field label={t('settings.expectedDelivery')} hint={t('settings.expectedDeliveryHint')}>
+          {(props) => (
+            <TextInput
+              {...props}
+              type="date"
+              value={settings.expectedDelivery ?? ''}
+              onChange={(e) => store.settings.update({ expectedDelivery: e.target.value || null })}
+            />
+          )}
+        </Field>
       </Section>
 
       <Section title={t('settings.money')}>

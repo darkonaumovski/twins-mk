@@ -1,6 +1,6 @@
 import Dexie, { liveQuery, type Table } from 'dexie';
 import { planMerge, type MergeStats } from './merge';
-import { isTimed } from './logTypes';
+import { isKnownLog, isTimed } from './logTypes';
 import {
   COLLECTIONS,
   type CollectionName,
@@ -208,7 +208,7 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
     const entries = await this.logs
       .where('start')
       .between(from, to, true, false)
-      .filter((e) => e.deletedAt === null)
+      .filter((e) => e.deletedAt === null && isKnownLog(e))
       .toArray();
     // Same-minute entries (e.g. a "both" action) come back in id order; make it stable by twin.
     return entries.sort((a, b) => a.start.localeCompare(b.start) || a.babyId.localeCompare(b.babyId));
@@ -219,7 +219,7 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
       .where('[babyId+start]')
       .between([babyId, Dexie.minKey], [babyId, Dexie.maxKey])
       .reverse()
-      .filter((e) => e.deletedAt === null && e.type === type)
+      .filter((e) => e.deletedAt === null && e.type === type && isKnownLog(e))
       .first();
   }
 
@@ -227,7 +227,7 @@ class DexieLogRepository extends DexieRepository<LogEntry> implements LogReposit
     return this.logs
       .where('start')
       .aboveOrEqual(since)
-      .filter((e) => e.deletedAt === null && e.end === null && isTimed(e))
+      .filter((e) => e.deletedAt === null && e.end === null && isKnownLog(e) && isTimed(e))
       .toArray();
   }
 }
@@ -245,7 +245,9 @@ class DexieSettingsRepository implements SettingsRepository {
 
   async get(): Promise<SharedSettings> {
     const stored = await this.table.get('shared');
-    return stored ?? { ...DEFAULT_SETTINGS, createdAt: '', updatedAt: '', deletedAt: null, deviceId: this.ctx.deviceId };
+    // Defaults first, so fields added in later versions have a value on records saved by older ones.
+    if (stored) return { ...DEFAULT_SETTINGS, ...stored };
+    return { ...DEFAULT_SETTINGS, createdAt: '', updatedAt: '', deletedAt: null, deviceId: this.ctx.deviceId };
   }
 
   async update(patch: Partial<Omit<SharedSettings, keyof Entity>>) {

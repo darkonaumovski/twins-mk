@@ -4,6 +4,7 @@ export const DEFAULT_SETTINGS: Omit<SharedSettings, Exclude<keyof Entity, 'id'>>
   id: 'shared',
   currency: 'MKD',
   dueDate: null,
+  expectedDelivery: null,
   parent1Name: '',
   parent2Name: '',
   phase: 'prep',

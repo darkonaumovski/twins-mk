@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Baby, CalendarHeart, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Baby, CalendarHeart, ChevronRight, Sprout } from 'lucide-react';
 import { ProgressBar } from '@/components/ProgressBar';
-import { pregnancyProgress } from '@/lib/pregnancy';
+import { useSettings } from '@/data/StoreContext';
+import { formatLongDate } from '@/lib/format';
+import { countdown, dateOfWeek, READY_BY_WEEK } from '@/lib/pregnancy';
 import type { ISODate } from '@/data/types';
 import type { Progress } from './logic';
 
@@ -22,21 +24,27 @@ export function Countdown({
   /** Offer the switch to the planner (only before birth). */
   showArrived: boolean;
 }) {
-  const { t } = useTranslation();
-  const p = dueDate ? pregnancyProgress(dueDate, new Date()) : null;
+  const { t, i18n } = useTranslation();
+  const settings = useSettings();
+  const c = countdown(dueDate, settings?.expectedDelivery ?? null, new Date());
+  const p = c?.progress ?? null;
+  const delivery = c?.target === 'delivery';
+  const showReadyBy = dueDate !== null && p !== null && p.week < READY_BY_WEEK;
 
   return (
     <section className="space-y-4 rounded-3xl bg-accent-soft p-5">
-      {p ? (
+      {c ? (
         <div className="flex items-end justify-between gap-3">
           <p className="text-2xl leading-tight font-bold">
-            {p.daysLeft > 0
-              ? t('countdown.daysLeft', { count: p.daysLeft })
-              : p.daysLeft === 0
-                ? t('countdown.dueToday')
-                : t('countdown.pastDue', { count: -p.daysLeft })}
+            {c.daysLeft > 0
+              ? t(delivery ? 'countdown.deliveryLeft' : 'countdown.daysLeft', { count: c.daysLeft })
+              : c.daysLeft === 0
+                ? t(delivery ? 'countdown.deliveryToday' : 'countdown.dueToday')
+                : t(delivery ? 'countdown.pastDelivery' : 'countdown.pastDue', { count: -c.daysLeft })}
           </p>
-          {p.daysLeft >= 0 && <p className="shrink-0 font-semibold text-accent">{t('countdown.week', { week: p.week, day: p.day })}</p>}
+          {p && p.daysLeft >= 0 && (
+            <p className="shrink-0 font-semibold text-accent">{t('countdown.week', { week: p.week, day: p.day })}</p>
+          )}
         </div>
       ) : (
         <p className="flex items-start gap-3">
@@ -46,6 +54,15 @@ export function Countdown({
             <Link to="/settings" className="font-semibold text-accent underline underline-offset-2">
               {t('common.openSettings')}
             </Link>
+          </span>
+        </p>
+      )}
+
+      {showReadyBy && (
+        <p className="flex items-start gap-2 text-sm">
+          <Sprout aria-hidden size={18} className="mt-0.5 shrink-0 text-accent" />
+          <span>
+            {t('countdown.readyBy', { week: READY_BY_WEEK, date: formatLongDate(dateOfWeek(dueDate, READY_BY_WEEK), i18n.language) })}
           </span>
         </p>
       )}

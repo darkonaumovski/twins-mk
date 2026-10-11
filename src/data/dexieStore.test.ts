@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { openDexieStore } from './dexieStore';
 import { exportBackup, importBackup, parseBackup, BackupError } from './backup';
-import type { NewRecord, ParentTask } from './types';
+import type { LogEntry, LogType, NewRecord, ParentTask, SharedSettings } from './types';
 
 let dbCounter = 0;
 
@@ -180,5 +180,44 @@ describe('parseBackup', () => {
   it('ignores unknown collections', () => {
     const file = parseBackup('{"app":"twins-mk","version":1,"exportedAt":"x","data":{"aliens":[1]}}');
     expect(file.data).toEqual({});
+  });
+});
+
+describe('data from newer versions', () => {
+  const futureEntry = (id: string, start: string) =>
+    ({
+      id,
+      type: 'hiccups',
+      babyId: 'baby-A',
+      start,
+      end: null,
+      groupId: null,
+      loggedBy: 'p1',
+      data: {},
+      createdAt: start,
+      updatedAt: start,
+      deletedAt: null,
+      deviceId: 'newer-phone',
+    }) as unknown as LogEntry;
+
+  it('keeps log entries of unknown types but leaves them out of queries', async () => {
+    const { store } = await makeStore();
+    const start = '2026-10-11T09:00:00.000Z';
+    await store.logs.merge([futureEntry('future-1', start)]);
+    await store.logs.create({ type: 'note', babyId: 'baby-A', start, end: null, groupId: null, loggedBy: 'p1', data: { text: 'hi' } });
+
+    expect((await store.logs.listBetween('2026-10-11T00:00:00.000Z', '2026-10-12T00:00:00.000Z')).map((e) => e.type)).toEqual(['note']);
+    expect(await store.logs.latest('baby-A', 'hiccups' as LogType)).toBeUndefined();
+    expect(await store.logs.listRunning('2026-10-01T00:00:00.000Z')).toEqual([]);
+    // Still stored and exported, so nothing is lost when this phone syncs or backs up.
+    expect((await store.logs.listAll()).some((e) => e.id === 'future-1')).toBe(true);
+    expect((await exportBackup(store)).data.logs?.some((e) => e.id === 'future-1')).toBe(true);
+  });
+
+  it('fills settings fields that an older version did not save', async () => {
+    const { store } = await makeStore();
+    const { expectedDelivery: _omit, ...old } = { ...(await store.settings.get()), createdAt: 'x', updatedAt: '2026-10-01T00:00:00.000Z' };
+    await store.settings.merge([old as SharedSettings]);
+    expect(await store.settings.get()).toMatchObject({ expectedDelivery: null });
   });
 });
