@@ -45,7 +45,8 @@ export function ReminderSync() {
   // Recompute every few minutes so new occurrences enter the look-ahead window.
   const now = useNow(5 * 60_000);
   const latest = useRef({ toast, t, scopeLabel, notify: false });
-  latest.current = { toast, t, scopeLabel, notify: Boolean(prefs?.notifications) };
+  // With push reminders on, the server sends the system notification; this only shows the in-app message.
+  latest.current = { toast, t, scopeLabel, notify: Boolean(prefs?.notifications) && !prefs?.push };
 
   const items = useMemo(
     () => (raw ? upcomingItems({ ...raw, now, pastMs: GRACE_MS, aheadMs: LOOKAHEAD_MS, appointmentAheadMs: LOOKAHEAD_MS + 3600_000 }) : []),

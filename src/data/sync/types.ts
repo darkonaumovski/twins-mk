@@ -1,5 +1,5 @@
 import type { CollectionName } from '../repository';
-import type { Entity, SyncMembership } from '../types';
+import type { Entity, ReminderKind, SyncMembership } from '../types';
 
 export type { SyncMembership };
 
@@ -56,6 +56,17 @@ export class SyncError extends Error {
   }
 }
 
+/** One phone's push subscription, as saved on the sync server. */
+export interface PushRegistration {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  /** Who uses the phone, so night reminders reach whoever is on duty. */
+  caregiverId: string;
+  kinds: ReminderKind[];
+  lang: 'mk' | 'en';
+}
+
 /** The sync server. Implemented with Supabase, and in memory for tests. */
 export interface SyncRemote {
   createFamily(): Promise<SyncMembership>;
@@ -68,4 +79,9 @@ export interface SyncRemote {
   pull(familyId: string, after: number, limit: number): Promise<RemoteChange[]>;
   /** Calls `onChange` when the family's data changes on the server. Returns a function that stops listening. */
   listen(familyId: string, handlers: { onChange: () => void; onLive: (live: boolean) => void }): () => void;
+  /** Saves (or updates) this phone's push subscription for the family's reminders. */
+  savePushSubscription(familyId: string, registration: PushRegistration): Promise<void>;
+  deletePushSubscription(endpoint: string): Promise<void>;
+  /** Asks the reminder function to send this phone a test notification. */
+  sendTestPush(endpoint: string): Promise<void>;
 }

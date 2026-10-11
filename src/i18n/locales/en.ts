@@ -569,6 +569,26 @@ const en = {
     meds_other: '{{count}} medicines',
     by: 'Logged by {{names}}',
   },
+  push: {
+    title: 'Push reminders (also when the app is closed)',
+    enable: 'Push reminders on this phone',
+    hint: 'Routines, medicines, appointments and “feed due” arrive as phone notifications even when the app is closed, usually within a few minutes. They need the internet. Still do not rely on them for medicines.',
+    needsSync: 'Push reminders need sync between phones turned on (Settings → Sync between phones).',
+    unsupported: 'This browser cannot receive push reminders. The reminders above still work while the app is open.',
+    installFirst:
+      'On iPhone, push reminders only work in the app added to the Home Screen (iOS 16.4 or newer): Share → Add to Home Screen, then open it from there.',
+    kinds: 'Send reminders for',
+    kind: {
+      routines: 'Routines',
+      medicines: 'Medicines',
+      appointments: 'Appointments (an hour before)',
+      feedDue: 'Feed due (from the feed interval)',
+    },
+    nightNote:
+      'During a night shift, reminders go only to the phones of whoever is on duty. If that person has no phone with push reminders on, all phones get them.',
+    test: 'Send a test push',
+    testSent: 'Test sent. It should arrive in a few seconds.',
+  },
   milestones: {
     pageTitle: 'Milestones',
     intro:
@@ -703,13 +723,14 @@ const en = {
     enable: 'Reminders on this phone',
     hint: 'A notification when a routine is due and an hour before appointments.',
     limits:
-      'Reminders only arrive while the app is open or was used recently, and on iPhone only after adding the app to the Home Screen. Never rely on them for medicines.',
+      'Without push reminders (below), reminders only arrive while the app is open or was used recently. Never rely on reminders for medicines.',
     denied: 'Notifications are blocked for this site. Allow them in the browser or phone settings.',
     unsupported: 'This browser cannot show notifications. Upcoming items still appear on Today.',
     test: 'Send a test reminder',
     testBody: 'Reminders are working.',
     appointmentSoon: '{{title}} at {{time}}',
     routineDue: '{{title}} · {{who}}',
+    feedDue: 'Feed due · {{who}}',
   },
   backup: {
     title: 'Backup',

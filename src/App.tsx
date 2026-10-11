@@ -9,6 +9,7 @@ import { useSettings } from '@/data/StoreContext';
 import { ChecklistPage } from '@/features/checklist/ChecklistPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
+import { PushSync } from '@/features/plan/PushSettings';
 import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
 import { LastSeenTracker } from '@/features/family/Handover';
 import { TimerWakeLock } from '@/features/log/useLogActions';
@@ -48,6 +49,7 @@ export function App() {
         <ConfirmProvider>
           <LogUIProvider>
             <ReminderSync />
+            <PushSync />
             <ChangeNotifier />
             <LastSeenTracker />
             <TimerWakeLock />

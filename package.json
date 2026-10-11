@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "build:functions": "vite build --config vite.functions.config.ts",
+    "push:keys": "node scripts/push-keys.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
@@ -37,6 +39,7 @@
     "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^6.1.2",
     "fake-indexeddb": "^6.2.5",
+    "http_ece": "^1.2.0",
     "jsdom": "^30.1.2",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.3",

@@ -5,6 +5,7 @@ import { Button } from '@/components/Button';
 import { Section, Toggle } from '@/components/ui';
 import { useDevicePrefs, useStore } from '@/data/StoreContext';
 import { notifySupport, requestNotifyPermission, showNotification, type NotifySupport } from '@/lib/notify';
+import { PushSettings } from './PushSettings';
 
 export function RemindersSettings() {
   const { t } = useTranslation();
@@ -44,6 +45,7 @@ export function RemindersSettings() {
           {t('reminders.test')}
         </Button>
       )}
+      <PushSettings />
     </Section>
   );
 }

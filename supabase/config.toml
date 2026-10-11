@@ -1,0 +1,7 @@
+# Supabase CLI settings for this repository (only what the push reminder function needs).
+project_id = "twins-mk"
+
+[functions.send-reminders]
+# Called by pg_cron with its own secret header, and by phones with their sign-in token
+# (checked inside the function), so the gateway's JWT check is off.
+verify_jwt = false

@@ -1,7 +1,7 @@
 import { incomingWins } from '../merge';
 import { newId } from '@/lib/ids';
 import { normalizeCode } from './engine';
-import { SyncError, type RemoteChange, type SyncChange, type SyncMembership, type SyncRemote } from './types';
+import { SyncError, type PushRegistration, type RemoteChange, type SyncChange, type SyncMembership, type SyncRemote } from './types';
 
 interface StoredRow extends RemoteChange {
   familyId: string;
@@ -17,6 +17,8 @@ export class MemoryServer {
   private readonly rows = new Map<string, StoredRow>();
   private readonly listeners = new Set<{ familyId: string; client: MemoryRemote; onChange: () => void }>();
   private seq = 0;
+  /** Push subscriptions by endpoint (nothing is sent: there is no push service here). */
+  readonly pushSubscriptions = new Map<string, PushRegistration & { familyId: string; userId: string }>();
 
   /** A connection for one signed-in phone. */
   client(userId = newId()) {
@@ -122,6 +124,25 @@ export class MemoryRemote implements SyncRemote {
     return this.call(() => {
       this.server.assertMember(this.userId, familyId);
       return this.server.pull(familyId, after, limit);
+    });
+  }
+
+  savePushSubscription(familyId: string, registration: PushRegistration) {
+    return this.call(() => {
+      this.server.assertMember(this.userId, familyId);
+      this.server.pushSubscriptions.set(registration.endpoint, { ...registration, familyId, userId: this.userId });
+    });
+  }
+
+  deletePushSubscription(endpoint: string) {
+    return this.call(() => {
+      if (this.server.pushSubscriptions.get(endpoint)?.userId === this.userId) this.server.pushSubscriptions.delete(endpoint);
+    });
+  }
+
+  sendTestPush(endpoint: string) {
+    return this.call(() => {
+      if (this.server.pushSubscriptions.get(endpoint)?.userId !== this.userId) throw new SyncError('failed', 'no_subscription');
     });
   }
 

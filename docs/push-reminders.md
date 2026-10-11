@@ -1,6 +1,6 @@
-# Design note: push reminders (not built yet)
+# Design note: push reminders
 
-Status: **proposal, waiting for approval.** Nothing here is implemented.
+Status: **implemented** (Phase 8). Setup steps are in the README under "Push reminders". Differences from the proposal are noted below.
 
 ## Why
 
@@ -25,7 +25,7 @@ Today, reminders only fire while the app is open or was used recently. A closed 
 
 ## What changes in `schema.sql`
 
-These changes would ship as `supabase/migrations/004_push.sql` and in `schema.sql` for new projects.
+These changes ship as `supabase/migrations/004_push_milestones.sql` and in `schema.sql` for new projects.
 
 - `push_subscriptions`: `id`, `family_id`, `user_id`, `endpoint` (unique), `p256dh`, `auth`, `caregiver_id`, `kinds` (jsonb), `created_at`, `last_ok_at`.
   - Row-level security: a phone sees and deletes only its own rows.
@@ -70,10 +70,16 @@ These changes would ship as `supabase/migrations/004_push.sql` and in `schema.sq
   - a test push.
 - The existing in-app reminders stay for phones that do not subscribe.
 
-## Open questions for you
+## Decisions (answered)
 
-1. Should notifications include the details ("Vitamin D · Ema"), or only "A reminder is due" (more private)?
-2. Which kinds should push by default: routines, medicines, appointments, feed due from the interval?
-3. At night, should reminders go to every subscribed phone, or only to the person on night duty?
+1. Notifications show the details ("Vitamin D · Ema").
+2. All kinds are on by default: routines, medicines, appointments, feed due. Each phone can turn kinds off.
+3. At night, reminders go only to the phones of whoever is on duty. If that person has no phone with push turned on, every phone gets them, so a reminder is never lost.
 
-Rough size: one phase, similar to Phase 4 (an Edge Function, a migration, a service worker handler, settings and tests).
+## As built
+
+- Web Push encryption (RFC 8291) and VAPID (RFC 8292) are implemented on WebCrypto in `src/server/webpush.ts` (no Node-only library in the Edge Function) and checked in tests against Mozilla's reference decryptor.
+- The scheduling code is the app's own; `npm run build:functions` bundles `src/server` into `supabase/functions/_shared/reminders.js`, and a test fails if the committed bundle is out of date.
+- Time zone: shared settings gain `timeZone`, set from the phone when push is first turned on (default Europe/Skopje).
+- The schedule (`supabase/push-cron.sql`) keeps the cron secret in Supabase Vault.
+- The "private reminders" option was not built (details were chosen).

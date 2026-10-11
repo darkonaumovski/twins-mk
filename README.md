@@ -146,7 +146,7 @@ Sync uses a free [Supabase](https://supabase.com) project as the server. The app
 - **Offline.** Both phones always work offline. The header shows a small cloud icon while changes are waiting to be sent.
 - **Access.** Each phone signs in anonymously, and that sign-in is remembered on the phone. Only phones that joined the family with its code can read or write its records (row-level security in `supabase/schema.sql`). If a phone loses its sign-in, it rejoins with the stored code automatically.
 - **Per-phone settings** (language, theme, who uses the phone, reminders, when the app was last opened) are not synced.
-- **What the other parent changed.** When sync brings in changes from the other phone, the app says what they were, for example "Марија: Шишенце · Ема · 90 ml Формула" or "Нова задача: Купи марамчиња". While the app is on screen this is a message at the bottom. While it is in the background (or the screen is off), it is a phone notification, once notifications are allowed. Several changes at once become one notification. You can turn this off per phone in **Sync between phones → Tell me what the other parent changes**. Nothing arrives while the app is fully closed, because that would need a push server. The first merge after joining is not announced.
+- **What the other parent changed.** When sync brings in changes from the other phone, the app says what they were, for example "Марија: Шишенце · Ема · 90 ml Формула" or "Нова задача: Купи марамчиња". While the app is on screen this is a message at the bottom. While it is in the background (or the screen is off), it is a phone notification, once notifications are allowed. Several changes at once become one notification. You can turn this off per phone in **Sync between phones → Tell me what the other parent changes**. Nothing arrives while the app is fully closed (push reminders are separate, see below). The first merge after joining is not announced.
 
 ### Setting up the sync server (once)
 
@@ -206,11 +206,32 @@ node -e "const c=require('crypto'),s=c.randomBytes(16).toString('hex');console.l
 
 The password is a privacy screen against someone picking up an unlocked phone. It does not encrypt the data stored on the phone, and the synced data on the server is protected by the family code, not by this password.
 
+## Push reminders (also when the app is closed)
+
+With **Settings → Reminders → Push reminders on this phone**, routines, medicines, appointments (an hour before) and "feed due" (from each twin's feed interval) arrive as phone notifications even when the app is closed, with the details ("Vitamin D · Ema"). Each phone chooses which kinds it wants. During a night shift, reminders go only to the phones of whoever is on duty; if that person has no phone with push on, every phone gets them, so nothing is lost. They need sync between phones, and on iPhone the app added to the Home Screen (iOS 16.4 or newer).
+
+How it works: a Supabase Edge Function (`supabase/functions/send-reminders`) runs every 5 minutes. It reads the family's routines, appointments and recent entries from the synced records, works out what came due with the app's own scheduling code (`src/server`, bundled into `supabase/functions/_shared/reminders.js` by `npm run build:functions`), and sends each reminder once (`push_sent`) as an encrypted Web Push message. It costs nothing on the free plan. The design note is in [`docs/push-reminders.md`](docs/push-reminders.md).
+
+### Setting it up (once)
+
+1. Run [`supabase/migrations/004_push_milestones.sql`](supabase/migrations/004_push_milestones.sql) in the SQL Editor (see "Updating an existing sync server").
+2. The keys: `npm run push:keys` writes `supabase/functions/.env.local` (never committed: it holds the private key) and prints the public key, which goes into `.env.production` as `VITE_VAPID_PUBLIC_KEY`. This is already done in this repository; keep that file private and backed up, because new keys would end every phone's subscription.
+3. Deploy the function with the Supabase CLI (it asks you to sign in once):
+
+   ```bash
+   npx supabase login
+   npx supabase secrets set --env-file supabase/functions/.env.local --project-ref ikswfxyhpyuqwcpslovx
+   npx supabase functions deploy send-reminders --no-verify-jwt --use-api --project-ref ikswfxyhpyuqwcpslovx
+   ```
+
+4. The schedule: open [`supabase/push-cron.sql`](supabase/push-cron.sql), replace `PASTE_CRON_SECRET_HERE` with the `CRON_SECRET` from `supabase/functions/.env.local`, and run it in the SQL Editor. (Do not commit the edited file.)
+5. Deploy the app (push to `main`), then on each phone: **Settings → Reminders → Push reminders on this phone**, and **Send a test push**.
+
 ## Reminders: what to expect
 
 With **Settings → Reminders** on, the app shows an in-app message and, if allowed, a system notification when a routine is due and an hour before an appointment.
 
-Without a push server, a web app cannot wake itself up. Reminders only arrive while the app is open or was used recently. On iPhone they also require the app on the Home Screen. **Do not rely on them for medicines.** The **Today → Coming up** list always shows what is due.
+Without push reminders, a web app cannot wake itself up: reminders only arrive while the app is open or was used recently. With push reminders they arrive while the app is closed too, usually within a few minutes, but delivery depends on the internet and the phone's push service and is never guaranteed. **Do not rely on them for medicines.** The **Today → Coming up** list always shows what is due.
 
 ## How it is built
 
@@ -220,6 +241,7 @@ Without a push server, a web app cannot wake itself up. Reminders only arrive wh
 
 ```
 src/
+  server/          push reminders: what is due, recipients, Web Push (bundled for the Edge Function)
   data/            types, repository interfaces, Dexie implementation, merge, backup
   features/
     checklist/     preparation checklist, starter list (seed), quantity logic
@@ -259,6 +281,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - the "what the other parent changed" messages, end to end from one phone's edit to the other phone's on-screen message (including helpers and "the other phone")
 - night duty (shifts past midnight, quiet alerts while someone else is on duty), the "since you last opened" handover and the caregiver list
 - the family password check
+- push reminders: Web Push encryption checked against Mozilla's reference implementation, VAPID signatures, what is due in the family's time zone (whatever zone the server runs in), night-duty recipients, sending each reminder once, and that the function's bundle matches the source
 - the server schema (`supabase/schema.sql`) in an in-process Postgres (PGlite): join codes, access rules, newest-wins upserts, every synced collection accepted, and the migrations upgrading an older project
 - checklist quantities, filters and price parsing
 - the starter list and its v1 → v2 upgrade (edited or deleted items stay untouched, both phones end up identical)

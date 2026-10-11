@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { COLLECTIONS, type CollectionName } from '../repository';
 import type { Entity } from '../types';
-import { SyncError, type RemoteChange, type SyncChange, type SyncMembership, type SyncRemote } from './types';
+import { SyncError, type PushRegistration, type RemoteChange, type SyncChange, type SyncMembership, type SyncRemote } from './types';
 
 export interface SupabaseConfig {
   url: string;
@@ -108,6 +108,20 @@ export async function createSupabaseRemote(config: SupabaseConfig): Promise<Sync
       } catch (err) {
         throw err instanceof SyncError ? err : toSyncError(err as Error);
       }
+    },
+
+    async savePushSubscription(familyId, registration: PushRegistration) {
+      await rpc('save_push_subscription', { f: familyId, sub: registration });
+    },
+
+    async deletePushSubscription(endpoint) {
+      await rpc('delete_push_subscription', { endpoint });
+    },
+
+    async sendTestPush(endpoint) {
+      await signedIn();
+      const { error } = await client.functions.invoke('send-reminders', { body: { test: true, endpoint } });
+      if (error) throw toSyncError(error);
     },
 
     listen(familyId, { onChange, onLive }) {

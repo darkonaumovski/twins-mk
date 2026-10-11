@@ -177,6 +177,24 @@ describe('sync engine', () => {
     expect(await mom.store.supplies.get('supply-diapers')).toMatchObject({ stock: 200 });
   });
 
+  it('saves and removes this phone’s push subscription with its family', async () => {
+    const { server, mom, membership } = await family();
+    const registration = {
+      endpoint: 'https://push.example/mom',
+      p256dh: 'k',
+      auth: 'a',
+      caregiverId: 'p1',
+      kinds: ['medicines' as const],
+      lang: 'mk' as const,
+    };
+    await mom.engine.savePush(membership, registration);
+    expect(server.pushSubscriptions.get(registration.endpoint)).toMatchObject({ familyId: membership.familyId, kinds: ['medicines'] });
+    await mom.engine.testPush(registration.endpoint);
+    await mom.engine.deletePush(registration.endpoint);
+    expect(server.pushSubscriptions.size).toBe(0);
+    await expect(mom.engine.testPush(registration.endpoint)).rejects.toThrow();
+  });
+
   it('skips collections from a newer version instead of failing', async () => {
     const { server, mom, dad, membership } = await family();
     // A phone with a newer version uploads a collection this version does not know.

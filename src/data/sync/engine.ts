@@ -1,7 +1,15 @@
 import { isEntity } from '../merge';
 import { COLLECTIONS, type CollectionName } from '../repository';
 import type { Entity } from '../types';
-import { SyncError, type AppliedChange, type SyncErrorCode, type SyncLocal, type SyncMembership, type SyncRemote } from './types';
+import {
+  SyncError,
+  type AppliedChange,
+  type PushRegistration,
+  type SyncErrorCode,
+  type SyncLocal,
+  type SyncMembership,
+  type SyncRemote,
+} from './types';
 
 export type SyncState = 'off' | 'connecting' | 'synced' | 'offline' | 'error';
 
@@ -139,6 +147,21 @@ export class SyncEngine {
     } catch {
       // Offline or already gone: the phone stops syncing either way.
     }
+  }
+
+  // ---------- Push reminders ----------
+
+  /** Saves this phone's push subscription with the family it syncs with. */
+  async savePush(membership: SyncMembership, registration: PushRegistration) {
+    await (await this.remote()).savePushSubscription(membership.familyId, registration);
+  }
+
+  async deletePush(endpoint: string) {
+    await (await this.remote()).deletePushSubscription(endpoint);
+  }
+
+  async testPush(endpoint: string) {
+    await (await this.remote()).sendTestPush(endpoint);
   }
 
   // ---------- Running ----------
