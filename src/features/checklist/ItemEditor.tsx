@@ -65,6 +65,7 @@ export function ItemEditor({
   dueDate,
   nextOrder,
   onClose,
+  openDetails = false,
 }: {
   /** `null` creates a new item. */
   item: PrepItem | null;
@@ -73,6 +74,8 @@ export function ItemEditor({
   dueDate: ISODate | null;
   nextOrder: number;
   onClose: () => void;
+  /** Start with the price/store/notes section expanded. */
+  openDetails?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const store = useStore();
@@ -86,7 +89,10 @@ export function ItemEditor({
 
   const isTask = draft.kind === 'task';
   const total = neededTotal(draft);
-  const hasDetails = Boolean(draft.estimatedUnitPrice || draft.actualPrice || draft.store || draft.link || draft.notes);
+  // Decided once, so the section does not collapse while the user clears its fields.
+  const [detailsOpen] = useState(
+    () => openDetails || Boolean(draft.estimatedUnitPrice || draft.actualPrice || draft.store || draft.link || draft.notes),
+  );
   const link = safeUrl(draft.link);
 
   const save = async (e?: FormEvent) => {
@@ -288,7 +294,7 @@ export function ItemEditor({
           </Field>
         )}
 
-        <details open={hasDetails} className="group rounded-2xl border border-line">
+        <details open={detailsOpen} className="group rounded-2xl border border-line">
           <summary className="flex min-h-12 cursor-pointer items-center px-4 font-medium">{t('item.more')}</summary>
           <div className="space-y-4 border-t border-line p-4">
             {!isTask && (

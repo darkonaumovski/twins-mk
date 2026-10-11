@@ -5,7 +5,7 @@ import { ChevronDown, FolderCog, Plus, Search, SlidersHorizontal } from 'lucide-
 import { Button, IconButton } from '@/components/Button';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Page, Select, TextInput, Toggle, cx } from '@/components/ui';
-import { useLive, useSettings } from '@/data/StoreContext';
+import { useSettings } from '@/data/StoreContext';
 import { useLabel } from '@/lib/labels';
 import { todayISO } from '@/lib/format';
 import type { PrepItem, PrepStatus, Priority } from '@/data/types';
@@ -14,6 +14,7 @@ import { ItemRow } from './ItemRow';
 import { ItemEditor } from './ItemEditor';
 import { CategoryManager } from './CategoryManager';
 import { Countdown } from './Countdown';
+import { nextItemOrder, useChecklistData } from './useChecklistData';
 
 const STATUS_FILTERS: StatusFilter[] = ['all', 'open', 'done', 'needed', 'ordered', 'bought', 'gifted', 'borrowed'];
 const COLLAPSED_KEY = 'twinsmk.checklist.collapsed';
@@ -66,13 +67,7 @@ export function ChecklistPage() {
   const { t } = useTranslation();
   const label = useLabel();
   const settings = useSettings();
-  const data = useLive(async (s) => {
-    const [categories, items] = await Promise.all([s.categories.list(), s.prepItems.list()]);
-    return {
-      categories: categories.sort((a, b) => a.order - b.order),
-      items: items.sort((a, b) => a.order - b.order),
-    };
-  }, []);
+  const data = useChecklistData();
 
   const [params, setParams] = useSearchParams();
   const filters = readFilters(params);
@@ -90,10 +85,7 @@ export function ChecklistPage() {
     if (!data) return null;
     const ctx = { label, dueDate, today };
     const filtering = filterCount > 0 || filters.q.trim() !== '';
-    // Items whose category was deleted on another phone still show, under the first category.
-    const known = new Set(data.categories.map((c) => c.id));
-    const fallback = data.categories[0]?.id;
-    const items = data.items.map((i) => (known.has(i.categoryId) || !fallback ? i : { ...i, categoryId: fallback }));
+    const { items } = data;
     const groups = data.categories
       .map((c) => {
         const all = items.filter((i) => i.categoryId === c.id);
@@ -105,7 +97,7 @@ export function ChecklistPage() {
       filtering,
       overall: progress(items),
       overdueCount: items.filter((i) => isOverdue(i, dueDate, today)).length,
-      nextOrder: Math.max(-1, ...items.map((i) => i.order)) + 1,
+      nextOrder: nextItemOrder(items),
       items,
     };
   })();

@@ -16,23 +16,29 @@ export function formatLongDate(date: ISODate, language: string): string {
   return format(parseISO(date), 'PPP', { locale: dateLocale(language) });
 }
 
+const MK_SYMBOLS: Record<string, string> = { MKD: 'ден.', EUR: '€', USD: '$', GBP: '£' };
+
+/**
+ * Macedonian is formatted by hand ("46.150 ден.", "1.234,50 €") because some
+ * browsers ship without Macedonian number data and would fall back to "MKD 46,150".
+ * German uses the same separators and is available everywhere.
+ */
 export function formatMoney(amount: number, currency: string, language: string): string {
+  const digits = { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 };
+  if (language === 'mk') {
+    return `${amount.toLocaleString('de-DE', digits)} ${MK_SYMBOLS[currency] ?? currency}`;
+  }
   try {
-    return new Intl.NumberFormat(language === 'mk' ? 'mk-MK' : 'en-GB', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
+    return new Intl.NumberFormat('en-GB', { style: 'currency', currency, ...digits }).format(amount);
   } catch {
-    return `${amount} ${currency}`;
+    return `${amount.toLocaleString('en-GB', digits)} ${currency}`;
   }
 }
 
 /** Plain number for editable price fields, using the language's decimal separator. */
 export function formatAmountInput(amount: number | null, language: string): string {
   if (amount === null) return '';
-  return amount.toLocaleString(language === 'mk' ? 'mk-MK' : 'en-GB', { useGrouping: false, maximumFractionDigits: 2 });
+  return amount.toLocaleString(language === 'mk' ? 'de-DE' : 'en-GB', { useGrouping: false, maximumFractionDigits: 2 });
 }
 
 /** Only http(s) links may be opened; a bare domain gets https:// in front. */

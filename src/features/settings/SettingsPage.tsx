@@ -103,7 +103,7 @@ export function SettingsPage() {
       </Section>
 
       <Section title={t('settings.money')}>
-        <Field label={t('settings.currency')}>
+        <Field label={t('settings.currency')} hint={t('settings.currencyHint')}>
           {(props) => (
             <Select {...props} value={settings.currency} onChange={(e) => store.settings.update({ currency: e.target.value })}>
               {CURRENCIES.map((c) => (
