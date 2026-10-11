@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { Square } from 'lucide-react';
+import { Hospital, House, Square } from 'lucide-react';
+import { useToast } from '@/components/Toast';
+import { cx } from '@/components/ui';
 import { Page } from '@/components/ui';
-import { useLive } from '@/data/StoreContext';
+import { useLive, useStore } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { useFormatMinutes, useNow } from '@/lib/useNow';
 import type { LogEntry, TwinSlot } from '@/data/types';
@@ -18,6 +20,8 @@ import { UpcomingSection } from '@/features/plan/UpcomingSection';
 import { DailyCareSection } from '@/features/plan/DailyCareSection';
 import { SuppliesBanner } from '@/features/supplies/SuppliesBanner';
 import { DutyLine, HandoverCard } from '@/features/family/Handover';
+import { HospitalStrip } from '@/features/twins/HospitalStrip';
+import { useAgeText } from '@/features/twins/useAge';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -45,9 +49,25 @@ function SinceCard({
   now: Date;
 }) {
   const { t, i18n } = useTranslation();
+  const store = useStore();
+  const toast = useToast();
   const name = useTwinName(babies);
   const fmt = useFormatMinutes();
+  const ageText = useAgeText();
   const last = latest?.[slot] ?? {};
+  const baby = babies[slot];
+  const inHospital = baby?.location === 'hospital';
+  const age = ageText(baby, now);
+
+  const toggleLocation = async () => {
+    if (!baby) return;
+    const next = inHospital ? 'home' : 'hospital';
+    await store.babies.update(baby.id, { location: next });
+    toast({
+      message: t(next === 'hospital' ? 'hospital.markedAway' : 'hospital.markedHome', { name: name(slot) }),
+      action: { label: t('common.undo'), onClick: () => void store.babies.update(baby.id, { location: inHospital ? 'hospital' : 'home' }) },
+    });
+  };
 
   const ago = (iso: string | undefined) => {
     if (!iso) return t('today.never');
@@ -90,11 +110,29 @@ function SinceCard({
       className="rounded-2xl border-2 border-(--tw) bg-(--tw-soft) p-3"
       aria-label={name(slot)}
     >
-      <h2 className="mb-2 flex items-center gap-2 font-semibold text-(--tw-ink)">
-        <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
-        <span className="truncate">{name(slot)}</span>
-      </h2>
-      <dl className="space-y-1.5 text-sm">
+      <div className="mb-2 flex items-start gap-1">
+        <h2 className="min-w-0 flex-1 font-semibold text-(--tw-ink)">
+          <span className="flex items-center gap-2">
+            <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
+            <span className="truncate">{name(slot)}</span>
+          </span>
+          {age && <span className="mt-0.5 block text-xs font-normal text-muted">{age}</span>}
+        </h2>
+        <button
+          type="button"
+          onClick={toggleLocation}
+          aria-label={t(inHospital ? 'hospital.toggleToHome' : 'hospital.toggleToHospital', { name: name(slot) })}
+          aria-pressed={inHospital}
+          className={cx(
+            '-mt-1 -mr-1 flex size-11 shrink-0 items-center justify-center rounded-full',
+            inHospital ? 'bg-surface text-(--tw-ink)' : 'text-muted',
+          )}
+        >
+          {inHospital ? <Hospital aria-hidden size={20} /> : <House aria-hidden size={20} />}
+        </button>
+      </div>
+      {inHospital && <p className="mb-2 text-xs font-semibold text-(--tw-ink)">{t('hospital.inHospital')}</p>}
+      <dl className={cx('space-y-1.5 text-sm', inHospital && 'opacity-60')}>
         {rows.map(({ label, icon: Icon, text, extra }) => (
           <div key={label} className="flex items-start gap-1.5">
             <Icon aria-hidden size={16} className="mt-0.5 shrink-0 text-muted" />
@@ -177,6 +215,8 @@ export function TodayPage() {
       <DutyLine now={now} />
 
       <HandoverCard babies={babies} now={now} />
+
+      <HospitalStrip babies={babies} now={now} />
 
       <SuppliesBanner now={now} />
 

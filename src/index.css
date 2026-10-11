@@ -117,3 +117,24 @@ body {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Printing (the doctor report): A4, black on white whatever the theme, no app chrome. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  :root,
+  .dark {
+    --c-bg: #ffffff;
+    --c-surface: #ffffff;
+    --c-surface-2: #f0f0f0;
+    --c-ink: #000000;
+    --c-muted: #444444;
+    --c-line: #b5b5b5;
+    color-scheme: light;
+  }
+  body {
+    background: #ffffff;
+  }
+}

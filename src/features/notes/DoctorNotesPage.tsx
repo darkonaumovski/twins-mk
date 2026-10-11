@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { CheckCircle2, Circle, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CheckCircle2, Circle, FileText, Trash2 } from 'lucide-react';
 import { Button, IconButton } from '@/components/Button';
 import { Page, TextArea, cx } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
@@ -70,7 +71,15 @@ export function DoctorNotesPage() {
   };
 
   return (
-    <Page title={t('notes.title')}>
+    <Page
+      title={t('notes.title')}
+      actions={
+        <Link to="/report" className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 font-semibold text-accent">
+          <FileText aria-hidden size={18} />
+          {t('report.short')}
+        </Link>
+      }
+    >
       <form onSubmit={add} className="space-y-3 rounded-2xl border border-line bg-surface p-4">
         <TextArea
           value={text}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Appointment, ParentTask, Routine, RoutineDone } from '@/data/types';
 import {
   dailyCareStatus,
+  effectiveScope,
   medCheck,
   reminderTime,
   sameMed,
@@ -226,5 +227,32 @@ describe('medicines', () => {
       data: { name: 'D', dose: '' },
     };
     expect(toMedLogs([entry as never, { ...entry, deletedAt: 'x' } as never])).toEqual([{ babyId: 'baby-A', name: 'D', start: 's' }]);
+  });
+});
+
+describe('twins in hospital', () => {
+  it('leaves a twin in hospital out of "only when home" routines', () => {
+    const bathHome = { ...bath, onlyWhenHome: true };
+    expect(effectiveScope(bathHome, ['A'])).toBe('B');
+    expect(effectiveScope(bathHome, ['A', 'B'])).toBeNull();
+    expect(effectiveScope(bath, ['A'])).toBe('both');
+    expect(effectiveScope({ ...bathHome, babies: 'none' }, ['A', 'B'])).toBe('none');
+  });
+
+  it('applies it to coming-up items and daily care', () => {
+    const vit = { ...vitD, onlyWhenHome: true };
+    const base: UpcomingInput = {
+      routines: [vit],
+      done: [],
+      latest: {},
+      appointments: [],
+      tasks: [],
+      now: local(11, 8),
+      pastMs: 0,
+      aheadMs: 4 * 3600_000,
+    };
+    expect(upcomingItems({ ...base, awaySlots: ['B'] }).map((i) => i.babies)).toEqual(['A']);
+    expect(upcomingItems({ ...base, awaySlots: ['A', 'B'] })).toEqual([]);
+    expect(dailyCareStatus([vit], [], local(11, 0), local(12, 0), ['B'])[0].cells.map((c) => c.slot)).toEqual(['A']);
   });
 });

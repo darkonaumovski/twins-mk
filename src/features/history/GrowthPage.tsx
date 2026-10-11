@@ -9,7 +9,10 @@ import { dateLocale } from '@/i18n';
 import { SLOTS } from '@/features/log/logic';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { useWho } from '@/features/log/WhoPicker';
-import { colorOf, useBabies, useTwinName } from '@/features/twins/twins';
+import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
+import { latestWeight, weightChange } from '@/features/twins/age';
+import { useAgeText } from '@/features/twins/useAge';
+import { formatNumber } from '@/lib/format';
 import { growthPoints } from './summary';
 
 export function GrowthPage() {
@@ -18,6 +21,7 @@ export function GrowthPage() {
   const name = useTwinName(babies);
   const ui = useLogUI();
   const [who] = useWho();
+  const ageText = useAgeText();
   const measures = useLive(async (s) => (await s.logs.list()).filter((e) => e.type === 'measure'), []);
   if (!babies || !measures) return null;
 
@@ -49,6 +53,31 @@ export function GrowthPage() {
         </Button>
       }
     >
+      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+        {SLOTS.map((slot) => {
+          const baby = babies[slot];
+          const change = weightChange(baby?.birthWeightG ?? null, latestWeight(points[slot]));
+          const age = ageText(baby, new Date());
+          return (
+            <section key={slot} style={twinStyle(colorOf(babies, slot))} className="rounded-2xl border border-line bg-surface p-3 text-sm">
+              <h2 className="mb-1 flex items-center gap-2 text-base font-semibold">
+                <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
+                <span className="truncate">{name(slot)}</span>
+              </h2>
+              {age && <p className="text-muted">{age}</p>}
+              {change && (
+                <p className="font-medium">
+                  {t('growth.change', {
+                    g: `${change.grams > 0 ? '+' : ''}${formatNumber(change.grams, i18n.language, 0)}`,
+                    pct: `${change.percent > 0 ? '+' : ''}${formatNumber(change.percent, i18n.language)}`,
+                  })}
+                </p>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
       {weight.length === 0 && length.length === 0 && (
         <p className="rounded-2xl border border-dashed border-line p-6 text-center text-muted">{t('growth.empty')}</p>
       )}

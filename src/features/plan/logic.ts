@@ -67,6 +67,19 @@ export interface UpcomingInput {
   appointmentAheadMs?: number;
   /** Logged medicine doses, so a medicine routine's occurrence counts as done once it was given that day. */
   medLogs?: readonly MedLog[];
+  /** Twins in hospital: routines marked "only when home" leave them out. */
+  awaySlots?: readonly TwinSlot[];
+}
+
+/**
+ * Which twins a routine applies to right now: a routine marked "only when home"
+ * leaves out twins in hospital. `null` when that leaves nobody.
+ */
+export function effectiveScope(routine: Pick<Routine, 'babies' | 'onlyWhenHome'>, awaySlots: readonly TwinSlot[] = []): BabyScope | null {
+  if (!routine.onlyWhenHome || routine.babies === 'none' || awaySlots.length === 0) return routine.babies;
+  const slots = slotsFor(routine.babies).filter((s) => !awaySlots.includes(s));
+  if (slots.length === 0) return null;
+  return slots.length === 2 ? 'both' : slots[0];
 }
 
 /**
@@ -82,16 +95,18 @@ export function upcomingItems(input: UpcomingInput): UpcomingItem[] {
 
   for (const r of input.routines) {
     if (!r.active || r.deletedAt !== null) continue;
+    const babies = effectiveScope(r, input.awaySlots);
+    if (babies === null) continue;
     if (r.rule.kind === 'everyDays') {
       for (const at of scheduledOccurrences(r, from, to)) {
         const occurrence = at.toISOString();
         if (doneKeys.has(`${r.id}@${occurrence}`)) continue;
-        if (r.med && input.medLogs && medOccurrenceGiven(r, at, input.medLogs)) continue;
-        items.push({ key: `routine:${r.id}:${occurrence}`, kind: 'routine', id: r.id, title: r.title, at, babies: r.babies, occurrence });
+        if (r.med && input.medLogs && medOccurrenceGiven({ ...r, babies }, at, input.medLogs)) continue;
+        items.push({ key: `routine:${r.id}:${occurrence}`, kind: 'routine', id: r.id, title: r.title, at, babies, occurrence });
       }
     } else {
       // One reminder per twin, counted from that twin's own latest entry.
-      for (const slot of slotsFor(r.babies)) {
+      for (const slot of slotsFor(babies)) {
         const last = input.latest[slot]?.[r.rule.logType];
         if (!last) continue;
         const at = new Date(new Date(last).getTime() + r.rule.hours * 3600_000);
@@ -228,15 +243,27 @@ export interface CareRow {
 }
 
 /** For every daily medicine routine: how many doses each twin it is for got in [from, to). */
-export function dailyCareStatus(routines: readonly Routine[], logs: readonly MedLog[], from: Date, to: Date): CareRow[] {
-  return routines.filter(isDailyMed).map((routine) => ({
-    routine,
-    cells: slotsFor(routine.babies).map((slot) => ({
-      slot,
-      given: dosesBetween(logs, BABY_IDS[slot], routine.med!.name, from, to).length,
-      planned: routine.rule.kind === 'everyDays' ? Math.max(1, routine.rule.times.length) : 1,
-    })),
-  }));
+export function dailyCareStatus(
+  routines: readonly Routine[],
+  logs: readonly MedLog[],
+  from: Date,
+  to: Date,
+  awaySlots: readonly TwinSlot[] = [],
+): CareRow[] {
+  return routines
+    .flatMap((routine) => {
+      if (!isDailyMed(routine)) return [];
+      const babies = effectiveScope(routine, awaySlots);
+      return babies === null ? [] : [{ routine, babies }];
+    })
+    .map(({ routine, babies }) => ({
+      routine,
+      cells: slotsFor(babies).map((slot) => ({
+        slot,
+        given: dosesBetween(logs, BABY_IDS[slot], routine.med!.name, from, to).length,
+        planned: routine.rule.kind === 'everyDays' ? Math.max(1, routine.rule.times.length) : 1,
+      })),
+    }));
 }
 
 export interface MedCheck {

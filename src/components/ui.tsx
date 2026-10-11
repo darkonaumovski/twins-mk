@@ -16,7 +16,7 @@ export function cx(...classes: (string | false | null | undefined)[]) {
 
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 border-b border-line bg-bg/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-line bg-bg/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur print:hidden">
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         <h1 className="flex-1 text-xl font-semibold">{title}</h1>
         <SyncBadge />

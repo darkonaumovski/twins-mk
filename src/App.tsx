@@ -24,6 +24,7 @@ const PlanPage = lazy(() => import('@/features/plan/PlanPage').then((m) => ({ de
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const StashPage = lazy(() => import('@/features/milk/StashPage').then((m) => ({ default: m.StashPage })));
 const SuppliesPage = lazy(() => import('@/features/supplies/SuppliesPage').then((m) => ({ default: m.SuppliesPage })));
+const ReportPage = lazy(() => import('@/features/report/ReportPage').then((m) => ({ default: m.ReportPage })));
 const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
 /** Home is the checklist before birth and Today after. */
@@ -59,6 +60,7 @@ export function App() {
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/stash" element={<StashPage />} />
                 <Route path="/supplies" element={<SuppliesPage />} />
+                <Route path="/report" element={<ReportPage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/budget" element={<BudgetPage />} />

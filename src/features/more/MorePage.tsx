@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
+  FileText,
   ListChecks,
   NotebookPen,
   Package,
@@ -42,6 +43,7 @@ export function MorePage() {
         items={[
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },
+          { to: '/report', label: t('report.title'), icon: FileText },
           { to: '/stash', label: t('stash.title'), icon: Refrigerator },
           { to: '/supplies', label: t('supplies.title'), icon: Package },
         ]}

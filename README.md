@@ -34,6 +34,12 @@ A calm, phone-first app for parents expecting twins.
 - **Since you last opened:** when you come back to the app after a while, Today shows what happened since (per twin: feeds and ml, diapers, sleep, medicines) and who logged it. Tap **Seen** to dismiss it. The time you last left is kept on the phone only.
 - **Night duty:** under **Settings → Night duty**, set tonight's shifts (for example Marija 22:00–02:00, Darko 02:00–06:00). They repeat every night until changed. Today shows "On duty now: Marija until 02:00". Under **Sync between phones**, each phone can choose **Only when I'm on night duty**: while someone else has the shift, that phone stays quiet.
 
+### Early arrivals, hospital stays and the doctor's report
+
+- **Corrected age:** in the twin setup, enter the week of pregnancy each twin was born at (for example 35 + 4). For a twin born before 37 + 0, Today and Growth show both the actual age and the age corrected for prematurity. Growth also shows the change since the birth weight in grams and percent, without any judgement.
+- **In hospital:** the house/hospital button on a twin's card on Today marks where the twin is. A twin in hospital is dimmed on Today, and Today shows when milk was last pumped, with one tap to log pumping or a visit. Routines can be marked **Only when the twin is at home** (a bath, for example), and they then leave out a twin in hospital.
+- **Report for the doctor** (More → Report, or from Notes for the doctor): pick a twin or both and the last 7, 14 or 30 days. It shows a daily table per twin (feeds, ml, breast minutes, wet/dirty diapers, sleep hours, medicines) with averages, the growth measurements and the open questions for the doctor. **Print / Save as PDF** prints it on A4; **Share** sends it as text where the phone supports it.
+
 It is local-first. All data lives in the browser on the phone (IndexedDB), and the app works fully without internet. With **sync between phones** turned on, both parents' phones share the same data and see each other's changes within seconds. There are no accounts, no analytics and no tracking. It installs to the home screen and works fully offline. The interface is in Macedonian (default) and English.
 
 > **Not medical advice.** Twins Organizer is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
@@ -251,7 +257,8 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
 - supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
-- routine scheduling and upcoming items, daily care per twin, and the medicine interval check (warns only with an interval the parents set)
+- routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital
+- actual and corrected age, weight change since birth, and the doctor's report (daily rows, totals, open notes)
 - chart scales and colour-pair rules
 - translation completeness (same keys, plural forms and placeholders in both languages)
 

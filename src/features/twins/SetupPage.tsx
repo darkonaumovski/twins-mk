@@ -19,6 +19,9 @@ interface TwinDraft {
   length: string;
   /** Hours between feeds, as typed (e.g. "3" or "2,5"); empty means not set. */
   feedHours: string;
+  /** Gestational age at birth, weeks and days as typed; empty means not entered. */
+  gaWeeks: string;
+  gaDays: string;
 }
 
 function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
@@ -29,6 +32,8 @@ function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
     weight: baby?.birthWeightG?.toString() ?? '',
     length: baby?.birthLengthCm?.toString().replace('.', ',') ?? '',
     feedHours: baby?.feedIntervalMin ? String(Math.round((baby.feedIntervalMin / 60) * 100) / 100).replace('.', ',') : '',
+    gaWeeks: baby?.gestationWeeksAtBirth?.toString() ?? '',
+    gaDays: baby?.gestationDaysAtBirth?.toString() ?? '',
   };
 }
 
@@ -42,6 +47,7 @@ export function SetupPage() {
   const [bornBTouched, setBornBTouched] = useState(false);
   const [error, setError] = useState<TwinSlot | null>(null);
   const [intervalError, setIntervalError] = useState<TwinSlot | null>(null);
+  const [gaError, setGaError] = useState<TwinSlot | null>(null);
   const editing = Boolean(babies?.ready);
 
   useEffect(() => {
@@ -71,6 +77,15 @@ export function SetupPage() {
         setError(slot);
         return;
       }
+      const gaWeeks = d.gaWeeks.trim() ? Number(d.gaWeeks) : null;
+      const gaDays = d.gaDays.trim() ? Number(d.gaDays) : 0;
+      if (
+        gaWeeks !== null &&
+        (!Number.isInteger(gaWeeks) || gaWeeks < 22 || gaWeeks > 43 || !Number.isInteger(gaDays) || gaDays < 0 || gaDays > 6)
+      ) {
+        setGaError(slot);
+        return;
+      }
       const feedHours = d.feedHours.trim() ? parseAmount(d.feedHours) : null;
       if (d.feedHours.trim() && (feedHours === null || feedHours <= 0 || feedHours > 24)) {
         setIntervalError(slot);
@@ -84,6 +99,8 @@ export function SetupPage() {
         birthWeightG: weight === null ? null : Math.round(weight),
         birthLengthCm: d.length.trim() ? parseAmount(d.length) : null,
         feedIntervalMin: feedHours === null ? null : Math.round(feedHours * 60),
+        gestationWeeksAtBirth: gaWeeks,
+        gestationDaysAtBirth: gaWeeks === null ? null : gaDays,
       };
     }
     await store.transaction(async () => {
@@ -198,6 +215,39 @@ export function SetupPage() {
                   )}
                 </Field>
               </div>
+              <fieldset>
+                <legend className="mb-1.5 font-medium">{t('twins.gestation')}</legend>
+                <div className="flex items-center gap-2">
+                  <TextInput
+                    inputMode="numeric"
+                    aria-label={t('twins.gestationWeeks')}
+                    placeholder={t('twins.gestationWeeksShort')}
+                    className="w-20"
+                    value={d.gaWeeks}
+                    aria-invalid={gaError === slot}
+                    onChange={(e) => {
+                      setGaError(null);
+                      update(slot, { gaWeeks: e.target.value.replace(/\D/g, '') });
+                    }}
+                  />
+                  <span className="font-semibold">+</span>
+                  <TextInput
+                    inputMode="numeric"
+                    aria-label={t('twins.gestationDays')}
+                    placeholder={t('twins.gestationDaysShort')}
+                    className="w-20"
+                    value={d.gaDays}
+                    aria-invalid={gaError === slot}
+                    onChange={(e) => {
+                      setGaError(null);
+                      update(slot, { gaDays: e.target.value.replace(/\D/g, '') });
+                    }}
+                  />
+                </div>
+                <p className="mt-1.5 text-sm text-muted">
+                  {gaError === slot ? <span className="text-danger">{t('twins.invalidGestation')}</span> : t('twins.gestationHint')}
+                </p>
+              </fieldset>
               <Field
                 label={t('twins.feedInterval')}
                 hint={

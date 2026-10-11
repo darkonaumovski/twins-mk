@@ -65,6 +65,7 @@ export function RoutineEditor({
   const [times, setTimes] = useState<string[]>(rule?.kind === 'everyDays' ? rule.times : ['19:00']);
   const [startDate, setStartDate] = useState(rule?.kind === 'everyDays' ? rule.startDate : todayISO());
   const [active, setActive] = useState(routine?.active ?? true);
+  const [onlyWhenHome, setOnlyWhenHome] = useState(routine?.onlyWhenHome ?? false);
   const [medOn, setMedOn] = useState(Boolean(routine?.med));
   const [medName, setMedName] = useState(routine?.med?.name ?? '');
   const [dose, setDose] = useState(routine?.med?.dose ?? '');
@@ -104,6 +105,7 @@ export function RoutineEditor({
       active,
       rule: kind === 'afterLast' ? { kind, hours, logType } : { kind, days, times: cleanTimes, startDate },
       med,
+      onlyWhenHome,
     } satisfies NewRecord<Routine>;
     if (routine) await store.routines.update(routine.id, record);
     else await store.routines.create(record);
@@ -284,6 +286,12 @@ export function RoutineEditor({
           )}
         </div>
 
+        {babies !== 'none' && (
+          <div>
+            <Toggle label={t('routine.onlyWhenHome')} checked={onlyWhenHome} onChange={setOnlyWhenHome} />
+            <p className="text-sm text-muted">{t('routine.onlyWhenHomeHint')}</p>
+          </div>
+        )}
         <Toggle label={t('routine.active')} checked={active} onChange={setActive} />
         {error && (
           <p role="alert" className="font-medium text-danger">

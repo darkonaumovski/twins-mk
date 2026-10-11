@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, Minus, Pill } from 'lucide-react';
 import { cx } from '@/components/ui';
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
+import { awaySlots } from '@/features/twins/useAge';
 import { dayBounds } from '@/features/log/logic';
 import { useLogActions } from '@/features/log/useLogActions';
 import type { Routine, TwinSlot } from '@/data/types';
@@ -22,7 +23,7 @@ export function DailyCareSection({ now }: { now: Date }) {
   if (!data) return null;
 
   const { from, to } = dayBounds(now);
-  const rows = dailyCareStatus(data.routines, data.logs, new Date(from), new Date(to));
+  const rows = dailyCareStatus(data.routines, data.logs, new Date(from), new Date(to), awaySlots(babies));
   if (rows.length === 0) return null;
 
   const give = async (routine: Routine, slot: TwinSlot) => {

@@ -8,12 +8,18 @@ type Raw = Omit<UpcomingInput, 'now' | 'pastMs' | 'aheadMs' | 'appointmentAheadM
 /** Everything upcomingItems() needs, kept live. */
 export function useUpcomingData(): Raw | undefined {
   return useLive(async (s) => {
-    const [routines, done, appointments, tasks] = await Promise.all([
+    const [routines, done, appointments, tasks, babyA, babyB] = await Promise.all([
       s.routines.list(),
       s.routineDone.list(),
       s.appointments.list(),
       s.tasks.list(),
+      s.babies.get(BABY_IDS.A),
+      s.babies.get(BABY_IDS.B),
     ]);
+    // Twins in hospital drop out of routines marked "only when home".
+    const awaySlots: TwinSlot[] = [];
+    if (babyA?.location === 'hospital') awaySlots.push('A');
+    if (babyB?.location === 'hospital') awaySlots.push('B');
     // Latest entry per twin, only for the log types that "after the last" routines watch.
     const latest: Raw['latest'] = {};
     for (const r of routines) {
@@ -30,7 +36,7 @@ export function useUpcomingData(): Raw | undefined {
       const entries = await s.logs.listBetween(new Date(now - 2 * 24 * 3600_000).toISOString(), new Date(now + 60_000).toISOString());
       medLogs = toMedLogs(entries);
     }
-    return { routines, done, appointments, tasks, latest, medLogs };
+    return { routines, done, appointments, tasks, latest, medLogs, awaySlots };
   }, []);
 }
 

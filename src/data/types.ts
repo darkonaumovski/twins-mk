@@ -147,7 +147,14 @@ export interface Baby extends Entity {
   birthLengthCm: number | null;
   /** Minutes between feeds as the parents set it (never a built-in default); absent or null means not set. */
   feedIntervalMin?: number | null;
+  /** Gestational age at birth, e.g. 35 weeks + 4 days; used for the corrected age. Absent or null means not entered. */
+  gestationWeeksAtBirth?: number | null;
+  gestationDaysAtBirth?: number | null;
+  /** Where the twin is now; absent means home. */
+  location?: BabyLocation;
 }
+
+export type BabyLocation = 'home' | 'hospital';
 
 export type LogType = 'feed' | 'diaper' | 'sleep' | 'med' | 'measure' | 'note' | 'temp' | 'spitup' | 'bath' | 'tummy';
 
@@ -276,6 +283,8 @@ export interface Routine extends Entity {
   active: boolean;
   /** Set when this routine is a medicine or supplement. Absent on older records. */
   med?: RoutineMed | null;
+  /** Skip this routine for a twin who is in hospital. */
+  onlyWhenHome?: boolean;
 }
 
 /** Marks one generated occurrence of a routine as done. */
