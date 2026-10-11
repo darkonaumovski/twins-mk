@@ -1,7 +1,5 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/AppShell';
-import { ComingSoon } from '@/components/ComingSoon';
 import { ConfirmProvider } from '@/components/Confirm';
 import { PreferenceSync } from '@/components/PreferenceSync';
 import { ToastProvider } from '@/components/Toast';
@@ -13,6 +11,9 @@ import { GrowthPage } from '@/features/history/GrowthPage';
 import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { MorePage } from '@/features/more/MorePage';
+import { DoctorNotesPage } from '@/features/notes/DoctorNotesPage';
+import { PlanPage } from '@/features/plan/PlanPage';
+import { ReminderSync } from '@/features/plan/ReminderSync';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { TodayPage } from '@/features/today/TodayPage';
 import { SetupPage } from '@/features/twins/SetupPage';
@@ -29,20 +30,21 @@ function Home() {
  * without any server-side rewrite rules.
  */
 export function App() {
-  const { t } = useTranslation();
   return (
     <HashRouter>
       <PreferenceSync />
       <ToastProvider>
         <ConfirmProvider>
           <LogUIProvider>
+            <ReminderSync />
             <Routes>
               <Route element={<AppShell />}>
                 <Route index element={<Home />} />
                 <Route path="/today" element={<TodayPage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/growth" element={<GrowthPage />} />
-                <Route path="/plan" element={<ComingSoon title={t('nav.plan')} milestone={6} />} />
+                <Route path="/plan" element={<PlanPage />} />
+                <Route path="/notes" element={<DoctorNotesPage />} />
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />

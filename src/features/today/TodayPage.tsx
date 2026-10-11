@@ -14,6 +14,7 @@ import { QuickLogPanel } from '@/features/log/QuickLogPanel';
 import { useLogActions, useRunning } from '@/features/log/useLogActions';
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } from '@/features/twins/twins';
 import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
+import { UpcomingSection } from '@/features/plan/UpcomingSection';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -145,6 +146,8 @@ export function TodayPage() {
           <SinceCard key={slot} slot={slot} babies={babies} latest={latest} now={now} />
         ))}
       </div>
+
+      <UpcomingSection now={now} />
 
       <QuickLogPanel />
 

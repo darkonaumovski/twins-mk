@@ -11,6 +11,7 @@ import { ensurePersistentStorage, type PersistState } from '@/lib/storage';
 import type { Language, ParentId, ThemePref } from '@/data/types';
 import { useParentName } from '@/lib/parents';
 import { useBabies } from '@/features/twins/twins';
+import { RemindersSettings } from '@/features/plan/RemindersSettings';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -135,6 +136,8 @@ export function SettingsPage() {
           )}
         </Field>
       </Section>
+
+      <RemindersSettings />
 
       <Section title={t('settings.storage')}>
         {persist && (

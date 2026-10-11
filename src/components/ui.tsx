@@ -135,17 +135,20 @@ export function Segmented<T extends string>({
   options,
   onChange,
   hint,
+  hideLabel = false,
 }: {
   label: string;
   value: T;
   options: { value: T; label: string }[];
   onChange: (value: T) => void;
   hint?: string;
+  /** Keep the label for screen readers only (e.g. when used as tabs under a page title). */
+  hideLabel?: boolean;
 }) {
   const name = useId();
   return (
     <fieldset className="space-y-1.5">
-      <legend className="mb-1.5 font-medium">{label}</legend>
+      <legend className={hideLabel ? 'sr-only' : 'mb-1.5 font-medium'}>{label}</legend>
       <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
         {options.map((o) => (
           <label key={o.value} className="relative flex-1">
