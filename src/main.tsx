@@ -5,6 +5,7 @@ import { App } from './App';
 import { openDexieStore } from './data/dexieStore';
 import { StoreProvider } from './data/StoreContext';
 import { initI18n } from './i18n';
+import { seedChecklistIfNeeded } from './features/checklist/seed';
 import en from './i18n/locales/en';
 import mk from './i18n/locales/mk';
 
@@ -12,6 +13,7 @@ const root = createRoot(document.getElementById('root')!);
 
 async function start() {
   const store = await openDexieStore();
+  await seedChecklistIfNeeded(store);
   await initI18n((await store.device.get()).language);
   root.render(
     <StrictMode>

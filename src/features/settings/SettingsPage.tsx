@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Info, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { Field, Page, Section, Segmented, Select, TextInput } from '@/components/ui';
+import { CommitInput, Field, Page, Section, Segmented, Select, TextInput } from '@/components/ui';
 import { useDevicePrefs, useSettings, useStore } from '@/data/StoreContext';
 import { CURRENCIES } from '@/data/defaults';
 import { LANGUAGES } from '@/i18n';
@@ -9,29 +9,6 @@ import { pregnancyProgress } from '@/lib/pregnancy';
 import { ensurePersistentStorage, type PersistState } from '@/lib/storage';
 import type { Language, ParentId, ThemePref } from '@/data/types';
 import { useParentName } from '@/lib/parents';
-
-/** Text input that saves when it loses focus (or on Enter), not on every keystroke. */
-function CommitInput({
-  value,
-  onCommit,
-  ...rest
-}: { value: string; onCommit: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
-  const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
-  const commit = () => {
-    const next = draft.trim();
-    if (next !== value) onCommit(next);
-  };
-  return (
-    <TextInput
-      {...rest}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-    />
-  );
-}
 
 export function SettingsPage() {
   const { t } = useTranslation();

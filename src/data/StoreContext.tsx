@@ -23,10 +23,12 @@ export function useLive<R>(query: (store: DataStore) => Promise<R>, deps: Depend
   const [value, setValue] = useState<R | undefined>(undefined);
 
   useEffect(() => {
-    const sub = store.live(() => query(store)).subscribe({
-      next: setValue,
-      error: (err) => console.error('Live query failed', err),
-    });
+    const sub = store
+      .live(() => query(store))
+      .subscribe({
+        next: setValue,
+        error: (err) => console.error('Live query failed', err),
+      });
     return () => sub.unsubscribe();
   }, [store, ...deps]);
 

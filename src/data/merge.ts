@@ -22,10 +22,7 @@ export function incomingWins(local: Entity, incoming: Entity): boolean {
  * must be written. Tombstones are ordinary records here, so a delete made on
  * one phone wins over an older edit on the other.
  */
-export function planMerge<T extends Entity>(
-  local: readonly T[],
-  incoming: readonly T[],
-): { toWrite: T[]; stats: MergeStats } {
+export function planMerge<T extends Entity>(local: readonly T[], incoming: readonly T[]): { toWrite: T[]; stats: MergeStats } {
   const byId = new Map(local.map((r) => [r.id, r]));
   const toWrite: T[] = [];
   const stats: MergeStats = { added: 0, updated: 0, unchanged: 0 };

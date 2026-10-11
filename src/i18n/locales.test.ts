@@ -30,7 +30,11 @@ describe('translations', () => {
   it('cover every plural form each language needs', () => {
     for (const [lang, strings] of Object.entries(locales)) {
       const needed = new Intl.PluralRules(lang).resolvedOptions().pluralCategories;
-      const bases = new Set(Object.keys(strings).filter((k) => PLURAL.test(k)).map((k) => k.replace(PLURAL, '')));
+      const bases = new Set(
+        Object.keys(strings)
+          .filter((k) => PLURAL.test(k))
+          .map((k) => k.replace(PLURAL, '')),
+      );
       for (const base of bases) {
         for (const form of needed) expect(strings, `${lang}:${base}_${form}`).toHaveProperty([`${base}_${form}`]);
       }

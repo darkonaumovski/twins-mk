@@ -15,6 +15,25 @@ export const DEFAULT_DEVICE_PREFS: Omit<DevicePrefs, 'deviceId'> = {
   theme: 'system',
   parent: 'p1',
   notifications: false,
+  seedVersion: 0,
 };
 
-export const CURRENCIES = ['MKD', 'EUR', 'USD', 'GBP', 'CHF', 'RSD', 'BGN', 'ALL', 'TRY', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF', 'AUD', 'CAD'] as const;
+export const CURRENCIES = [
+  'MKD',
+  'EUR',
+  'USD',
+  'GBP',
+  'CHF',
+  'RSD',
+  'BGN',
+  'ALL',
+  'TRY',
+  'SEK',
+  'NOK',
+  'DKK',
+  'PLN',
+  'CZK',
+  'HUF',
+  'AUD',
+  'CAD',
+] as const;

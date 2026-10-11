@@ -1,11 +1,6 @@
 import Dexie, { liveQuery, type Table } from 'dexie';
 import { planMerge, type MergeStats } from './merge';
-import type {
-  DataStore,
-  DevicePrefsRepository,
-  Repository,
-  SettingsRepository,
-} from './repository';
+import type { DataStore, DevicePrefsRepository, Repository, SettingsRepository } from './repository';
 import type {
   Appointment,
   Baby,

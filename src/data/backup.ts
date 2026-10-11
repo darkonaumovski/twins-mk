@@ -60,10 +60,7 @@ export function parseBackup(text: string): BackupFile {
 }
 
 /** Merges a backup into the store (never deletes local data that the backup lacks). */
-export async function importBackup(
-  store: DataStore,
-  file: BackupFile,
-): Promise<Partial<Record<CollectionName, MergeStats>>> {
+export async function importBackup(store: DataStore, file: BackupFile): Promise<Partial<Record<CollectionName, MergeStats>>> {
   return store.transaction(async () => {
     const report: Partial<Record<CollectionName, MergeStats>> = {};
     for (const name of COLLECTIONS) {

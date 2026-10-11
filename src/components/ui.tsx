@@ -1,4 +1,12 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import {
+  useEffect,
+  useId,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 
 export function cx(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(' ');
@@ -72,6 +80,52 @@ export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return <select {...props} className={cx(control, 'appearance-auto', props.className)} />;
+}
+
+export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea rows={3} {...props} className={cx(control, 'py-2', props.className)} />;
+}
+
+/** Text input that saves when it loses focus (or on Enter), not on every keystroke. */
+export function CommitInput({
+  value,
+  onCommit,
+  allowEmpty = true,
+  ...rest
+}: { value: string; onCommit: (v: string) => void; allowEmpty?: boolean } & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange'
+>) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => setDraft(value), [value]);
+  const commit = () => {
+    const next = draft.trim();
+    if (!next && !allowEmpty) return setDraft(value);
+    if (next !== value) onCommit(next);
+  };
+  return (
+    <TextInput
+      {...rest}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+    />
+  );
+}
+
+/** A large switch-style checkbox. */
+export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3">
+      <span className="font-medium">{label}</span>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" role="switch" />
+      <span
+        aria-hidden
+        className="relative h-7 w-12 shrink-0 rounded-full bg-surface-2 ring-1 ring-line transition peer-checked:bg-accent peer-focus-visible:outline-3 peer-focus-visible:outline-accent after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
+      />
+    </label>
+  );
 }
 
 /** A row of mutually exclusive options, built on native radios for keyboard and screen-reader support. */

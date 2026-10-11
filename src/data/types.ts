@@ -45,6 +45,8 @@ export interface DevicePrefs {
   /** Which parent normally uses this phone; stamped on new log entries. */
   parent: ParentId;
   notifications: boolean;
+  /** Version of the starter checklist already added on this device (absent on older installs). */
+  seedVersion?: number;
 }
 
 // ---------- Preparation checklist ----------
@@ -104,9 +106,7 @@ export interface Baby extends Entity {
 
 export type LogType = 'feed' | 'diaper' | 'sleep' | 'med' | 'measure' | 'note';
 
-export type FeedData =
-  | { method: 'breast'; side: 'left' | 'right' | 'both' }
-  | { method: 'bottle'; ml: number; milk: 'breast' | 'formula' };
+export type FeedData = { method: 'breast'; side: 'left' | 'right' | 'both' } | { method: 'bottle'; ml: number; milk: 'breast' | 'formula' };
 export type DiaperData = { kind: 'wet' | 'dirty' | 'both' };
 export type SleepData = Record<string, never>;
 export type MedData = { name: string; dose: string };

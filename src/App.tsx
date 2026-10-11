@@ -1,6 +1,9 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/AppShell';
+import { ConfirmProvider } from '@/components/Confirm';
 import { PreferenceSync } from '@/components/PreferenceSync';
+import { ToastProvider } from '@/components/Toast';
+import { ChecklistPage } from '@/features/checklist/ChecklistPage';
 import { ComingSoon } from '@/features/placeholder/ComingSoon';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 
@@ -12,15 +15,19 @@ export function App() {
   return (
     <HashRouter>
       <PreferenceSync />
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/checklist" element={<ComingSoon titleKey="nav.checklist" milestone={2} />} />
-          <Route path="/budget" element={<ComingSoon titleKey="nav.budget" milestone={3} />} />
-          <Route path="/shopping" element={<ComingSoon titleKey="nav.shopping" milestone={3} />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/checklist" replace />} />
-        </Route>
-      </Routes>
+      <ToastProvider>
+        <ConfirmProvider>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/checklist" element={<ChecklistPage />} />
+              <Route path="/budget" element={<ComingSoon titleKey="nav.budget" milestone={3} />} />
+              <Route path="/shopping" element={<ComingSoon titleKey="nav.shopping" milestone={3} />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/checklist" replace />} />
+            </Route>
+          </Routes>
+        </ConfirmProvider>
+      </ToastProvider>
     </HashRouter>
   );
 }

@@ -52,10 +52,7 @@ export interface DevicePrefsRepository {
 
 /** A minimal observable, compatible with Dexie's liveQuery and most stream libraries. */
 export interface Subscribable<T> {
-  subscribe(observer: {
-    next: (value: T) => void;
-    error?: (err: unknown) => void;
-  }): { unsubscribe(): void };
+  subscribe(observer: { next: (value: T) => void; error?: (err: unknown) => void }): { unsubscribe(): void };
 }
 
 export interface SyncedCollections {
