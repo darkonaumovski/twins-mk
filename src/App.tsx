@@ -1,22 +1,26 @@
+import { lazy } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/AppShell';
 import { ConfirmProvider } from '@/components/Confirm';
 import { PreferenceSync } from '@/components/PreferenceSync';
 import { ToastProvider } from '@/components/Toast';
+import { UpdatePrompt } from '@/components/UpdatePrompt';
 import { useSettings } from '@/data/StoreContext';
-import { BudgetPage } from '@/features/budget/BudgetPage';
-import { ShoppingPage } from '@/features/budget/ShoppingPage';
 import { ChecklistPage } from '@/features/checklist/ChecklistPage';
-import { GrowthPage } from '@/features/history/GrowthPage';
-import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
-import { MorePage } from '@/features/more/MorePage';
-import { DoctorNotesPage } from '@/features/notes/DoctorNotesPage';
-import { PlanPage } from '@/features/plan/PlanPage';
 import { ReminderSync } from '@/features/plan/ReminderSync';
-import { SettingsPage } from '@/features/settings/SettingsPage';
 import { TodayPage } from '@/features/today/TodayPage';
-import { SetupPage } from '@/features/twins/SetupPage';
+
+// Less-used screens load on demand (all are precached for offline use).
+const BudgetPage = lazy(() => import('@/features/budget/BudgetPage').then((m) => ({ default: m.BudgetPage })));
+const ShoppingPage = lazy(() => import('@/features/budget/ShoppingPage').then((m) => ({ default: m.ShoppingPage })));
+const GrowthPage = lazy(() => import('@/features/history/GrowthPage').then((m) => ({ default: m.GrowthPage })));
+const HistoryPage = lazy(() => import('@/features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })));
+const MorePage = lazy(() => import('@/features/more/MorePage').then((m) => ({ default: m.MorePage })));
+const DoctorNotesPage = lazy(() => import('@/features/notes/DoctorNotesPage').then((m) => ({ default: m.DoctorNotesPage })));
+const PlanPage = lazy(() => import('@/features/plan/PlanPage').then((m) => ({ default: m.PlanPage })));
+const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
 /** Home is the checklist before birth and Today after. */
 function Home() {
@@ -37,6 +41,7 @@ export function App() {
         <ConfirmProvider>
           <LogUIProvider>
             <ReminderSync />
+            <UpdatePrompt />
             <Routes>
               <Route element={<AppShell />}>
                 <Route index element={<Home />} />

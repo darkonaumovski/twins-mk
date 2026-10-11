@@ -1,9 +1,11 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Suspense } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, History, House, ListChecks, Menu, Plus, Settings, ShoppingCart, Wallet, type LucideIcon } from 'lucide-react';
 import { useSettings } from '@/data/StoreContext';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { cx } from './ui';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface NavItem {
   to: string;
@@ -38,6 +40,7 @@ export function AppShell() {
   const settings = useSettings();
   const ui = useLogUI();
   const planner = settings?.phase === 'planner';
+  const location = useLocation();
 
   const prepTabs: NavItem[] = [
     { to: '/checklist', label: t('nav.checklist'), icon: ListChecks },
@@ -56,8 +59,13 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
-      <main>
-        <Outlet />
+      <main id="main">
+        {/* Keyed by route, so a crash on one screen clears when you navigate away. */}
+        <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={null}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <nav
         aria-label={t('nav.main')}

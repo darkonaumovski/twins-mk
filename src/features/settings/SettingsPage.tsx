@@ -12,6 +12,8 @@ import type { Language, ParentId, ThemePref } from '@/data/types';
 import { useParentName } from '@/lib/parents';
 import { useBabies } from '@/features/twins/twins';
 import { RemindersSettings } from '@/features/plan/RemindersSettings';
+import { BackupSettings } from './BackupSettings';
+import { InstallSettings } from './InstallSettings';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -138,6 +140,10 @@ export function SettingsPage() {
       </Section>
 
       <RemindersSettings />
+
+      <BackupSettings />
+
+      <InstallSettings />
 
       <Section title={t('settings.storage')}>
         {persist && (

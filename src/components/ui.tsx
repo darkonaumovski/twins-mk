@@ -24,6 +24,9 @@ export function PageHeader({ title, children }: { title: string; children?: Reac
 }
 
 export function Page({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+  useEffect(() => {
+    document.title = `${title} · Twins.MK`;
+  }, [title]);
   return (
     <>
       <PageHeader title={title}>{actions}</PageHeader>

@@ -1,7 +1,7 @@
 {
   "name": "twins-mk",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "icons": "pwa-assets-generator"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
@@ -31,6 +32,7 @@
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^6.1.2",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.1.2",
@@ -38,6 +40,12 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
-    "vitest": "^5.0.3"
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3",
+    "workbox-precaching": "^7.4.1",
+    "workbox-window": "^7.4.1"
+  },
+  "engines": {
+    "node": ">=22.12"
   }
 }
