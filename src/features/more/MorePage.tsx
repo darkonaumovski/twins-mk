@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, ListChecks, Settings, ShoppingCart, Wallet, type LucideIcon } from 'lucide-react';
+import { ChevronRight, ListChecks, Settings, ShoppingCart, TrendingUp, Wallet, type LucideIcon } from 'lucide-react';
 import { Page } from '@/components/ui';
 
 function MenuGroup({ title, items }: { title?: string; items: { to: string; label: string; icon: LucideIcon }[] }) {
@@ -26,6 +26,7 @@ export function MorePage() {
   const { t } = useTranslation();
   return (
     <Page title={t('more.title')}>
+      <MenuGroup title={t('more.babies')} items={[{ to: '/growth', label: t('growth.title'), icon: TrendingUp }]} />
       <MenuGroup
         title={t('more.preparation')}
         items={[

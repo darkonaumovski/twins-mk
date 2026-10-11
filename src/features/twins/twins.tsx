@@ -8,6 +8,23 @@ import { BABY_IDS, slotOf } from '@/features/log/logic';
 export const TWIN_COLORS: readonly TwinColor[] = ['teal', 'amber', 'violet', 'rose', 'blue', 'green'];
 export const DEFAULT_COLORS: Record<TwinSlot, TwinColor> = { A: 'teal', B: 'amber' };
 
+/**
+ * Pairs that are too hard to tell apart side by side in charts, found with the
+ * dataviz palette validator (colour-vision-deficiency ΔE < 8, or normal-vision ΔE < 15).
+ */
+const WEAK_PAIRS: readonly (readonly [TwinColor, TwinColor])[] = [
+  ['amber', 'green'],
+  ['rose', 'teal'],
+  ['blue', 'violet'],
+  ['green', 'teal'],
+  ['green', 'rose'],
+];
+
+/** True if the two twins should not get these colours together. */
+export function colorsClash(a: TwinColor, b: TwinColor): boolean {
+  return a === b || WEAK_PAIRS.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+}
+
 export interface Babies {
   A: Baby | undefined;
   B: Baby | undefined;

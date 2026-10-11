@@ -11,6 +11,7 @@ import { useLive, useStore } from '@/data/StoreContext';
 import { isTimed } from '@/data/logTypes';
 import { parseAmount } from '@/features/checklist/logic';
 import { useBabies, useTwinName } from '@/features/twins/twins';
+import { useParentName } from '@/lib/parents';
 import type { DiaperData, FeedData, LogEntry, LogType } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
@@ -92,6 +93,7 @@ export function EntryEditor(props: Props) {
   const toast = useToast();
   const babies = useBabies();
   const name = useTwinName(babies);
+  const parentName = useParentName();
   const { log } = useLogActions();
   const entry = props.mode === 'edit' ? props.entry : null;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(entry, props.mode === 'edit' ? props.entry.type : props.type));
@@ -204,6 +206,7 @@ export function EntryEditor(props: Props) {
       <form id="entry-form" onSubmit={save} className="space-y-5" noValidate>
         {entry ? (
           <>
+            <p className="text-sm text-muted">{t('log.by', { name: parentName(entry.loggedBy) })}</p>
             {entry.groupId && (
               <p className="flex gap-2 text-sm text-muted">
                 <Info aria-hidden size={16} className="mt-0.5 shrink-0" />

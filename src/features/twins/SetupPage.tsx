@@ -9,7 +9,7 @@ import { useStore } from '@/data/StoreContext';
 import { parseAmount } from '@/features/checklist/logic';
 import { BABY_IDS, SLOTS, fromLocalInput, toLocalInput } from '@/features/log/logic';
 import type { Baby, NewRecord, TwinColor, TwinSlot } from '@/data/types';
-import { DEFAULT_COLORS, TWIN_COLORS, twinStyle, TwinBadge, useBabies } from './twins';
+import { colorsClash, DEFAULT_COLORS, TWIN_COLORS, twinStyle, TwinBadge, useBabies } from './twins';
 
 interface TwinDraft {
   name: string;
@@ -126,7 +126,7 @@ export function SetupPage() {
                 <legend className="mb-1.5 font-medium">{t('twins.color')}</legend>
                 <div className="flex flex-wrap gap-2">
                   {TWIN_COLORS.map((c) => {
-                    const taken = c === other;
+                    const taken = colorsClash(c, other);
                     return (
                       <label
                         key={c}

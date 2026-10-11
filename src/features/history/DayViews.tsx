@@ -1,0 +1,150 @@
+import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
+import { useLive } from '@/data/StoreContext';
+import { useFormatMinutes } from '@/lib/useNow';
+import { useParentName } from '@/lib/parents';
+import type { ISODate, LogEntry } from '@/data/types';
+import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
+import { BABY_IDS, SLOTS } from '@/features/log/logic';
+import { useLogUI } from '@/features/log/LogUIContext';
+import { colorOf, twinStyle, TwinBadge, useTwinName, type Babies } from '@/features/twins/twins';
+import { localDay, summarize } from './summary';
+
+const DAY_MS = 24 * 3600_000;
+
+/**
+ * Entries for a local day, plus the day before (a sleep that started last night
+ * still counts towards this day's sleep). `starting` holds only those that start on the day.
+ */
+export function useDayEntries(date: ISODate) {
+  return useLive(
+    async (s) => {
+      const { from, to } = localDay(date);
+      const all = await s.logs.listBetween(new Date(from.getTime() - DAY_MS).toISOString(), to.toISOString());
+      const fromIso = from.toISOString();
+      return { all, starting: all.filter((e) => e.start >= fromIso) };
+    },
+    [date],
+  );
+}
+
+export function DaySummaryView({ date, entries, babies, now }: { date: ISODate; entries: LogEntry[]; babies: Babies; now: Date }) {
+  const { t } = useTranslation();
+  const name = useTwinName(babies);
+  const fmt = useFormatMinutes();
+  const { from, to } = localDay(date);
+
+  return (
+    <section aria-label={t('summary.title')} className="grid grid-cols-2 gap-3">
+      {SLOTS.map((slot) => {
+        const s = summarize(entries, BABY_IDS[slot], from, to, now);
+        const feedParts = [String(s.feeds)];
+        if (s.ml > 0) feedParts.push(t('summary.ml', { ml: s.ml }));
+        if (s.breastMinutes > 0) feedParts.push(t('summary.breast', { duration: fmt(s.breastMinutes) }));
+        const rows = [
+          { label: t('summary.feeds'), icon: LOG_ICONS.feed, value: feedParts.join(' · ') },
+          {
+            label: t('summary.diapers'),
+            icon: LOG_ICONS.diaper,
+            value: String(s.diapers),
+            detail: t('summary.diaperDetail', { wet: s.wet, dirty: s.dirty }),
+          },
+          { label: t('summary.sleep'), icon: LOG_ICONS.sleep, value: fmt(s.sleepMinutes) },
+        ];
+        return (
+          <div key={slot} style={twinStyle(colorOf(babies, slot))} className="rounded-2xl border border-line bg-surface p-3">
+            <h3 className="mb-2 flex items-center gap-2 font-semibold">
+              <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
+              <span className="truncate">{name(slot)}</span>
+            </h3>
+            <dl className="space-y-2 text-sm">
+              {rows.map(({ label, icon: Icon, value, detail }) => (
+                <div key={label}>
+                  <dt className="flex items-center gap-1.5 text-muted">
+                    <Icon aria-hidden size={14} />
+                    {label}
+                  </dt>
+                  <dd className="font-semibold">
+                    {value}
+                    {detail && <span className="block text-xs font-normal text-muted">{detail}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
+/**
+ * Both twins side by side: one row per minute, newest first, twin A on the
+ * left and twin B on the right, so a "both" entry lines up across the row.
+ */
+export function Timeline({ entries, babies, now }: { entries: LogEntry[]; babies: Babies; now: Date }) {
+  const { t } = useTranslation();
+  const describe = useDescribeEntry();
+  const name = useTwinName(babies);
+  const parentName = useParentName();
+  const ui = useLogUI();
+
+  const rows = new Map<string, Record<string, LogEntry[]>>();
+  for (const e of [...entries].sort((a, b) => b.start.localeCompare(a.start))) {
+    const key = format(new Date(e.start), 'HH:mm');
+    const row = rows.get(key) ?? { [BABY_IDS.A]: [], [BABY_IDS.B]: [] };
+    (row[e.babyId] ??= []).push(e);
+    rows.set(key, row);
+  }
+
+  if (rows.size === 0) {
+    return <p className="rounded-2xl border border-dashed border-line p-5 text-center text-muted">{t('timeline.empty')}</p>;
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div className="grid grid-cols-[3rem_1fr_1fr] border-b border-line bg-surface-2 text-sm font-semibold">
+        <span />
+        {SLOTS.map((slot) => (
+          <span key={slot} className="flex min-w-0 items-center gap-1.5 px-2 py-2">
+            <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
+            <span className="truncate">{name(slot)}</span>
+          </span>
+        ))}
+      </div>
+      <ol>
+        {[...rows].map(([time, row]) => (
+          <li key={time} className="grid grid-cols-[3rem_1fr_1fr] border-b border-line last:border-0">
+            <span className="py-2.5 pl-2 text-sm font-semibold tabular-nums">{time}</span>
+            {SLOTS.map((slot) => (
+              <div key={slot} className="min-w-0 space-y-1 px-1 py-1" style={twinStyle(colorOf(babies, slot))}>
+                {row[BABY_IDS[slot]].map((e) => {
+                  const what = describe(e, now);
+                  const Icon = LOG_ICONS[e.type];
+                  return (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => ui.edit(e)}
+                      className="block w-full rounded-xl border-l-4 border-(--tw) bg-(--tw-soft) px-2 py-1.5 text-left"
+                      title={t('log.by', { name: parentName(e.loggedBy) })}
+                    >
+                      <span className="sr-only">
+                        {name(slot)}, {time}:{' '}
+                      </span>
+                      <span className="flex items-center gap-1 text-sm font-semibold">
+                        <Icon aria-hidden size={14} className="shrink-0" />
+                        <span className="truncate">{what.title}</span>
+                      </span>
+                      {what.detail && <span className="block truncate text-xs">{what.detail}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}

@@ -9,6 +9,8 @@ import { useSettings } from '@/data/StoreContext';
 import { BudgetPage } from '@/features/budget/BudgetPage';
 import { ShoppingPage } from '@/features/budget/ShoppingPage';
 import { ChecklistPage } from '@/features/checklist/ChecklistPage';
+import { GrowthPage } from '@/features/history/GrowthPage';
+import { HistoryPage } from '@/features/history/HistoryPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { MorePage } from '@/features/more/MorePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
@@ -38,7 +40,8 @@ export function App() {
               <Route element={<AppShell />}>
                 <Route index element={<Home />} />
                 <Route path="/today" element={<TodayPage />} />
-                <Route path="/history" element={<ComingSoon title={t('nav.history')} milestone={5} />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/growth" element={<GrowthPage />} />
                 <Route path="/plan" element={<ComingSoon title={t('nav.plan')} milestone={6} />} />
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/setup" element={<SetupPage />} />

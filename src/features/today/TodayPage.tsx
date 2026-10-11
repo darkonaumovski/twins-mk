@@ -2,18 +2,18 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Square } from 'lucide-react';
-import { Page, cx } from '@/components/ui';
+import { Page } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { useFormatMinutes, useNow } from '@/lib/useNow';
-import { useParentName } from '@/lib/parents';
 import type { LogEntry, TwinSlot } from '@/data/types';
 import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
-import { BABY_IDS, dayBounds, minutesBetween, SLOTS, slotOf } from '@/features/log/logic';
+import { BABY_IDS, minutesBetween, SLOTS, slotOf } from '@/features/log/logic';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { QuickLogPanel } from '@/features/log/QuickLogPanel';
 import { useLogActions, useRunning } from '@/features/log/useLogActions';
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } from '@/features/twins/twins';
+import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -87,18 +87,10 @@ export function TodayPage() {
   const describe = useDescribeEntry();
   const fmt = useFormatMinutes();
   const name = useTwinName(babies);
-  const parentName = useParentName();
   const ui = useLogUI();
   const { stopTimers } = useLogActions();
   const dayKey = format(now, 'yyyy-MM-dd');
-  const entries = useLive(
-    async (s) => {
-      const { from, to } = dayBounds(new Date());
-      // Newest first; a "both" entry shows twin A above twin B.
-      return (await s.logs.listBetween(from, to)).sort((a, b) => b.start.localeCompare(a.start) || a.babyId.localeCompare(b.babyId));
-    },
-    [dayKey],
-  );
+  const day = useDayEntries(dayKey);
 
   if (!babies) return null;
   if (!babies.ready) {
@@ -156,36 +148,18 @@ export function TodayPage() {
 
       <QuickLogPanel />
 
-      <section className="space-y-2">
-        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted uppercase">{t('today.entries')}</h2>
-        {entries && entries.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-line p-5 text-center text-muted">{t('today.noEntries')}</p>
-        )}
-        {entries && entries.length > 0 && (
-          <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-            {entries.map((e) => {
-              const slot = slotOf(e.babyId);
-              const what = describe(e, now);
-              const Icon = LOG_ICONS[e.type];
-              return (
-                <li key={e.id}>
-                  <button type="button" onClick={() => ui.edit(e)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left">
-                    <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
-                    <span className="w-12 shrink-0 font-semibold tabular-nums">{format(new Date(e.start), 'HH:mm')}</span>
-                    <Icon aria-hidden size={18} className="shrink-0 text-muted" />
-                    <span className="min-w-0 flex-1">
-                      <span className="sr-only">{name(slot)}: </span>
-                      <span className="font-medium">{what.title}</span>
-                      {what.detail && <span className={cx('block truncate text-sm text-muted')}>{what.detail}</span>}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted">{t('log.by', { name: parentName(e.loggedBy) })}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      {day && (
+        <>
+          <section className="space-y-2">
+            <h2 className="px-1 text-sm font-semibold tracking-wide text-muted uppercase">{t('summary.title')}</h2>
+            <DaySummaryView date={dayKey} entries={day.all} babies={babies} now={now} />
+          </section>
+          <section className="space-y-2">
+            <h2 className="px-1 text-sm font-semibold tracking-wide text-muted uppercase">{t('timeline.title')}</h2>
+            <Timeline entries={day.starting} babies={babies} now={now} />
+          </section>
+        </>
+      )}
     </Page>
   );
 }
