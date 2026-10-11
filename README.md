@@ -9,6 +9,30 @@ It is local-first. All data stays in the browser on the phone (IndexedDB). There
 
 > **Not medical advice.** Twins.MK is an organiser. Checklist quantities, deadlines and any routines are editable suggestions, not recommendations. Follow your doctor, midwife or paediatrician.
 
+## Install on your phone
+
+**App:** https://darkonaumovski.github.io/twins-mk/
+
+**Android (Chrome)**
+
+1. Open the link in Chrome.
+2. Tap **Поставки → Инсталирање → Инсталирај ја апликацијата** (Settings → Install), or use the Chrome menu **⋮ → Install app**.
+3. Open Twins.MK from the home screen.
+
+**iPhone (Safari)**
+
+1. Open the link in **Safari**.
+2. Tap **Share** (the square with an arrow) → **Add to Home Screen** → **Add**.
+3. Open Twins.MK from the home screen. Reminders on iPhone only work from here (iOS 16.4 or newer).
+
+**First time on each phone**
+
+1. **Поставки → Овој телефон го користи** (Settings → This phone is used by): choose which parent uses this phone.
+2. Optionally turn on **Потсетници** (Reminders).
+3. Set up the data on one phone first. Then use **Резервна копија → Испрати** (Backup → Send) to send it to the other phone, and **Внеси** (Import) it there.
+
+Once installed, the app works without internet. Installing also makes it much less likely that the browser clears the data when the phone runs low on storage; **Поставки → Складирање** (Settings → Storage) shows whether the data is protected.
+
 ---
 
 ## Quick start
@@ -57,13 +81,6 @@ npm run build
 ```
 
 Updates: the app checks for a new version when it opens and every hour. When one is ready it shows **"A new version is ready / Reload"**. It never reloads by itself, so nobody loses a half-filled form.
-
-## Installing on the phones
-
-- **Android (Chrome):** open the site, then Settings → Install → **Install the app**, or use the browser menu → _Install app_.
-- **iPhone (Safari):** open the site in Safari, tap **Share** → **Add to Home Screen**. Notifications on iPhone only work for the installed app (iOS 16.4+).
-
-Installing also makes the browser much less likely to clear the app's data when the phone is low on storage. Settings → Storage shows whether the data is protected.
 
 ## Backups and using two phones
 
