@@ -168,11 +168,12 @@ Without these two values the app builds exactly as before, local only with backu
 
 Some app versions sync new kinds of records, and the server has to be told about them once. **Run each new file in [`supabase/migrations/`](supabase/migrations) once before the phones get that app version:** Supabase dashboard → **SQL Editor → New query** → paste the file → **Run**. Running one twice, or in a different order, does no harm: they only ever add to the list of collections the server accepts. A brand-new project only needs `supabase/schema.sql`, which already includes all of them.
 
-| File                             | Needed for                                    |
-| -------------------------------- | --------------------------------------------- |
-| `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies          |
-| `003_caregivers.sql`             | helpers (grandparents, a nanny…)              |
-| `004_push_milestones.sql`        | milestones, and the tables for push reminders |
+| File                             | Needed for                                                                                                                                                                                            |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `002_pumping_stash_supplies.sql` | pumping, the milk stash and supplies                                                                                                                                                                  |
+| `003_caregivers.sql`             | helpers (grandparents, a nanny…)                                                                                                                                                                      |
+| `004_push_milestones.sql`        | milestones, and the tables for push reminders                                                                                                                                                         |
+| `005_roadmap_collections.sql`    | needed for the roadmap features (run once, before installing a version that has any of them): contraction timer, vaccinations, the mother's recovery, journal, photos, first foods, snoozed reminders |
 
 If a migration was missed, the updated phone shows "The sync server needs an update" under **Sync between phones**. Its changes wait on the phone and go up as soon as the migration has run. The older phone keeps working; it simply ignores records it does not know.
 
@@ -282,6 +283,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - chart scales and colour-pair rules
 - the night appearance switch, "stop both" timers and the backup reminder
 - translation completeness (same keys, plural forms and placeholders in both languages)
+- the CSV and ZIP writers (quoting, Cyrillic with a byte order mark, CRC-32, UTF-8 file names, unzipped again in the test)
 
 ## Privacy
 

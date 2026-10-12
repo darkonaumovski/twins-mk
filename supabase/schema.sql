@@ -57,7 +57,16 @@ insert into public.sync_collections (name) values
   ('milkStash'),
   ('supplies'),
   ('caregivers'),
-  ('milestones')
+  ('milestones'),
+  -- Roadmap features (migration 005), added all at once so an existing project needs one migration.
+  ('contractions'),
+  ('vaccines'),
+  ('motherLogs'),
+  ('journal'),
+  ('photos'),
+  ('foods'),
+  ('foodTries'),
+  ('reminderSnoozes')
 on conflict (name) do nothing;
 alter table public.sync_collections enable row level security;
 revoke all on public.sync_collections from anon, authenticated;

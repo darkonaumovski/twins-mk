@@ -4,6 +4,7 @@ import schema from '../../../supabase/schema.sql?raw';
 import migration002 from '../../../supabase/migrations/002_pumping_stash_supplies.sql?raw';
 import migration003 from '../../../supabase/migrations/003_caregivers.sql?raw';
 import migration004 from '../../../supabase/migrations/004_push_milestones.sql?raw';
+import migration005 from '../../../supabase/migrations/005_roadmap_collections.sql?raw';
 import { COLLECTIONS } from '../repository';
 
 /**
@@ -192,6 +193,29 @@ describe('sync schema', () => {
     await db.exec(migration004);
     const milestone = { ...record('m-1', '2026-10-11T08:00:00.000Z', 'mom'), collection: 'milestones' };
     expect(await as(MOM, () => push(family, [milestone]))).toBe(1);
+  });
+
+  it('runs migration 005 on a project from before the roadmap, more than once', async () => {
+    const roadmap = ['contractions', 'vaccines', 'motherLogs', 'journal', 'photos', 'foods', 'foodTries', 'reminderSnoozes'];
+    // schema.sql (run again by an earlier test) already lists them all.
+    const listed = await rpc<{ name: string }>('select name from public.sync_collections');
+    expect(listed.map((r) => r.name)).toEqual(expect.arrayContaining(roadmap));
+    // A project last updated with migration 004: none of the roadmap collections yet.
+    await db.exec(`
+      delete from public.records where collection in (${roadmap.map((n) => `'${n}'`).join(', ')});
+      delete from public.sync_collections where name in (${roadmap.map((n) => `'${n}'`).join(', ')});
+    `);
+    const row = (collection: string, updatedAt: string) => ({ ...record(`r-${collection}`, updatedAt, 'mom'), collection });
+    await expect(as(MOM, () => push(family, [row('vaccines', '2026-10-11T08:00:00.000Z')]))).rejects.toMatchObject({ code: '23503' });
+
+    await db.exec(migration005);
+    await db.exec(migration005);
+    for (const collection of roadmap) {
+      expect(await as(MOM, () => push(family, [row(collection, '2026-10-11T08:00:00.000Z')])), collection).toBe(1);
+    }
+    // An older migration run afterwards takes nothing away.
+    await db.exec(migration004);
+    expect(await as(MOM, () => push(family, [row('photos', '2026-10-11T09:00:00.000Z')]))).toBe(1);
   });
 
   it('lets a phone leave, which also ends its push reminders', async () => {
