@@ -3,8 +3,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import en from '@/i18n/locales/en';
 import mk from '@/i18n/locales/mk';
 import type { AppliedChange } from '@/data/sync/types';
-import type { Entity, LogEntry, MilkStashItem, ParentTask, PrepItem, Pump, Supply } from '@/data/types';
-import { changeAction, changeLine, fromOtherPhone, summarizeChanges, type ChangeTextHelpers } from './changes';
+import type { Contraction, Entity, LogEntry, MilkStashItem, ParentTask, PrepItem, Pump, Supply } from '@/data/types';
+import { changeAction, changeLine, fromOtherPhone, summarizeChanges, withoutRoutineContractions, type ChangeTextHelpers } from './changes';
 
 const i18n = createInstance();
 let h: ChangeTextHelpers;
@@ -57,6 +57,18 @@ const task = (over: Partial<ParentTask> = {}): ParentTask => ({
   ...over,
 });
 
+const bottleFor = (): LogEntry =>
+  ({
+    ...meta({ id: 'log-x' }),
+    type: 'feed',
+    babyId: 'baby-A',
+    start: '2026-10-11T08:00:00.000Z',
+    end: null,
+    groupId: null,
+    loggedBy: 'p2',
+    data: { method: 'bottle', ml: 90, milk: 'formula' },
+  }) as LogEntry;
+
 describe('change notifications', () => {
   it('tells added, edited, deleted and undone records apart', () => {
     expect(changeAction({ collection: 'tasks', record: task(), previous: undefined })).toBe('added');
@@ -108,6 +120,44 @@ describe('change notifications', () => {
     expect(changeLine({ collection: 'supplies', record: supply, previous: undefined }, h)).toBe('Supplies updated: Diapers');
     // A pumping session names the parent who logged it.
     expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
+  });
+
+  it('announces only the first contraction after a pause of more than 2 hours', () => {
+    const ct = (id: string, start: string, end: string | null = null) => ({ ...meta({ id, updatedBy: 'p2' }), start, end }) as Contraction;
+    const first = ct('c1', '2026-10-11T08:00:00.000Z');
+    const added = (c: Contraction): AppliedChange => ({ collection: 'contractions', record: c, previous: undefined });
+    expect(changeLine(added(first), h)).toBe('Contraction started (14 Oct 10:30)');
+    expect(changeLine(added(first), { ...h, announcing: true })).toBe('Started timing contractions (from 14 Oct 10:30)');
+    expect(withoutRoutineContractions([added(first)], [first])).toHaveLength(1);
+
+    // The next one ten minutes later, and the stop of the first: not news.
+    const second = ct('c2', '2026-10-11T08:10:00.000Z');
+    const stopped = ct('c1', '2026-10-11T08:00:00.000Z', '2026-10-11T08:01:05.000Z');
+    const all = [stopped, second];
+    const batch: AppliedChange[] = [
+      added(second),
+      { collection: 'contractions', record: stopped, previous: first },
+      { collection: 'logs', record: bottleFor(), previous: undefined },
+    ];
+    expect(withoutRoutineContractions(batch, all).map((c) => c.collection)).toEqual(['logs']);
+    expect(changeLine({ collection: 'contractions', record: stopped, previous: first }, h)).toBe('Contraction: 1:05');
+
+    // After more than two hours, the next one is news again.
+    const later = ct('c3', '2026-10-11T10:30:00.000Z');
+    expect(withoutRoutineContractions([added(later)], [...all, later])).toHaveLength(1);
+    // Two in one batch after a gap: only the first.
+    const soon = ct('c4', '2026-10-11T10:35:00.000Z');
+    expect(withoutRoutineContractions([added(soon), added(later)], [...all, later, soon]).map((c) => c.record.id)).toEqual(['c3']);
+    expect(summarizeChanges([added(later)], 'p1', { ...h, announcing: true })?.toast).toBe(
+      'Marija: Started timing contractions (from 14 Oct 10:30)',
+    );
+    // Undo after "Clear all" brings records back: not announced again.
+    const restored: AppliedChange = {
+      collection: 'contractions',
+      record: later,
+      previous: { ...later, deletedAt: '2026-10-11T10:40:00.000Z' },
+    };
+    expect(withoutRoutineContractions([restored], [later])).toEqual([]);
   });
 
   it('announces the pumping timer when it starts and stops, not as 0 ml', () => {

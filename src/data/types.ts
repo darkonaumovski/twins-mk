@@ -79,6 +79,15 @@ export interface Milestone extends Entity {
   note: string;
 }
 
+/**
+ * One contraction timed before the birth. Synced, so the other parent can follow from elsewhere.
+ * `end` is null while it lasts.
+ */
+export interface Contraction extends Entity {
+  start: ISODateTime;
+  end: ISODateTime | null;
+}
+
 /** What a phone wants push reminders for. */
 export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';
 

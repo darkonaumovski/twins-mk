@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useStore } from '@/data/StoreContext';
 import { useSyncEngine } from '@/data/sync/SyncContext';
 import { PARENT_IDS } from '@/lib/caregivers';
-import { fromOtherPhone } from '@/features/sync/changes';
+import { fromOtherPhone, withoutRoutineContractions } from '@/features/sync/changes';
 import { KEEP_DAYS, KEEP_ENTRIES, incomingEntries } from './logic';
 
 /**
@@ -27,7 +27,15 @@ export function ActivityRecorder() {
         const news = fromOtherPhone(changes, prefs.deviceId);
         if (!news.length) return;
         const helpers = (await store.caregivers.list()).map((c) => c.id);
-        await store.activity.add(incomingEntries(news, prefs.parent, [...PARENT_IDS, ...helpers]));
+        const entries = incomingEntries(news, prefs.parent, [...PARENT_IDS, ...helpers]);
+        // Every contraction stays in the history, but only the announced ones count as unread.
+        if (news.some((c) => c.collection === 'contractions')) {
+          const announced = new Set(withoutRoutineContractions(news, await store.contractions.listAll()));
+          entries.forEach((e, i) => {
+            if (news[i].collection === 'contractions' && !announced.has(news[i])) e.seen = 1;
+          });
+        }
+        await store.activity.add(entries);
       }),
     [engine, store],
   );

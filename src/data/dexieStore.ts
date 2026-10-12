@@ -19,6 +19,7 @@ import type {
   Baby,
   Caregiver,
   Category,
+  Contraction,
   DevicePrefs,
   DoctorNote,
   Entity,
@@ -60,6 +61,7 @@ class TwinsDb extends Dexie {
   supplies!: Table<Supply, string>;
   caregivers!: Table<Caregiver, string>;
   milestones!: Table<Milestone, string>;
+  contractions!: Table<Contraction, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -105,6 +107,10 @@ class TwinsDb extends Dexie {
     // Notification history (local only). A new, empty table.
     this.version(6)
       .stores({ activity: '++key, at, seen' })
+      .upgrade(() => {});
+    // Contraction timer (before the birth). A new, empty table.
+    this.version(7)
+      .stores({ contractions: 'id, start' })
       .upgrade(() => {});
   }
 }
@@ -412,6 +418,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     supplies: repo(db.supplies),
     caregivers: repo(db.caregivers),
     milestones: repo(db.milestones),
+    contractions: repo(db.contractions),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 

@@ -21,8 +21,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | ID  | Feature                  | Status | Commit        | Notes                                                 |
 | --- | ------------------------ | ------ | ------------- | ----------------------------------------------------- |
 | F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins |
-| F02 | Pumping timer            | ✅     | (next commit) | More → Start pumping; running card on Today           |
-| F03 | Contraction timer        | ⬜     |               |                                                       |
+| F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today           |
+| F03 | Contraction timer        | ✅     | (next commit) | Checklist → Contractions (prep phase); Plan in F04    |
 | F04 | Plan before the birth    | ⬜     |               |                                                       |
 | F05 | Spreadsheet export (CSV) | ⬜     |               |                                                       |
 | F06 | Descriptive insights     | ⬜     |               |                                                       |
@@ -73,6 +73,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F02 · Saving a session that the other phone deleted meanwhile is refused with a message, and no milk goes into the stash. A stash container that bottles already used is never overwritten.
 - 2026-10-12 · F02 · If the timer sheet is open and the other phone stops or deletes the timer, the sheet closes with "Pumping was stopped on the other phone" instead of turning into "Start" under the parent's thumb.
 - 2026-10-12 · F02 · A running timer opens the timer sheet (big elapsed time, Stop, "Discard (started by mistake)" with undo) from Today, the timeline and More.
+- 2026-10-12 · F03 · New synced collection `contractions` (Dexie version 7, index on `start`), in all 7 places of A2. Migration 005 (F00) already has the name.
+- 2026-10-12 · F03 · The timer is a route (`/contractions`), reached from a card under the countdown in the preparation phase (F04 adds it to Plan). The bottom navigation stays visible, so it is "full screen" within the app.
+- 2026-10-12 · F03 · Single contractions can be deleted from the list (with undo), besides "Clear all"; a mis-tap is common.
+- 2026-10-12 · F03 · Change alerts: only an added contraction with no other live one in the 2 hours before it is announced ("Started timing contractions (from 14:05)"). The notification history still records every contraction from the other phone, but marks the others as seen, so the unread badge does not count up for each one.
+- 2026-10-12 · F03 · The big button acts on what the screen showed, decided inside a transaction: Stop ends every running contraction (two phones may each have started one), and if the other phone (or a double tap) was faster nothing changes and a short message says so. No accidental second contraction.
+- 2026-10-12 · F03 · The history line is neutral ("Contraction started (14:05)"); only the announcement says "Started timing contractions". An undo after "Clear all" (a restore) is never announced.
+- 2026-10-12 · F03 · Lengths and intervals of an hour or more show as h:mm:ss; rows from another day show their date.
+- 2026-10-12 · F03 · The last-60-minutes window is by start time and includes a contraction that started exactly 60 minutes ago; a running contraction counts but has no length yet.
 
 ## Phone test checklists
 
@@ -104,6 +112,15 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 6. While a timer runs, History's "Pumped ml per day" and the timeline total do not change; the timeline shows "running · 5 min".
 7. On the phone that did not start it, check the message: "Started pumping", then "Finished pumping (… min)".
 8. With the timer sheet open on one phone, stop the timer on the other: the sheet closes and says it was stopped on the other phone.
+
+### F03 (contraction timer) — run migration 005 first
+
+1. In the preparation phase, open the checklist: under the countdown there is a **Contractions** card. Tap it.
+2. Tap the big **Start** button, wait a few seconds, tap **Stop**. Do it three or four times: the list shows each start time, its length and the time since the previous one; "Last 60 minutes" shows the count and averages.
+3. Leave the page open for a few minutes: the screen does not turn off.
+4. On the other phone: one message "Started timing contractions (from …)" when the first one starts, and no message for the ones after it. The list there shows the same contractions.
+5. Delete one contraction with the bin icon, then **Undo**. Then **Clear all** → confirm: the list is empty on both phones (**Undo** brings it back).
+6. Check the fixed note "Follow the instructions of your hospital or midwife." and that nothing else gives advice.
 
 ## Follow-ups
 

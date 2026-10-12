@@ -14,6 +14,7 @@ import { ItemRow } from './ItemRow';
 import { ItemEditor } from './ItemEditor';
 import { CategoryManager } from './CategoryManager';
 import { Countdown } from './Countdown';
+import { ContractionsCard } from '@/features/contractions/ContractionsCard';
 import { nextItemOrder, useChecklistData } from './useChecklistData';
 
 const STATUS_FILTERS: StatusFilter[] = ['all', 'open', 'done', 'needed', 'ordered', 'bought', 'gifted', 'borrowed'];
@@ -123,6 +124,7 @@ export function ChecklistPage() {
         onToggleOverdue={() => setFilters({ overdueOnly: !filters.overdueOnly })}
         showArrived={settings.phase === 'prep'}
       />
+      {settings.phase === 'prep' && <ContractionsCard />}
 
       <div className="space-y-3">
         <div className="flex gap-2">

@@ -3,6 +3,7 @@
 A calm, phone-first app for parents expecting twins.
 
 - **Before birth:** a preparation checklist with a starter list for twins (must-haves aimed to be ready by week 32, because twins often come early), a countdown to the due date or a planned delivery date, a budget and a shopping mode.
+- **Contraction timer:** under the countdown, **Contractions** opens a full-screen timer: one big Start / Stop button, every contraction with its length and the time since the one before, and the count, average length and average interval for the last 60 minutes. The screen stays on while it is open. It is synced, so the other parent can follow from elsewhere; their phone tells them once when timing starts (the first contraction after a pause of more than 2 hours), not for every contraction. It gives no thresholds, alerts or advice: follow the instructions of your hospital or midwife. **Clear all** removes the list (with undo).
 - **After birth:** a daily planner and tracker for feeds, diapers, sleep, medicines, growth, appointments, routines and parent tasks, always for Twin A, Twin B or both.
 
 ### Feeding twins
@@ -279,6 +280,7 @@ Newer versions also add optional fields to existing records; an older phone may 
 - checklist quantities, filters and price parsing
 - the starter list and its v1 → v2 upgrade (edited or deleted items stay untouched, both phones end up identical)
 - the pregnancy countdown (due date, planned delivery date, pregnancy week)
+- the contraction timer (lengths and intervals, the last 60 minutes, a running contraction, deleted ones left out, only the first contraction after a 2-hour pause announced to the other phone, backup round trip)
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)

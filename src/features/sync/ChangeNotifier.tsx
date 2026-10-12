@@ -12,7 +12,7 @@ import { dateLocale } from '@/i18n';
 import { useLabel } from '@/lib/labels';
 import { showNotification } from '@/lib/notify';
 import { useCaregiverName, useCaregivers } from '@/lib/caregivers';
-import { fromOtherPhone, summarizeChanges, type ChangeTextHelpers } from './changes';
+import { fromOtherPhone, summarizeChanges, withoutRoutineContractions, type ChangeTextHelpers } from './changes';
 
 /**
  * Tells this phone's user what the other parent changed, as soon as sync
@@ -42,7 +42,8 @@ export function ChangeNotifier() {
         const { prefs: p, ...ctx } = latest.current;
         // Joining a family merges everything at once: that is not news.
         if (!p || catchUp || p.changeAlerts === false) return;
-        const news = fromOtherPhone(changes, p.deviceId);
+        let news = fromOtherPhone(changes, p.deviceId);
+        if (news.some((c) => c.collection === 'contractions')) news = withoutRoutineContractions(news, await store.contractions.listAll());
         if (!news.length) return;
         // "Only when I'm on duty": stay quiet while someone else has the night shift.
         if (!alertsAllowed(p.changeAlertsMode, (await store.settings.get()).nightShifts, p.parent, new Date())) return;
@@ -59,6 +60,7 @@ export function ChangeNotifier() {
           day: (date) => format(parseISO(date), 'd MMM', { locale }),
           parentName: ctx.parentName,
           caregiverIds: ctx.caregiverIds,
+          announcing: true,
         };
         const summary = summarizeChanges(news, p.parent, helpers);
         if (!summary) return;

@@ -1,4 +1,5 @@
 import { isKnownLog } from '@/data/logTypes';
+import { formatSeconds, isFirstAfterGap } from '@/features/contractions/logic';
 import type { AppliedChange } from '@/data/sync/types';
 import type {
   Appointment,
@@ -6,6 +7,7 @@ import type {
   Caregiver,
   CaregiverId,
   Category,
+  Contraction,
   DoctorNote,
   LogEntry,
   Milestone,
@@ -42,6 +44,20 @@ export function fromOtherPhone(changes: readonly AppliedChange[], ownDeviceId: s
   );
 }
 
+/**
+ * Leaves out contraction changes that are not news: only the first contraction after a pause of
+ * more than 2 hours is announced ("contractions are being timed"), not every one, nor each stop.
+ * `contractions` is this phone's list after the changes were applied.
+ */
+export function withoutRoutineContractions(changes: readonly AppliedChange[], contractions: readonly Contraction[]): AppliedChange[] {
+  return changes.filter(
+    // A brand-new contraction only: an undone delete (a restore) is not news.
+    (c) =>
+      c.collection !== 'contractions' ||
+      (!c.previous && c.record.deletedAt === null && isFirstAfterGap(c.record as Contraction, contractions)),
+  );
+}
+
 export interface ChangeTextHelpers {
   t: (key: string, options?: Record<string, unknown>) => string;
   /** Title and detail of a log entry, e.g. "Bottle" / "120 ml · formula". */
@@ -58,6 +74,8 @@ export interface ChangeTextHelpers {
   parentName: (id: CaregiverId) => string;
   /** Everyone in the family (parents and helpers), to tell who else could have made a change. */
   caregiverIds: readonly CaregiverId[];
+  /** Describing an announcement (after `withoutRoutineContractions`), not a history entry. */
+  announcing?: boolean;
 }
 
 const short = (text: string, max = 60) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
@@ -144,6 +162,15 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       const title = m.key ? t(`milestones.keys.${m.key}`) : m.title;
       if (action === 'deleted' || !m.date) return t('changes.milestones.deleted', { title, twin: h.twin(m.babyId) });
       return t('changes.milestones.added', { title, twin: h.twin(m.babyId), when: h.day(m.date) });
+    }
+    case 'contractions': {
+      const ct = c.record as Contraction;
+      if (action === 'added')
+        return t(h.announcing ? 'changes.contractions.timingStarted' : 'changes.contractions.added', { when: h.when(ct.start) });
+      if (action === 'deleted') return t('changes.contractions.deleted');
+      if (ct.end)
+        return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
+      return t('changes.contractions.changed');
     }
   }
 }

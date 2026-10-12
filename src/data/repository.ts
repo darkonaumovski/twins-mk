@@ -5,6 +5,7 @@ import type {
   Baby,
   Caregiver,
   Category,
+  Contraction,
   DevicePrefs,
   DoctorNote,
   Entity,
@@ -91,6 +92,7 @@ export interface SyncedCollections {
   supplies: Repository<Supply>;
   caregivers: Repository<Caregiver>;
   milestones: Repository<Milestone>;
+  contractions: Repository<Contraction>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -111,6 +113,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'supplies',
   'caregivers',
   'milestones',
+  'contractions',
 ];
 
 /** This phone's notification history (local only). */

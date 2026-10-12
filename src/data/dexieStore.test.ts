@@ -111,6 +111,21 @@ describe('live queries', () => {
 });
 
 describe('backup round trip between two phones', () => {
+  it('carries contractions, including a running one and a cleared one', async () => {
+    const phone1 = await makeStore();
+    const phone2 = await makeStore();
+    const done = await phone1.store.contractions.create({ start: '2026-10-11T07:50:00.000Z', end: '2026-10-11T07:51:00.000Z' });
+    const running = await phone1.store.contractions.create({ start: '2026-10-11T07:58:00.000Z', end: null });
+    phone1.advance(1000);
+    await phone1.store.contractions.remove(done.id);
+
+    const backup = parseBackup(JSON.stringify(await exportBackup(phone1.store)));
+    expect(backup.data.contractions).toHaveLength(2);
+    await importBackup(phone2.store, backup);
+    expect(await phone2.store.contractions.list()).toEqual([running]);
+    expect((await phone2.store.contractions.listAll()).find((c) => c.id === done.id)?.deletedAt).not.toBeNull();
+  });
+
   it('merges edits, additions and deletions from the other phone', async () => {
     const phone1 = await makeStore();
     const phone2 = await makeStore();
