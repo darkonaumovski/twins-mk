@@ -110,6 +110,29 @@ describe('change notifications', () => {
     expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
   });
 
+  it('announces the pumping timer when it starts and stops, not as 0 ml', () => {
+    const running = {
+      ...meta({ id: 't' }),
+      start: 's',
+      end: null,
+      side: 'both',
+      minutes: null,
+      leftMl: null,
+      rightMl: null,
+      totalMl: 0,
+    } as Pump;
+    expect(changeLine({ collection: 'pumps', record: running, previous: undefined }, h)).toBe('Started pumping');
+    const stopped = { ...running, end: 'e', minutes: 14 } as Pump;
+    expect(changeLine({ collection: 'pumps', record: stopped, previous: running }, h)).toBe('Finished pumping (14 min)');
+    const amounts = { ...stopped, leftMl: 60, rightMl: 50, totalMl: 110 } as Pump;
+    expect(changeLine({ collection: 'pumps', record: amounts, previous: stopped }, h)).toBe('Pumping edited: 110 ml');
+    // Stop and amounts arriving in one sync.
+    expect(changeLine({ collection: 'pumps', record: amounts, previous: running }, h)).toBe('Finished pumping: 110 ml in 14 min');
+    // An older session without `end` reads as before.
+    const old = { ...meta({ id: 'o' }), start: 's', minutes: 10, leftMl: null, rightMl: null, totalMl: 80 } as Pump;
+    expect(changeLine({ collection: 'pumps', record: old, previous: undefined }, h)).toBe('Pumped 80 ml');
+  });
+
   it('credits other changes to the other parent, or to "the other phone" when there are helpers', () => {
     const change = { collection: 'tasks' as const, record: task(), previous: undefined };
     expect(summarizeChanges([change], 'p1', h)?.title).toBe('Update from Marija');

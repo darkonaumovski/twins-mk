@@ -6,7 +6,8 @@ import { useCaregiverName } from '@/lib/caregivers';
 import { Milk } from 'lucide-react';
 import type { ISODate, LogEntry, Pump } from '@/data/types';
 import { LOG_ICONS, useDescribeEntry } from '@/features/log/describe';
-import { BABY_IDS, SLOTS } from '@/features/log/logic';
+import { BABY_IDS, minutesBetween, SLOTS } from '@/features/log/logic';
+import { isRunningPump } from '@/features/milk/logic';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { colorOf, twinStyle, TwinBadge, useTwinName, type Babies } from '@/features/twins/twins';
 import { localDay, summarize } from './summary';
@@ -98,6 +99,7 @@ export function Timeline({ entries, pumps = [], babies, now }: { entries: LogEnt
   const name = useTwinName(babies);
   const parentName = useCaregiverName();
   const ui = useLogUI();
+  const fmt = useFormatMinutes();
 
   type Row = { twins: Record<string, LogEntry[]>; pumps: Pump[] };
   const rows = new Map<string, Row>();
@@ -146,7 +148,11 @@ export function Timeline({ entries, pumps = [], babies, now }: { entries: LogEnt
               >
                 <Milk aria-hidden size={14} className="shrink-0" />
                 <span className="font-semibold">{t('milk.pumped')}</span>
-                <span className="truncate">{t('milk.pumpedDetail', { ml: p.totalMl, minutes: p.minutes ?? '–' })}</span>
+                <span className="truncate">
+                  {isRunningPump(p)
+                    ? t('milk.runningDetail', { duration: fmt(minutesBetween(p.start, now)) })
+                    : t('milk.pumpedDetail', { ml: p.totalMl, minutes: p.minutes ?? '–' })}
+                </span>
               </button>
             ))}
             {SLOTS.map((slot) => (

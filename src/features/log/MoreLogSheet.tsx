@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Milk, Package, Refrigerator, type LucideIcon } from 'lucide-react';
+import { Milk, Package, Refrigerator, Timer, type LucideIcon } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { tintFor, useBabies } from '@/features/twins/twins';
 import { LOG_ICONS } from './describe';
@@ -52,7 +52,8 @@ export function MoreLogSheet({ who: initialWho, onClose }: { who: Who; onClose: 
         </div>
         <section className="space-y-2 border-t border-line pt-4">
           <h3 className="text-sm font-semibold text-muted">{t('milk.section')}</h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Tile icon={Timer} label={t('milk.startTimer')} onClick={() => ui.pumpTimer()} />
             <Tile icon={Milk} label={t('milk.pump')} onClick={() => ui.pump()} />
             <Tile icon={Refrigerator} label={t('stash.title')} onClick={() => go('/stash')} />
             <Tile icon={Package} label={t('supplies.title')} onClick={() => go('/supplies')} />

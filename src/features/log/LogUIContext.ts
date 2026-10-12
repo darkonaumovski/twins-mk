@@ -11,7 +11,8 @@ export type LogSheetState =
   | { kind: 'create'; type: FormType; who: Who }
   | { kind: 'edit'; entry: LogEntry }
   | { kind: 'more'; who: Who }
-  | { kind: 'pump'; pump: Pump | null };
+  | { kind: 'pump'; pump: Pump | null }
+  | { kind: 'pumpTimer'; pumpId?: string };
 
 export interface LogUI {
   /** The full quick-log panel in a sheet (the "+" button in the navigation). */
@@ -23,6 +24,8 @@ export interface LogUI {
   more(who: Who): void;
   /** A new pumping session, or editing one. */
   pump(pump?: Pump): void;
+  /** The pumping timer: start it, or see it running and stop it. */
+  pumpTimer(pumpId?: string): void;
   close(): void;
 }
 

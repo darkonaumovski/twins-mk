@@ -65,11 +65,40 @@ export function stashAge(item: MilkStashItem, useWithin: SharedSettings['stashUs
   return { days, daysLeft: limit ? limit - days : null };
 }
 
-/** Pumped millilitres per local day [from, to) for each day given. */
+/** A pumping timer that is still running (sessions entered by hand have no `end` at all). */
+export function isRunningPump(p: Pump): boolean {
+  return p.deletedAt === null && p.end === null;
+}
+
+/** Live sessions that are finished (or were entered by hand): the ones that count in totals. */
+export function finishedPumps(pumps: readonly Pump[]): Pump[] {
+  return pumps.filter((p) => p.deletedAt === null && p.end !== null);
+}
+
+/** The running pumping timer, if any (the newest, should two phones have started one offline). */
+export function runningPump(pumps: readonly Pump[]): Pump | undefined {
+  return pumps.filter(isRunningPump).sort((a, b) => b.start.localeCompare(a.start))[0];
+}
+
+/** Whole minutes of a timed session, rounded up (a session under a minute counts as one). */
+export function pumpMinutes(start: ISODateTime, end: ISODateTime | Date): number {
+  return Math.max(1, Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / 60_000));
+}
+
+/**
+ * The milk stash container for a pumping session has a fixed id, so two phones that both
+ * save the same stopped timer update one container instead of adding two.
+ */
+export function stashIdForPump(pumpId: string): string {
+  return `stash-${pumpId}`;
+}
+
+/** Pumped millilitres per local day [from, to) for each day given. A running timer does not count. */
 export function pumpedPerDay(pumps: readonly Pump[], days: readonly { from: Date; to: Date }[]): number[] {
+  const done = finishedPumps(pumps);
   return days.map(({ from, to }) => {
     const f = from.toISOString();
     const t = to.toISOString();
-    return pumps.filter((p) => p.deletedAt === null && p.start >= f && p.start < t).reduce((sum, p) => sum + p.totalMl, 0);
+    return done.filter((p) => p.start >= f && p.start < t).reduce((sum, p) => sum + p.totalMl, 0);
   });
 }

@@ -260,6 +260,13 @@ export type LogEntry =
  */
 export interface Pump extends Entity {
   start: ISODateTime;
+  /**
+   * When a timed session ended: `null` while the pumping timer runs. Absent on sessions entered by
+   * hand (and on everything from older versions). While it runs, `minutes` is null and `totalMl` is 0.
+   */
+  end?: ISODateTime | null;
+  /** Which side(s) the timer was started for, so the stop sheet asks for the right amounts. */
+  side?: PumpSide | null;
   minutes: number | null;
   /** Millilitres per side, if noted separately. */
   leftMl: number | null;
@@ -268,6 +275,8 @@ export interface Pump extends Entity {
   totalMl: number;
   loggedBy: CaregiverId;
 }
+
+export type PumpSide = 'left' | 'right' | 'both';
 
 export type StashLocation = 'fridge' | 'freezer';
 

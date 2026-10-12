@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2 } from 'lucide-react';
+import { Timer, Trash2 } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { Button } from '@/components/Button';
 import { Stepper } from '@/components/Stepper';
@@ -12,26 +12,55 @@ import { oneOf, useRemembered } from '@/lib/remember';
 import { buzz } from '@/lib/device';
 import { fromLocalInput, toLocalInput } from '@/features/log/logic';
 import type { Pump, StashLocation } from '@/data/types';
+import { useLogUI } from '@/features/log/LogUIContext';
 import { pumpTotal } from './logic';
+import { saveSession, stashOfSession } from './pumpActions';
 
 type Mode = 'sides' | 'total';
 
-/** Logs (or edits) a pumping session, optionally adding the milk to the stash in the same tap. */
+/**
+ * Logs (or edits) a pumping session, optionally adding the milk to the stash in the same tap.
+ * After the timer stops, it asks for the amounts of that session (the minutes are already in).
+ */
 export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () => void }) {
   const { t } = useTranslation();
   const store = useStore();
   const prefs = useDevicePrefs();
   const toast = useToast();
   const confirm = useConfirm();
-  const [mode, setMode] = useState<Mode>(pump && pump.leftMl === null && pump.rightMl === null ? 'total' : 'sides');
-  const [left, setLeft] = useState(pump?.leftMl ?? 60);
-  const [right, setRight] = useState(pump?.rightMl ?? 60);
-  const [total, setTotal] = useState(pump?.totalMl ?? 120);
+  const ui = useLogUI();
+  // A stopped timer whose amounts are not entered yet.
+  const finishing = pump !== null && Boolean(pump.end) && pump.side != null && pump.totalMl === 0;
+  const timedSide = finishing ? pump.side : null;
+  const [mode, setMode] = useState<Mode>(pump && !finishing && pump.leftMl === null && pump.rightMl === null ? 'total' : 'sides');
+  const [left, setLeft] = useState(pump?.leftMl ?? (timedSide === 'right' ? 0 : 60));
+  const [right, setRight] = useState(pump?.rightMl ?? (timedSide === 'left' ? 0 : 60));
+  const [total, setTotal] = useState(finishing ? 120 : (pump?.totalMl ?? 120));
   const [minutes, setMinutes] = useState(pump?.minutes ?? 15);
   const [time, setTime] = useState(toLocalInput(pump?.start ?? new Date().toISOString()));
   const [toStash, setToStash] = useRemembered('twinsmk.pump.toStash', 'yes', oneOf('yes', 'no'));
   const [location, setLocation] = useRemembered<StashLocation>('twinsmk.pump.location', 'fridge', oneOf('fridge', 'freezer'));
   const [error, setError] = useState<string | null>(null);
+  const [savedElsewhere, setSavedElsewhere] = useState<number | null>(null);
+
+  // The other phone may have saved this session's milk already and then lost its amounts to a late
+  // Stop from this phone (newest wins on the whole record): start from what is in the stash.
+  useEffect(() => {
+    if (!finishing) return;
+    let cancelled = false;
+    void stashOfSession(store, pump.id).then((item) => {
+      if (cancelled || !item) return;
+      setMode('total');
+      setTotal(item.ml);
+      setToStash('yes');
+      setLocation(item.location);
+      setSavedElsewhere(item.ml);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Once, when the sheet opens.
+  }, []);
 
   const totalMl = mode === 'sides' ? pumpTotal(left, right, null) : total;
 
@@ -47,21 +76,30 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
       rightMl: mode === 'sides' ? right : null,
       totalMl,
     };
-    if (pump) {
-      await store.pumps.update(pump.id, fields);
-      onClose();
+    const saved = await saveSession(store, {
+      pump,
+      fields,
+      loggedBy: prefs?.parent ?? 'p1',
+      stash: (!pump || finishing) && toStash === 'yes' ? location : null,
+    });
+    onClose();
+    if (!saved) {
+      toast({ message: t('milk.goneElsewhere') });
       return;
     }
-    const created = await store.transaction(async () => {
-      const p = await store.pumps.create({ ...fields, loggedBy: prefs?.parent ?? 'p1' });
-      const s =
-        toStash === 'yes' ? await store.milkStash.create({ pumpedAt: start, ml: totalMl, location, usedAt: null, pumpId: p.id }) : null;
-      return { p, s };
-    });
+    if (pump && !finishing) return;
     buzz(prefs);
-    onClose();
+    const created = { p: saved.pump, s: saved.stash };
+    const message = created.s
+      ? t('milk.loggedStash', { ml: totalMl, place: t(`stash.in.${location}`) })
+      : t('milk.logged', { ml: totalMl });
+    // Finishing a timer fills in a session that already exists: no undo (it can be edited or deleted from the timeline).
+    if (finishing) {
+      toast({ message });
+      return;
+    }
     toast({
-      message: created.s ? t('milk.loggedStash', { ml: totalMl, place: t(`stash.in.${location}`) }) : t('milk.logged', { ml: totalMl }),
+      message,
       action: {
         label: t('common.undo'),
         onClick: () =>
@@ -86,7 +124,7 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
     <Sheet
       open
       onClose={onClose}
-      title={pump ? t('milk.edit') : t('milk.pump')}
+      title={finishing ? t('milk.finish') : pump ? t('milk.edit') : t('milk.pump')}
       footer={
         <>
           {pump && (
@@ -104,6 +142,15 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
       }
     >
       <form id="pump-form" onSubmit={save} className="space-y-5" noValidate>
+        {savedElsewhere !== null && (
+          <p className="rounded-xl bg-surface-2 p-3 text-sm">{t('milk.savedElsewhere', { ml: savedElsewhere })}</p>
+        )}
+        {!pump && (
+          <Button variant="secondary" className="w-full" onClick={() => ui.pumpTimer()}>
+            <Timer aria-hidden size={18} />
+            {t('milk.startTimer')}
+          </Button>
+        )}
         <Segmented<Mode>
           label={t('milk.amount')}
           value={mode}
@@ -125,7 +172,7 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
         <Field label={t('log.time')}>
           {(p) => <TextInput {...p} type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />}
         </Field>
-        {!pump && (
+        {(!pump || finishing) && (
           <div className="space-y-3 rounded-2xl bg-surface-2 p-3">
             <Toggle label={t('milk.addToStash')} checked={toStash === 'yes'} onChange={(on) => setToStash(on ? 'yes' : 'no')} />
             {toStash === 'yes' && (
@@ -141,7 +188,7 @@ export function PumpSheet({ pump, onClose }: { pump: Pump | null; onClose: () =>
             )}
           </div>
         )}
-        {pump && <p className="text-sm text-muted">{t('milk.editNote')}</p>}
+        {pump && !finishing && <p className="text-sm text-muted">{t('milk.editNote')}</p>}
         {error && (
           <p role="alert" className="font-medium text-danger">
             {error}

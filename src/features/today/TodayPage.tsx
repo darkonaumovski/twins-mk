@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { Hospital, House, Square } from 'lucide-react';
+import { Hospital, House, Milk, Square } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { cx, Page } from '@/components/ui';
 import { useLive, useStore } from '@/data/StoreContext';
@@ -23,6 +23,7 @@ import { SuppliesBanner } from '@/features/supplies/SuppliesBanner';
 import { DutyLine, HandoverCard } from '@/features/family/Handover';
 import { HospitalStrip } from '@/features/twins/HospitalStrip';
 import { useAgeText } from '@/features/twins/useAge';
+import { usePumpTimer } from '@/features/milk/usePumpTimer';
 
 function useLatest() {
   return useLive(async (s) => {
@@ -162,6 +163,8 @@ export function TodayPage() {
   const name = useTwinName(babies);
   const ui = useLogUI();
   const { stopTimers } = useLogActions();
+  const pumpTimer = usePumpTimer();
+  const pumping = pumpTimer.running;
   const [who] = useWho();
   const [params, setParams] = useSearchParams();
   const shortcut = params.get('log');
@@ -192,7 +195,7 @@ export function TodayPage() {
       title={t('today.title')}
       actions={<span className="text-sm text-muted">{format(now, 'EEEE d MMM', { locale: dateLocale(i18n.language) })}</span>}
     >
-      {running.length > 0 && (
+      {(running.length > 0 || pumping) && (
         <section aria-label={t('today.running')} className="space-y-2">
           {stopBothGroups(running).map((group) => {
             const what = group.kind === 'sleep' ? t('log.sleep') : t('log.breast');
@@ -235,6 +238,27 @@ export function TodayPage() {
               </div>
             );
           })}
+          {pumping && (
+            <div className="flex items-center gap-3 rounded-2xl border-2 border-accent bg-surface p-3">
+              <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+                <Milk size={18} />
+              </span>
+              <button type="button" onClick={() => ui.pumpTimer(pumping.id)} className="flex-1 text-left">
+                <span className="block font-semibold">
+                  {t('milk.pump')} · {pumping.side ? t(`milk.side.${pumping.side}`) : t('milk.mother')}
+                </span>
+                <span className="block text-2xl font-bold tabular-nums">{fmt(minutesBetween(pumping.start, now))}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => void pumpTimer.stop(pumping)}
+                className="flex min-h-14 items-center gap-2 rounded-2xl bg-ink px-5 font-semibold text-bg"
+              >
+                <Square aria-hidden size={18} fill="currentColor" />
+                {t('log.stop')}
+              </button>
+            </div>
+          )}
         </section>
       )}
 

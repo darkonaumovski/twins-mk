@@ -5054,7 +5054,23 @@ var en = {
 		deleteConfirm: "Delete this pumping session?",
 		deleteBody: "Milk already added to the stash stays there.",
 		deleted: "Pumping deleted",
-		editNote: "Changes here do not change the milk stash."
+		editNote: "Changes here do not change the milk stash.",
+		startTimer: "Start pumping",
+		timerRunning: "Pumping",
+		timerHint: "The screen stays on while it runs. Stop asks for the ml; the minutes are filled in.",
+		discardTimer: "Delete – started by mistake",
+		timerDiscarded: "Pumping discarded",
+		runningDetail: "running · {{duration}}",
+		finish: "How much did you pump?",
+		goneElsewhere: "This pumping session was deleted on the other phone, so it was not saved.",
+		stoppedElsewhere: "Pumping was stopped on the other phone.",
+		savedElsewhere: "The other phone already saved {{ml}} ml for this session (in the stash). Check and save.",
+		sideLabel: "Side",
+		side: {
+			left: "Left",
+			right: "Right",
+			both: "Both sides"
+		}
 	},
 	stash: {
 		title: "Milk stash",
@@ -5442,7 +5458,10 @@ var en = {
 		pumps: {
 			added: "Pumped {{ml}} ml",
 			changed: "Pumping edited: {{ml}} ml",
-			deleted: "Pumping deleted"
+			deleted: "Pumping deleted",
+			started: "Started pumping",
+			finished: "Finished pumping ({{minutes}} min)",
+			finishedMl: "Finished pumping: {{ml}} ml in {{minutes}} min"
 		},
 		milkStash: {
 			added: "Milk stash: {{ml}} ml in the {{place}}",
@@ -5614,6 +5633,7 @@ var en = {
 			data_size: "Size",
 			data_minutes: "Minutes",
 			minutes: "Minutes",
+			side: "Side",
 			leftMl: "Left side",
 			rightMl: "Right side",
 			totalMl: "Total",
@@ -6325,7 +6345,23 @@ var mk = {
 		deleteConfirm: "Да се избрише ова измолзување?",
 		deleteBody: "Млекото што е веќе додадено во залихата останува таму.",
 		deleted: "Измолзувањето е избришано",
-		editNote: "Промените тука не ја менуваат залихата млеко."
+		editNote: "Промените тука не ја менуваат залихата млеко.",
+		startTimer: "Почни измолзување",
+		timerRunning: "Измолзување во тек",
+		timerHint: "Екранот останува вклучен додека мерачот работи. Со „Стоп“ ги внесувате ml, а минутите се пополнуваат сами.",
+		discardTimer: "Избриши – почнав по грешка",
+		timerDiscarded: "Измолзувањето е откажано",
+		runningDetail: "во тек · {{duration}}",
+		finish: "Колку измолзивте?",
+		goneElsewhere: "Ова измолзување е избришано на другиот телефон, па не е зачувано.",
+		stoppedElsewhere: "Измолзувањето е запрено на другиот телефон.",
+		savedElsewhere: "Другиот телефон веќе зачувал {{ml}} ml за ова измолзување (во залихата). Проверете и зачувајте.",
+		sideLabel: "Страна",
+		side: {
+			left: "Лева",
+			right: "Десна",
+			both: "Двете страни"
+		}
 	},
 	stash: {
 		title: "Залиха млеко",
@@ -6713,7 +6749,10 @@ var mk = {
 		pumps: {
 			added: "Измолзено {{ml}} ml",
 			changed: "Изменето измолзување: {{ml}} ml",
-			deleted: "Избришано измолзување"
+			deleted: "Избришано измолзување",
+			started: "Почна измолзување",
+			finished: "Измолзувањето заврши ({{minutes}} мин)",
+			finishedMl: "Измолзувањето заврши: {{ml}} ml за {{minutes}} мин"
 		},
 		milkStash: {
 			added: "Залиха млеко: {{ml}} ml во {{place}}",
@@ -6885,6 +6924,7 @@ var mk = {
 			data_size: "Големина",
 			data_minutes: "Минути",
 			minutes: "Минути",
+			side: "Страна",
 			leftMl: "Лева страна",
 			rightMl: "Десна страна",
 			totalMl: "Вкупно",

@@ -20,8 +20,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 | ID  | Feature                  | Status | Commit        | Notes                                                 |
 | --- | ------------------------ | ------ | ------------- | ----------------------------------------------------- |
-| F01 | Twin rhythm chart        | ✅     | (next commit) | History → "Twin rhythm"; settings in Settings → Twins |
-| F02 | Pumping timer            | ⬜     |               |                                                       |
+| F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins |
+| F02 | Pumping timer            | ✅     | (next commit) | More → Start pumping; running card on Today           |
 | F03 | Contraction timer        | ⬜     |               |                                                       |
 | F04 | Plan before the birth    | ⬜     |               |                                                       |
 | F05 | Spreadsheet export (CSV) | ⬜     |               |                                                       |
@@ -63,6 +63,16 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F01 · `ChartFrame` got optional `controls` and `note` slots (used for the 7/14 switch and the legend line).
 - 2026-10-12 · F01 · `src/server/reminders.ts` imports both locale files, so every new string changes the function bundle: `npm run build:functions` after every feature with strings. CLAUDE.md says so.
 - 2026-10-12 · F01 · Performance: building 14 days of rows from 476 entries takes about 3 ms on the dev PC (well under the 100 ms budget on a phone).
+- 2026-10-12 · F02 · Added an optional `Pump.side` ('left' | 'right' | 'both') besides the spec's `end`: the stop sheet uses it to ask for the right sides (one side starts the other at 0 ml).
+- 2026-10-12 · F02 · **Stop writes the end time and minutes at once**, then opens the pumping sheet. If the sheet is cancelled, the session stays as "N min, 0 ml" and can be edited later (the sheet asks for the amounts again while it is 0 ml). So the time is right, and both phones see the timer stop immediately.
+- 2026-10-12 · F02 · No duplicate stash: a session's stash container has the fixed id `stash-<pumpId>` (also for sessions entered by hand), and saving updates it if the other phone already added it. Two phones that both stop: newest `updatedAt` wins on the pump and on the container.
+- 2026-10-12 · F02 · "One per family" is checked in a transaction on the phone. Two phones offline could still each start one; Today then shows the newest, and tapping the other in the timeline opens the timer for that one.
+- 2026-10-12 · F02 · Push reminders never read pumps (checked `src/server/reminders.ts`), so nothing to exclude there. The hospital strip's "last pumped" skips a running timer.
+- 2026-10-12 · F02 · Change alerts: "Started pumping" when a timer starts and "Finished pumping (14 min)" when it stops, instead of "Pumped 0 ml".
+- 2026-10-12 · F02 · Known limit of newest-wins on whole records: if phone A stops and saves the amounts and phone B (not synced yet) taps Stop a moment later, B's stop wins and the session shows 0 ml again. The milk stash keeps A's container, and the "How much did you pump?" sheet starts from it ("The other phone already saved 110 ml…"), so nothing is lost. Tested.
+- 2026-10-12 · F02 · Saving a session that the other phone deleted meanwhile is refused with a message, and no milk goes into the stash. A stash container that bottles already used is never overwritten.
+- 2026-10-12 · F02 · If the timer sheet is open and the other phone stops or deletes the timer, the sheet closes with "Pumping was stopped on the other phone" instead of turning into "Start" under the parent's thumb.
+- 2026-10-12 · F02 · A running timer opens the timer sheet (big elapsed time, Stop, "Discard (started by mistake)" with undo) from Today, the timeline and More.
 
 ## Phone test checklists
 
@@ -83,6 +93,17 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 5. Switch 7 / 14 days, open the table view (top-right icon), then tap a day: History jumps to that day.
 6. Settings → Twins: change night hours to 20:00–06:00 and "together" to 30 min; the shading and the numbers follow (also on the other phone).
 7. Try Night appearance and a narrow phone: the bars stay readable.
+
+### F02 (pumping timer)
+
+1. **+ → More → Start pumping**, choose **Both sides**, tap **Start pumping**: a big timer runs, and the screen does not dim.
+2. Close the sheet: Today shows "Pumping · Both sides" with the minutes and **Stop**. On the other phone, Today shows it too.
+3. Tap **Stop** (on either phone): the sheet "How much did you pump?" opens with the minutes filled in. Enter ml, keep **Add to the milk stash** on, save.
+4. Check the milk stash: one new container. If both phones stopped and saved, still only one.
+5. Start a timer and tap **Delete – started by mistake**: it disappears; **Undo** brings it back.
+6. While a timer runs, History's "Pumped ml per day" and the timeline total do not change; the timeline shows "running · 5 min".
+7. On the phone that did not start it, check the message: "Started pumping", then "Finished pumping (… min)".
+8. With the timer sheet open on one phone, stop the timer on the other: the sheet closes and says it was stopped on the other phone.
 
 ## Follow-ups
 

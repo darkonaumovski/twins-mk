@@ -115,8 +115,17 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       return t('changes.babies', { name: h.twin(c.record.id) || (c.record as Baby).name });
     case 'settings':
       return t('changes.settings');
-    case 'pumps':
-      return t(`changes.pumps.${action}`, { ml: (c.record as Pump).totalMl });
+    case 'pumps': {
+      const pump = c.record as Pump;
+      const prev = c.previous as Pump | undefined;
+      // The pumping timer: announced when it starts and when it stops, not as "0 ml".
+      if (action === 'added' && pump.end === null) return t('changes.pumps.started');
+      if (action === 'changed' && prev?.end === null && pump.end) {
+        const minutes = pump.minutes ?? 0;
+        return pump.totalMl > 0 ? t('changes.pumps.finishedMl', { minutes, ml: pump.totalMl }) : t('changes.pumps.finished', { minutes });
+      }
+      return t(`changes.pumps.${action}`, { ml: pump.totalMl });
+    }
     case 'milkStash': {
       const item = c.record as MilkStashItem;
       const prev = c.previous as MilkStashItem | undefined;

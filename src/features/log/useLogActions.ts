@@ -7,6 +7,7 @@ import type { LogEntry, TwinSlot } from '@/data/types';
 import { useBabies, useTwinName } from '@/features/twins/twins';
 import { BABY_IDS, buildEntries, lastSide, planSleepToggle, SLOTS, shouldNudge, type BreastSide, type LogDraft, type Who } from './logic';
 import { useLogUI } from './LogUIContext';
+import { isRunningPump } from '@/features/milk/logic';
 
 const RUNNING_WINDOW_MS = 7 * 24 * 3600_000;
 
@@ -15,10 +16,11 @@ export function useRunning(): LogEntry[] | undefined {
   return useLive((s) => s.logs.listRunning(new Date(Date.now() - RUNNING_WINDOW_MS).toISOString()), []);
 }
 
-/** Keeps the screen on while any timer (sleep, breastfeeding) runs. */
+/** Keeps the screen on while any timer (sleep, breastfeeding, pumping) runs. */
 export function TimerWakeLock() {
   const running = useRunning();
-  useWakeLock((running?.length ?? 0) > 0);
+  const pumping = useLive(async (s) => (await s.pumps.list()).some(isRunningPump), []);
+  useWakeLock((running?.length ?? 0) > 0 || pumping === true);
   return null;
 }
 

@@ -24,6 +24,7 @@ const ENUMS: Record<string, string> = {
   scope: 'scope',
   priority: 'priority',
   source: 'source',
+  side: 'side',
 };
 
 const UNITS: Record<string, string> = {

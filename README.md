@@ -25,6 +25,7 @@ A calm, phone-first app for parents expecting twins.
 
 - **More:** the Quick Log panel keeps its main buttons; a "More" button opens temperature (°C), spit-up (small/large), bath and tummy time (minutes), plus pumping, the milk stash and supplies.
 - **Pumping** belongs to the mother, not a twin: ml per side (or a total) and minutes. One tap can add the milk to the **milk stash** (fridge or freezer). Pumping shows in the timeline and as "Pumped ml per day" in History.
+- **Pumping timer:** **Start pumping** (in More, or on the pumping sheet) starts a timer for the left side, the right side or both, with a big elapsed time; the screen stays on while it runs. Today shows it like the other timers. **Stop** saves the end time at once and opens the pumping sheet with the minutes filled in (rounded up), so you only enter the ml and, if you like, add the milk to the stash. One timer runs per family: the other phone sees it and can stop it too. If both phones stop and save the same session, the stash still gets one container. A running timer does not count in totals, the History chart or the stash.
 - **Milk stash** (More → Milk stash): totals for fridge and freezer, every container oldest first, with its age. If you enter your own "use within" days, it also shows the days left. A bottle of breast milk can take its millilitres from the stash, oldest container first.
 - **Supplies** (More → Supplies): count your diapers once (and, for formula, how much one tin makes and how many tins you have). The count then goes down by itself as you log: one diaper per diaper entry for each twin, and the ml of formula bottles and top-ups. It shows about how many days are left at the last 3 days' pace. When that drops below your threshold, Today shows a note with **+ pack** and **Add to the shopping list** (which puts the checklist item back on the shopping list).
 
@@ -263,6 +264,8 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 
 **Newer and older phones together.** A phone skips synced collections and log entry types it does not know (they come from a newer version on the other phone): they stay stored and synced, but are not shown. If a screen still crashes, its **Reload** button switches to a waiting app update first.
 
+Newer versions also add optional fields to existing records; an older phone may drop them when it edits such a record. A running pumping timer looks like a 0 ml session on an older phone: stop it on a newer phone before editing it on the older one, or it may keep counting as running.
+
 ### Tests
 
 `npm test` runs the unit tests for:
@@ -281,6 +284,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
 - the twin rhythm (sleep split at midnight, a running sleep up to now, overlapping sleeps counted once, feeds started together matched one to one, daylight-saving days, night hours)
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
+- the pumping timer (one per family, minutes rounded up, running sessions left out of totals, older sessions without an end, two phones stopping and saving the same session with one stash container)
 - supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
 - routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital
 - milestones side by side (built-in ones with fixed ids, custom ones paired by title)

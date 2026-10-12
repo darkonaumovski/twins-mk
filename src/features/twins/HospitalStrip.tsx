@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { finishedPumps } from '@/features/milk/logic';
 import { Hospital, Milk, UserRound } from 'lucide-react';
 import { useLive } from '@/data/StoreContext';
 import { useFormatAgo } from '@/lib/useNow';
@@ -17,7 +18,7 @@ export function HospitalStrip({ babies, now }: { babies: Babies; now: Date }) {
   const { log } = useLogActions();
   const ago = useFormatAgo();
   const name = useTwinName(babies);
-  const lastPump = useLive(async (s) => (await s.pumps.list()).sort((a, b) => b.start.localeCompare(a.start))[0] ?? null, []);
+  const lastPump = useLive(async (s) => finishedPumps(await s.pumps.list()).sort((a, b) => b.start.localeCompare(a.start))[0] ?? null, []);
   const away = awaySlots(babies);
   if (away.length === 0) return null;
 

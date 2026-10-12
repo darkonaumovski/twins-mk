@@ -13,7 +13,7 @@ import { useNow } from '@/lib/useNow';
 import type { ISODate } from '@/data/types';
 import { BABY_IDS, SLOTS } from '@/features/log/logic';
 import { colorOf, useBabies, useTwinName } from '@/features/twins/twins';
-import { pumpedPerDay } from '@/features/milk/logic';
+import { finishedPumps, pumpedPerDay } from '@/features/milk/logic';
 import { DaySummaryView, Timeline, useDayEntries } from './DayViews';
 import { daysEnding, localDay, summarize, type DaySummary } from './summary';
 import { RhythmCard } from './RhythmCard';
@@ -65,7 +65,7 @@ function WeekCharts({ lastDay }: { lastDay: ISODate }) {
       <BarChart title={t('history.ml')} categories={categories} series={series((s) => s.ml)} format={count} />
       <BarChart title={t('history.diapers')} categories={categories} series={series((s) => s.diapers)} format={count} />
       <BarChart title={t('history.sleep')} categories={categories} series={series((s) => s.sleepMinutes / 60)} format={hours} />
-      {pumps && pumps.length > 0 && (
+      {pumps && finishedPumps(pumps).length > 0 && (
         <BarChart
           title={t('history.pumped')}
           categories={categories}
