@@ -29,7 +29,23 @@ export function SeriesMark({ series }: { series: ChartSeries }) {
  * Title, legend (badge + name, so identity never relies on colour alone) and a
  * chart/table switch. The table is the accessible view of the same numbers.
  */
-export function ChartFrame({ title, series, chart, table }: { title: string; series: ChartSeries[]; chart: ReactNode; table: ReactNode }) {
+export function ChartFrame({
+  title,
+  series,
+  chart,
+  table,
+  controls,
+  note,
+}: {
+  title: string;
+  series: ChartSeries[];
+  chart: ReactNode;
+  table: ReactNode;
+  /** Extra controls under the title, such as a period switch. */
+  controls?: ReactNode;
+  /** A short line under the legend, e.g. what the marks mean. */
+  note?: ReactNode;
+}) {
   const { t } = useTranslation();
   const [asTable, setAsTable] = useState(false);
   const titleId = useId();
@@ -58,6 +74,8 @@ export function ChartFrame({ title, series, chart, table }: { title: string; ser
           ))}
         </ul>
       )}
+      {controls && <div className="mb-3">{controls}</div>}
+      {note && !asTable && <p className="mb-2 text-xs text-muted">{note}</p>}
       {asTable ? <div className="overflow-x-auto">{table}</div> : chart}
     </section>
   );

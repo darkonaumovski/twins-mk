@@ -54,6 +54,10 @@ export interface SharedSettings extends Entity {
   nightShifts: NightShift[];
   /** The family's time zone (e.g. "Europe/Skopje"), so the server reads routine times the same way. */
   timeZone?: string;
+  /** Rhythm chart: A and B feeds that start at most this many minutes apart count as "started together". */
+  rhythmTogetherMin: number;
+  /** The family's night hours (`HH:mm`), shaded on the rhythm chart. */
+  nightHours: { from: string; to: string };
 }
 
 /** One night shift, e.g. 22:00–02:00. `to` earlier than `from` means it runs past midnight. */

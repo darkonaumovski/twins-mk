@@ -42,6 +42,7 @@ const UNITS: Record<string, string> = {
   minutes: 'min',
   feedIntervalMin: 'min',
   feedNudgeMin: 'min',
+  rhythmTogetherMin: 'min',
   'rule.hours': 'h',
   'med.minIntervalHours': 'h',
 };

@@ -101,6 +101,49 @@ export function SettingsPage() {
             onChange={(feedNudgeMin) => store.settings.update({ feedNudgeMin })}
           />
         )}
+        {babies?.ready && (
+          <>
+            <Stepper
+              label={t('settings.rhythmTogether')}
+              hint={t('settings.rhythmTogetherHint')}
+              value={settings.rhythmTogetherMin}
+              min={5}
+              max={60}
+              step={5}
+              onChange={(rhythmTogetherMin) => store.settings.update({ rhythmTogetherMin })}
+            />
+            <fieldset className="space-y-1.5">
+              <legend className="mb-1.5 font-medium">{t('settings.nightHours')}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label={t('settings.nightFrom')}>
+                  {(p) => (
+                    <TextInput
+                      {...p}
+                      type="time"
+                      value={settings.nightHours.from}
+                      onChange={(e) =>
+                        e.target.value && store.settings.update({ nightHours: { ...settings.nightHours, from: e.target.value } })
+                      }
+                    />
+                  )}
+                </Field>
+                <Field label={t('settings.nightTo')}>
+                  {(p) => (
+                    <TextInput
+                      {...p}
+                      type="time"
+                      value={settings.nightHours.to}
+                      onChange={(e) =>
+                        e.target.value && store.settings.update({ nightHours: { ...settings.nightHours, to: e.target.value } })
+                      }
+                    />
+                  )}
+                </Field>
+              </div>
+              <p className="text-sm text-muted">{t('settings.nightHoursHint')}</p>
+            </fieldset>
+          </>
+        )}
       </Section>
 
       <Section title={t('settings.pregnancy')}>

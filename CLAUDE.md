@@ -27,7 +27,7 @@ Phone-first, local-first PWA for parents of twins (React 19, TypeScript, Vite, T
 - **Logic** in a pure module (`logic.ts` or a clear name) next to the feature, with a Vitest file beside it. Components stay thin.
 - Routes lazy-loaded in `src/App.tsx`; less-used pages from `MorePage.tsx`, less-used log forms from `MoreLogSheet.tsx`.
 - Per-phone preferences in `DevicePrefs` (never synced); shared ones in `SharedSettings` with a default in `src/data/defaults.ts` (older records get the default).
-- Push reminders: `src/server/reminders.ts` is bundled for the Edge Function; rebuild after changing `src/server` or what it imports.
+- Push reminders: `src/server/reminders.ts` is bundled for the Edge Function; rebuild after changing `src/server` or what it imports, **including the locale files** (`npm run build:functions`).
 
 ## Quality gates (every feature)
 

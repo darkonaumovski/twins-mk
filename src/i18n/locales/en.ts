@@ -355,6 +355,22 @@ const en = {
     showTable: 'Show as table',
     pumped: 'Pumped ml per day',
     showChart: 'Show as chart',
+    rhythm: {
+      title: 'Twin rhythm',
+      period: 'Period',
+      days_one: '{{count}} day',
+      days_other: '{{count}} days',
+      legend:
+        'Filled: sleep. Line: a feed starts; a line through both rows: logged for both twins at once. Shaded: night hours. Tap a day to open it.',
+      inStep: 'Asleep at the same time: {{duration}} · Feeds started together: {{together}} ({{a}} {{feedsA}}, {{b}} {{feedsB}})',
+      dayLabel:
+        '{{date}}. {{a}}: sleep {{sleepA}}, feeds {{feedsA}}. {{b}}: sleep {{sleepB}}, feeds {{feedsB}}. {{inStep}}. Open this day.',
+      day: 'Day',
+      sleepOf: 'Sleep – {{name}}',
+      feedsOf: 'Feeds – {{name}}',
+      sharedSleep: 'Asleep at the same time',
+      together: 'Feeds started together',
+    },
   },
   growth: {
     title: 'Growth',
@@ -1043,6 +1059,9 @@ const en = {
       stashUseWithinDays_freezer: 'Use within (freezer)',
       nightShifts: 'Night shifts',
       timeZone: 'Time zone',
+      rhythmTogetherMin: 'Feeds count as together within',
+      nightHours_from: 'Night hours from',
+      nightHours_to: 'Night hours to',
     },
   },
   install: {
@@ -1117,6 +1136,13 @@ const en = {
     feedNudge: 'Offer to feed the other twin',
     feedNudgeHint:
       'When one twin is fed and the other’s next feed (from the interval set for each twin) is due within this many minutes, the app asks “Feed the other twin too?”. 0 turns it off.',
+    rhythmTogether: 'Feeds count as “together” within (minutes)',
+    rhythmTogetherHint:
+      'For the rhythm in History: feeds of the two twins that start at most this many minutes apart count as started together. A description only, not advice.',
+    nightHours: 'Night hours',
+    nightFrom: 'From',
+    nightTo: 'To',
+    nightHoursHint: 'Shaded on the rhythm chart in History. For display only.',
     storage: 'Storage',
     persisted: 'Protected: the browser will not clear your data on its own.',
     notPersisted:

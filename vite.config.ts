@@ -82,6 +82,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // One process per test file: rhythm.test.ts sets process.env.TZ, which only takes effect (and stays contained) in a forked process.
+    pool: 'forks',
     setupFiles: ['./src/test/setup.ts'],
   },
 });

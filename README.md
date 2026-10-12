@@ -41,6 +41,10 @@ A calm, phone-first app for parents expecting twins.
 - **Report for the doctor** (More → Report, or from Notes for the doctor): pick a twin or both and the last 7, 14 or 30 days. It shows a daily table per twin (feeds, ml, breast minutes, wet/dirty diapers, sleep hours, medicines) with averages, the growth measurements and the open questions for the doctor. **Print / Save as PDF** prints it on A4; **Share** sends it as text where the phone supports it.
 - **Milestones** (More → Milestones): firsts such as the first smile or first tooth, for both twins side by side, with the date, a note and the age on that day (and the corrected age for twins born early). Add your own too. The app shows no "usual" ages.
 
+### History and patterns
+
+- **Twin rhythm** (History, below the day): one 24-hour bar per twin per day for the last 7 or 14 days, Twin A above Twin B and the newest day on top. Sleep is a filled block in the twin's colour, a feed is a line, and a feed logged for both twins at once runs through both rows. The family's night hours are shaded. Each day says how long both twins slept at the same time and how many feeds started together (A and B feeds at most 20 minutes apart by default, each feed counted once). It is a description, with no scores or colours that judge. Tap a day to open it; the table view lists the same numbers. Night hours and the "together" minutes are in **Settings → Twins**.
+
 ### At night
 
 - **Night appearance:** **Settings → Appearance → Night** is a very dim, warm palette with little blue light for feeds in the dark. **Auto night (22–06)** switches to it in the evening and back in the morning.
@@ -275,6 +279,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
+- the twin rhythm (sleep split at midnight, a running sleep up to now, overlapping sleeps counted once, feeds started together matched one to one, daylight-saving days, night hours)
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
 - supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
 - routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital

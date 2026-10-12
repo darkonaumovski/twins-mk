@@ -16,6 +16,7 @@ import { colorOf, useBabies, useTwinName } from '@/features/twins/twins';
 import { pumpedPerDay } from '@/features/milk/logic';
 import { DaySummaryView, Timeline, useDayEntries } from './DayViews';
 import { daysEnding, localDay, summarize, type DaySummary } from './summary';
+import { RhythmCard } from './RhythmCard';
 
 const WEEK = 7;
 
@@ -120,6 +121,15 @@ export function HistoryPage() {
         <>
           <DaySummaryView date={date} entries={day.all} babies={babies} now={now} />
           <Timeline entries={day.starting} pumps={day.pumps} babies={babies} now={now} />
+          <RhythmCard
+            lastDay={date}
+            babies={babies}
+            now={now}
+            onOpenDay={(d) => {
+              go(d);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
           <WeekCharts lastDay={date} />
         </>
       )}

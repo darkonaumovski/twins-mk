@@ -4921,7 +4921,21 @@ var en = {
 		sleep: "Hours of sleep per day",
 		showTable: "Show as table",
 		pumped: "Pumped ml per day",
-		showChart: "Show as chart"
+		showChart: "Show as chart",
+		rhythm: {
+			title: "Twin rhythm",
+			period: "Period",
+			days_one: "{{count}} day",
+			days_other: "{{count}} days",
+			legend: "Filled: sleep. Line: a feed starts; a line through both rows: logged for both twins at once. Shaded: night hours. Tap a day to open it.",
+			inStep: "Asleep at the same time: {{duration}} · Feeds started together: {{together}} ({{a}} {{feedsA}}, {{b}} {{feedsB}})",
+			dayLabel: "{{date}}. {{a}}: sleep {{sleepA}}, feeds {{feedsA}}. {{b}}: sleep {{sleepB}}, feeds {{feedsB}}. {{inStep}}. Open this day.",
+			day: "Day",
+			sleepOf: "Sleep – {{name}}",
+			feedsOf: "Feeds – {{name}}",
+			sharedSleep: "Asleep at the same time",
+			together: "Feeds started together"
+		}
 	},
 	growth: {
 		title: "Growth",
@@ -5634,7 +5648,10 @@ var en = {
 			stashUseWithinDays_fridge: "Use within (fridge)",
 			stashUseWithinDays_freezer: "Use within (freezer)",
 			nightShifts: "Night shifts",
-			timeZone: "Time zone"
+			timeZone: "Time zone",
+			rhythmTogetherMin: "Feeds count as together within",
+			nightHours_from: "Night hours from",
+			nightHours_to: "Night hours to"
 		}
 	},
 	install: {
@@ -5707,6 +5724,12 @@ var en = {
 		currencyHint: "Changing the currency does not convert amounts you already entered.",
 		feedNudge: "Offer to feed the other twin",
 		feedNudgeHint: "When one twin is fed and the other’s next feed (from the interval set for each twin) is due within this many minutes, the app asks “Feed the other twin too?”. 0 turns it off.",
+		rhythmTogether: "Feeds count as “together” within (minutes)",
+		rhythmTogetherHint: "For the rhythm in History: feeds of the two twins that start at most this many minutes apart count as started together. A description only, not advice.",
+		nightHours: "Night hours",
+		nightFrom: "From",
+		nightTo: "To",
+		nightHoursHint: "Shaded on the rhythm chart in History. For display only.",
 		storage: "Storage",
 		persisted: "Protected: the browser will not clear your data on its own.",
 		notPersisted: "Not protected yet: the browser may clear data if the phone runs low on space. Installing the app to the home screen usually fixes this. Export backups regularly.",
@@ -6169,7 +6192,21 @@ var mk = {
 		sleep: "Часови сон по ден",
 		showTable: "Прикажи како табела",
 		pumped: "Измолзени ml по ден",
-		showChart: "Прикажи како графикон"
+		showChart: "Прикажи како графикон",
+		rhythm: {
+			title: "Ритам на близнаците",
+			period: "Период",
+			days_one: "{{count}} ден",
+			days_other: "{{count}} дена",
+			legend: "Обоено: сон. Линија: почеток на хранење; линија низ двата реда: внесено за двете бебиња заедно. Засенчено: ноќните часови. Допрете ден за да го отворите.",
+			inStep: "Спиеле истовремено: {{duration}} · Хранења започнати заедно: {{together}} ({{a}} {{feedsA}}, {{b}} {{feedsB}})",
+			dayLabel: "{{date}}. {{a}}: сон {{sleepA}}, хранења {{feedsA}}. {{b}}: сон {{sleepB}}, хранења {{feedsB}}. {{inStep}}. Отвори го денот.",
+			day: "Ден",
+			sleepOf: "Сон – {{name}}",
+			feedsOf: "Хранења – {{name}}",
+			sharedSleep: "Спиеле истовремено",
+			together: "Хранења започнати заедно"
+		}
 	},
 	growth: {
 		title: "Раст",
@@ -6882,7 +6919,10 @@ var mk = {
 			stashUseWithinDays_fridge: "Искористи во рок од (фрижидер)",
 			stashUseWithinDays_freezer: "Искористи во рок од (замрзнувач)",
 			nightShifts: "Ноќни смени",
-			timeZone: "Временска зона"
+			timeZone: "Временска зона",
+			rhythmTogetherMin: "Хранења „заедно“ во рок од",
+			nightHours_from: "Ноќни часови од",
+			nightHours_to: "Ноќни часови до"
 		}
 	},
 	install: {
@@ -6955,6 +6995,12 @@ var mk = {
 		currencyHint: "Промената на валутата не ги претвора износите што веќе сте ги внеле.",
 		feedNudge: "Понуди хранење и на другото бебе",
 		feedNudgeHint: "Кога едното бебе се храни, а следното хранење на другото (според интервалот поставен за секое бебе) е за помалку од оволку минути, апликацијата прашува „Да се нахрани и другото?“. 0 го исклучува.",
+		rhythmTogether: "Хранења „заедно“ ако почнат во рок од (минути)",
+		rhythmTogetherHint: "За ритамот во Историја: хранењата на двете бебиња што почнале со најмногу оволку минути разлика се бројат како почнати заедно. Само опис, не совет.",
+		nightHours: "Ноќни часови",
+		nightFrom: "Од",
+		nightTo: "До",
+		nightHoursHint: "Засенчени на графикот за ритам во Историја. Служат само за приказ.",
 		storage: "Складирање",
 		persisted: "Заштитено: прелистувачот нема сам да ги брише вашите податоци.",
 		notPersisted: "Сè уште не е заштитено: прелистувачот може да ги избрише податоците ако телефонот остане без простор. Инсталирањето на апликацијата на почетниот екран обично го решава ова. Редовно правете резервна копија.",

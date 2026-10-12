@@ -11,6 +11,8 @@ export const DEFAULT_SETTINGS: Omit<SharedSettings, Exclude<keyof Entity, 'id'>>
   feedNudgeMin: 45,
   stashUseWithinDays: { fridge: null, freezer: null },
   nightShifts: [],
+  rhythmTogetherMin: 20,
+  nightHours: { from: '19:00', to: '07:00' },
 };
 
 export const DEFAULT_DEVICE_PREFS: Omit<DevicePrefs, 'deviceId'> = {

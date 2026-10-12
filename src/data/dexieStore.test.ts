@@ -216,9 +216,18 @@ describe('data from newer versions', () => {
 
   it('fills settings fields that an older version did not save', async () => {
     const { store } = await makeStore();
-    const { expectedDelivery: _omit, ...old } = { ...(await store.settings.get()), createdAt: 'x', updatedAt: '2026-10-01T00:00:00.000Z' };
+    const {
+      expectedDelivery: _omit,
+      rhythmTogetherMin: _r,
+      nightHours: _n,
+      ...old
+    } = { ...(await store.settings.get()), createdAt: 'x', updatedAt: '2026-10-01T00:00:00.000Z' };
     await store.settings.merge([old as SharedSettings]);
-    expect(await store.settings.get()).toMatchObject({ expectedDelivery: null });
+    expect(await store.settings.get()).toMatchObject({
+      expectedDelivery: null,
+      rhythmTogetherMin: 20,
+      nightHours: { from: '19:00', to: '07:00' },
+    });
   });
 });
 
