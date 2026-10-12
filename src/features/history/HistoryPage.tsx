@@ -17,6 +17,7 @@ import { finishedPumps, pumpedPerDay } from '@/features/milk/logic';
 import { DaySummaryView, Timeline, useDayEntries } from './DayViews';
 import { daysEnding, localDay, summarize, type DaySummary } from './summary';
 import { RhythmCard } from './RhythmCard';
+import { InsightsCard } from './InsightsCard';
 
 const WEEK = 7;
 
@@ -130,6 +131,7 @@ export function HistoryPage() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
+          <InsightsCard lastDay={date} babies={babies} now={now} />
           <WeekCharts lastDay={date} />
         </>
       )}

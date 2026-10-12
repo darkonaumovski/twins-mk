@@ -56,7 +56,7 @@ export interface SharedSettings extends Entity {
   timeZone?: string;
   /** Rhythm chart: A and B feeds that start at most this many minutes apart count as "started together". */
   rhythmTogetherMin: number;
-  /** The family's night hours (`HH:mm`), shaded on the rhythm chart. */
+  /** The family's night hours (`HH:mm`): shaded on the rhythm chart, and the day/night split of the weekly insights. */
   nightHours: { from: string; to: string };
 }
 

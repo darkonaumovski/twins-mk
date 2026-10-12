@@ -47,6 +47,7 @@ A calm, phone-first app for parents expecting twins.
 ### History and patterns
 
 - **Twin rhythm** (History, below the day): one 24-hour bar per twin per day for the last 7 or 14 days, Twin A above Twin B and the newest day on top. Sleep is a filled block in the twin's colour, a feed is a line, and a feed logged for both twins at once runs through both rows. The family's night hours are shaded. Each day says how long both twins slept at the same time and how many feeds started together (A and B feeds at most 20 minutes apart by default, each feed counted once). It is a description, with no scores or colours that judge. Tap a day to open it; the table view lists the same numbers. Night hours and the "together" minutes are in **Settings → Twins**.
+- **This week** (History): for each twin side by side, the 7 days ending on the selected day: the longest single sleep and the night (or day) it happened, sleep per day split into day and night, the average time between feed starts, and feeds, bottle ml and breastfeeding minutes per day, each with the change from the week before (an arrow and a number, no colours that judge). Days run from the end of the night hours to the next morning, so a night is never cut at midnight. Days with no entries at all are left out ("based on 5 days"), and a gap across a day with no feeds logged does not count as a long gap. Tap a value to see how it is worked out. There are no targets, ranges, praise or warnings.
 
 ### At night
 
@@ -286,6 +287,7 @@ Newer versions also add optional fields to existing records; an older phone may 
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
+- the weekly insights (a sleep across midnight counted toward its night, the day/night split, feed gaps per twin with gaps across a day without feeds left out, tandem feeds once per twin, days without entries left out of averages, a running sleep, the change from the week before)
 - the twin rhythm (sleep split at midnight, a running sleep up to now, overlapping sleeps counted once, feeds started together matched one to one, daylight-saving days, night hours)
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
 - the pumping timer (one per family, minutes rounded up, running sessions left out of totals, older sessions without an end, two phones stopping and saving the same session with one stash container)

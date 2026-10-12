@@ -4937,6 +4937,32 @@ var en = {
 			together: "Feeds started together"
 		}
 	},
+	insights: {
+		title: "This week (to {{date}})",
+		longest: "Longest sleep",
+		longestNight: "the night of {{date}}",
+		longestDay: "in the day, {{date}}",
+		sleep: "Sleep per day",
+		sleepSplit: "day {{day}} · night {{night}}",
+		gap: "Between feeds",
+		feeds: "Feeds per day",
+		ml: "ml per day",
+		breast: "Breast per day",
+		noData: "No entries in these 7 days.",
+		basedOn_one: "Based on {{count}} day with entries",
+		basedOn_other: "Based on {{count}} days with entries",
+		more: "more than the week before:",
+		less: "less than the week before:",
+		vsPrevious: "The arrows show the change from the week before. Tap a value to see how it is worked out.",
+		how: {
+			longest: "The longest single sleep that started in these 7 days, from start to end.",
+			sleep: "All sleep per day, averaged over the days with entries. A day runs from {{to}} to {{to}}; the night is {{from}} to {{to}}.",
+			gap: "The time from the start of one feed to the start of the next, averaged. A gap across a whole day with no feeds logged is left out.",
+			feeds: "Feeds started per day, averaged over the days with entries.",
+			ml: "Bottle ml per day (including top-ups), averaged over the days with entries.",
+			breast: "Minutes of breastfeeding per day, averaged over the days with entries."
+		}
+	},
 	growth: {
 		title: "Growth",
 		weight: "Weight (g)",
@@ -5885,7 +5911,7 @@ var en = {
 		nightHours: "Night hours",
 		nightFrom: "From",
 		nightTo: "To",
-		nightHoursHint: "Shaded on the rhythm chart in History. For display only.",
+		nightHoursHint: "Shaded on the rhythm chart in History, and used by “This week” to split sleep into day and night. For display only.",
 		storage: "Storage",
 		persisted: "Protected: the browser will not clear your data on its own.",
 		notPersisted: "Not protected yet: the browser may clear data if the phone runs low on space. Installing the app to the home screen usually fixes this. Export backups regularly.",
@@ -6362,6 +6388,32 @@ var mk = {
 			feedsOf: "Хранења – {{name}}",
 			sharedSleep: "Спиеле истовремено",
 			together: "Хранења започнати заедно"
+		}
+	},
+	insights: {
+		title: "Оваа недела (до {{date}})",
+		longest: "Најдолг сон",
+		longestNight: "ноќта на {{date}}",
+		longestDay: "преку ден, {{date}}",
+		sleep: "Сон на ден",
+		sleepSplit: "ден {{day}} · ноќ {{night}}",
+		gap: "Меѓу хранењата",
+		feeds: "Хранења на ден",
+		ml: "ml на ден",
+		breast: "Дојка на ден",
+		noData: "Нема записи во овие 7 дена.",
+		basedOn_one: "Според {{count}} ден со записи",
+		basedOn_other: "Според {{count}} дена со записи",
+		more: "повеќе од претходната недела:",
+		less: "помалку од претходната недела:",
+		vsPrevious: "Стрелките ја покажуваат разликата од претходната недела. Допрете вредност за да видите како е пресметана.",
+		how: {
+			longest: "Најдолгиот поединечен сон што почнал во овие 7 дена, од почеток до крај.",
+			sleep: "Вкупниот сон на ден, просечно за деновите со записи. Денот се смета од {{to}} до {{to}}, а ноќта од {{from}} до {{to}}.",
+			gap: "Времето од почетокот на едно хранење до почетокот на следното, просечно. Празнина преку цел ден без запишани хранења не се смета.",
+			feeds: "Започнати хранења на ден, просечно за деновите со записи.",
+			ml: "ml од шише на ден (со дополнувањата), просечно за деновите со записи.",
+			breast: "Минути на дојка на ден, просечно за деновите со записи."
 		}
 	},
 	growth: {
@@ -7312,7 +7364,7 @@ var mk = {
 		nightHours: "Ноќни часови",
 		nightFrom: "Од",
 		nightTo: "До",
-		nightHoursHint: "Засенчени на графикот за ритам во Историја. Служат само за приказ.",
+		nightHoursHint: "Засенчени на графикот за ритам во Историја; со нив „Оваа недела“ го дели сонот на дневен и ноќен. Служат само за приказ.",
 		storage: "Складирање",
 		persisted: "Заштитено: прелистувачот нема сам да ги брише вашите податоци.",
 		notPersisted: "Сè уште не е заштитено: прелистувачот може да ги избрише податоците ако телефонот остане без простор. Инсталирањето на апликацијата на почетниот екран обично го решава ова. Редовно правете резервна копија.",

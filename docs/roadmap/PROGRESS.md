@@ -24,8 +24,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today                 |
 | F03 | Contraction timer        | ✅     | d9fe6a5       | Checklist → Contractions (prep phase); Plan in F04          |
 | F04 | Plan before the birth    | ✅     | 0c8f7f6       | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
-| F05 | Spreadsheet export (CSV) | ✅     | (next commit) | Settings → Backup → Export as spreadsheet (CSV)             |
-| F06 | Descriptive insights     | ⬜     |               |                                                             |
+| F05 | Spreadsheet export (CSV) | ✅     | cc83510       | Settings → Backup → Export as spreadsheet (CSV)             |
+| F06 | Descriptive insights     | 🟨     | (next commit) | History → "This week"                                       |
 
 ## Phase 2: health records and the mother
 
@@ -99,6 +99,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F05 · Milestones: age and corrected age as whole days on the milestone's date (numbers sort and calculate in a spreadsheet); corrected age only for twins born before 37+0, negative before term. Milestones without a date are left out.
 - 2026-10-12 · F05 · checklist.csv: the price column is the estimated price per piece (as entered); tasks in the checklist have no scope/quantity, and their status column says Yes/No for done.
 - 2026-10-12 · F05 · contractions.csv is already there (F03). Later features add theirs (vaccines, mother, foods).
+- 2026-10-12 · F06 · "Days" for the insights run from the end of the night hours to the same time the next morning (07:00–07:00 by default), so a sleep across midnight always counts toward its night, and the day/night split uses D7. `summarize()` is reused over these windows for feeds, ml and breastfeeding minutes. The explanation under each value says so.
+- 2026-10-12 · F06 · "Days with no entries" are per twin: a day counts if that twin has any entry starting in it. Averages divide by those days; the card says "Based on N days with entries".
+- 2026-10-12 · F06 · Longest sleep: the longest single sleep entry that started in the week (a running one up to now), labelled "the night of …" when it started in the night hours, otherwise "in the day, …".
+- 2026-10-12 · F06 · Feed gaps are taken between feed starts inside the week only; a gap whose days in between include one with no feeds for that twin is left out. A tandem feed is one entry per twin, so it counts once per twin naturally.
+- 2026-10-12 · F06 · The change from the week before is shown as an arrow and the absolute difference in muted text (screen readers hear "more/less than the week before"). No change, or nothing to compare, shows nothing. ml and breastfeeding rows appear only when there is something to show.
+- 2026-10-12 · F06 · The night-hours hint in Settings now also mentions the day/night split.
 
 ## Phone test checklists
 
@@ -158,6 +164,17 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 5. If Excel shows everything in one column, use **Data → From Text/CSV**: the columns separate.
 6. Delete an entry and export again: it is gone from the file. With a pumping timer running, it is not in `pumping.csv`.
 
+### F06 (descriptive insights)
+
+1. History → **This week**: a card per twin with longest sleep, sleep per day (day / night), time between feeds, feeds per day, and ml or breastfeeding minutes when there are any.
+2. Tap a value: one sentence explains how it is worked out. Tap again to close it.
+3. A sleep from 22:00 to 04:00 shows as the longest sleep "the night of <the evening's date>", not split at midnight.
+4. Pick a day last week with the date arrows: the card shows that week, with arrows and differences against the week before it (grey, no red/green).
+5. A twin with entries on only some days says "Based on N days with entries".
+6. Change the night hours in Settings → Twins: the day/night split follows.
+
 ## Follow-ups
 
 <!-- Things noticed along the way that are out of scope. -->
+
+- F06 review findings still to fix (next session, before Phase 2): (1) a twin with no sleep or no feeds logged in the week shows "0 min" / "0" instead of "–"; (2) today, a partial day, counts as a full day in the averages, so they dip every morning; (3) a day counts as active only if an entry starts in it (sleep spilling into an empty morning is dropped); (4) simplify the skipped-day gap rule and consider leaving out gaps of 24 h or more; (5) "night" for the longest sleep is decided by its start only; (6) tests for DST, a 00:00–06:00 night, from = to, a sleep starting before the week; (7) format ml with summary.ml; (8) useMemo for the weekly computation; (9) aria-describedby from each value to its label; (10) wording: "Доење на ден", "Врз основа на", one-sentence explanations, "7 дена до …" when a past day is selected; (11) a combined Phase 1 phone checklist in this file.
