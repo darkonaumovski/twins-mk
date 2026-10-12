@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Appointment, ParentTask, Routine, RoutineDone } from '@/data/types';
 import {
+  scopeLabelKey,
   dailyCareStatus,
   effectiveScope,
   medCheck,
@@ -254,5 +255,15 @@ describe('twins in hospital', () => {
     expect(upcomingItems({ ...base, awaySlots: ['B'] }).map((i) => i.babies)).toEqual(['A']);
     expect(upcomingItems({ ...base, awaySlots: ['A', 'B'] })).toEqual([]);
     expect(dailyCareStatus([vit], [], local(11, 0), local(12, 0), ['B'])[0].cells.map((c) => c.slot)).toEqual(['A']);
+  });
+});
+
+describe('scope labels', () => {
+  it('names "none" by the kind of record', () => {
+    expect(scopeLabelKey('none', 'appointment')).toBe('plan.pregnancyMother');
+    expect(scopeLabelKey('none', 'note')).toBe('notes.forMother');
+    expect(scopeLabelKey('none', 'routine')).toBe('plan.family');
+    expect(scopeLabelKey('both', 'appointment')).toBe('twins.both');
+    expect(scopeLabelKey('A', 'note')).toBeNull();
   });
 });

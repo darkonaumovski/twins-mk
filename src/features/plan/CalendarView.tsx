@@ -36,7 +36,7 @@ function AppointmentRow({ appt, onOpen, showDate }: { appt: Appointment; onOpen:
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2 font-medium">
-          <ScopeBadges scope={appt.babies} />
+          <ScopeBadges scope={appt.babies} kind="appointment" />
           <span className="truncate">{appt.title}</span>
         </span>
         {appt.location && (
@@ -157,10 +157,10 @@ export function CalendarView() {
 
       <section className="space-y-2">
         <h2 className="px-1 text-sm font-semibold tracking-wide text-muted uppercase">{t('appt.upcoming')}</h2>
-        {data && data.openNotes > 0 && (
+        {data && (
           <Link to="/notes" className="flex min-h-12 items-center gap-2 rounded-2xl bg-accent-soft px-4 font-medium">
             <NotebookPen aria-hidden size={18} className="text-accent" />
-            {t('appt.doctorNotes', { count: data.openNotes })}
+            {data.openNotes > 0 ? t('appt.doctorNotes', { count: data.openNotes }) : t('notes.title')}
             <ChevronRight aria-hidden size={18} className="ml-auto text-muted" />
           </Link>
         )}

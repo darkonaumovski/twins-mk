@@ -47,6 +47,23 @@ export function scheduledOccurrences(routine: Routine, from: Date, to: Date): Da
   return result.sort((a, b) => a.getTime() - b.getTime());
 }
 
+/** What a planner record is, for how its `babies: 'none'` scope is named. */
+export type ScopeKind = 'appointment' | 'note' | 'routine';
+
+/**
+ * The translation key that names a scope, or null when it is one twin (named by the twin's name).
+ * `none` is "Pregnancy / mother" on appointments, "For the mother" on notes for the doctor,
+ * and "Family" on routines.
+ */
+export function scopeLabelKey(
+  scope: BabyScope,
+  kind: ScopeKind,
+): 'twins.both' | 'plan.pregnancyMother' | 'notes.forMother' | 'plan.family' | null {
+  if (scope === 'both') return 'twins.both';
+  if (scope !== 'none') return null;
+  return kind === 'appointment' ? 'plan.pregnancyMother' : kind === 'note' ? 'notes.forMother' : 'plan.family';
+}
+
 /** Twins a scope refers to. */
 export function slotsFor(scope: BabyScope): TwinSlot[] {
   return scope === 'both' ? ['A', 'B'] : scope === 'none' ? [] : [scope];

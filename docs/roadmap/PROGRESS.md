@@ -18,14 +18,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 1: quick wins
 
-| ID  | Feature                  | Status | Commit        | Notes                                                 |
-| --- | ------------------------ | ------ | ------------- | ----------------------------------------------------- |
-| F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins |
-| F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today           |
-| F03 | Contraction timer        | ✅     | (next commit) | Checklist → Contractions (prep phase); Plan in F04    |
-| F04 | Plan before the birth    | ⬜     |               |                                                       |
-| F05 | Spreadsheet export (CSV) | ⬜     |               |                                                       |
-| F06 | Descriptive insights     | ⬜     |               |                                                       |
+| ID  | Feature                  | Status | Commit        | Notes                                                       |
+| --- | ------------------------ | ------ | ------------- | ----------------------------------------------------------- |
+| F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins       |
+| F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today                 |
+| F03 | Contraction timer        | ✅     | d9fe6a5       | Checklist → Contractions (prep phase); Plan in F04          |
+| F04 | Plan before the birth    | ✅     | (next commit) | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
+| F05 | Spreadsheet export (CSV) | ⬜     |               |                                                             |
+| F06 | Descriptive insights     | ⬜     |               |                                                             |
 
 ## Phase 2: health records and the mother
 
@@ -81,6 +81,16 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F03 · The history line is neutral ("Contraction started (14:05)"); only the announcement says "Started timing contractions". An undo after "Clear all" (a restore) is never announced.
 - 2026-10-12 · F03 · Lengths and intervals of an hour or more show as h:mm:ss; rows from another day show their date.
 - 2026-10-12 · F03 · The last-60-minutes window is by start time and includes a contraction that started exactly 60 minutes ago; a running contraction counts but has no length yet.
+- 2026-10-12 · F04 · Prep navigation as suggested: Checklist, Plan, Budget, Notifications, Settings. Shopping moved from a tab to a link at the top of Budget (it is still at `#/shopping`). The tab layout is a pure `navTabs(phase)` with tests.
+- 2026-10-12 · F04 · Plan in the preparation phase has the Calendar and Tasks tabs and the Contractions card; the Routines tab is hidden (a `?tab=routines` link falls back to the calendar). Daily care was already only on Today.
+- 2026-10-12 · F04 · `babies: 'none'` is now named by the kind of record (`scopeLabelKey`): "Pregnancy / mother" on appointments (in both phases, as the spec asks; this replaces "Family" there), "For the mother" on doctor's notes, and still "Family" on routines (F10 will add the mother's medicine routines). Appointments and notes show the label as a small chip; routines show nothing, as before.
+- 2026-10-12 · F04 · New appointments and notes default to the mother ('none') before the birth and to both twins after it (`usePhaseScope`).
+- 2026-10-12 · F04 · The "Notes for the doctor" link on the calendar is now always shown (before, only with open notes), so the notes page is reachable before the birth, when there is no More tab.
+- 2026-10-12 · F04 · Report: notes for the mother are left out by default (before this they were always in, as "family" notes). The switch only appears when there are open notes for the mother.
+- 2026-10-12 · F04 · The notification history names 'none' the same way ("Pregnancy / mother" on appointments, "For the mother" on notes). The twins' report marks an included mother's note ("For the mother: …").
+- 2026-10-12 · F04 · Tapping an appointment's push reminder now opens the start page (`./#/`), which picks the screen for the phase (the checklist before the birth, Today after); other reminders still open Today. Function bundle rebuilt.
+- 2026-10-12 · F04 · The notes filter only shows while there are notes for the mother; without them the list shows all. Adding a note resets the filter to All, so the new note is visible. Shopping has a link back to Budget.
+- 2026-10-12 · F04 · Push text for a 'none' appointment already read well ("Ultrasound at 10:30", body: the place); no change to `src/server`, only a test.
 
 ## Phone test checklists
 
@@ -121,6 +131,15 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 4. On the other phone: one message "Started timing contractions (from …)" when the first one starts, and no message for the ones after it. The list there shows the same contractions.
 5. Delete one contraction with the bin icon, then **Undo**. Then **Clear all** → confirm: the list is empty on both phones (**Undo** brings it back).
 6. Check the fixed note "Follow the instructions of your hospital or midwife." and that nothing else gives advice.
+
+### F04 (plan before the birth)
+
+1. In the preparation phase, the bottom bar shows **Checklist, Plan, Budget, Notifications, Settings**. Budget has a **Shopping** link at the top.
+2. Plan shows **Calendar** and **Tasks** (no Routines) and the Contractions card.
+3. Add an appointment "Ultrasound": **For** is preset to **Pregnancy / mother**; the calendar row shows that label.
+4. Open **Notes for the doctor** from the calendar, add a question: it is preset to **For the mother**. The filter **All / Twins / Mother** appears.
+5. Switch to the daily planner (Settings → Twins), open **Report**: the mother's question is not there until **Include notes for the mother** is switched on.
+6. With push reminders on, an appointment for the mother arrives as "Ultrasound at 10:30" with the place underneath.
 
 ## Follow-ups
 

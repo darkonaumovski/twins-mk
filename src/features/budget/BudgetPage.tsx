@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Info } from 'lucide-react';
+import { ChevronRight, Info, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Page, cx } from '@/components/ui';
@@ -47,7 +47,15 @@ export function BudgetPage() {
   const spentPct = totals.projected > 0 ? Math.round((totals.spent / totals.projected) * 100) : 0;
 
   return (
-    <Page title={t('budget.title')}>
+    <Page
+      title={t('budget.title')}
+      actions={
+        <Link to="/shopping" className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 font-semibold text-accent">
+          <ShoppingCart aria-hidden size={18} />
+          {t('nav.shopping')}
+        </Link>
+      }
+    >
       {hasAnyPrice ? (
         <>
           <section className="space-y-3">

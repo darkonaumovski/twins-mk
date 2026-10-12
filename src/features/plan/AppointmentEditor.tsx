@@ -7,9 +7,10 @@ import { Field, TextArea, TextInput } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useLive, useStore } from '@/data/StoreContext';
-import type { Appointment, BabyScope } from '@/data/types';
+import type { Appointment } from '@/data/types';
 import { fromLocalInput, toLocalInput } from '@/features/log/logic';
 import { ScopePicker } from './shared';
+import { usePhaseScope } from './usePhaseScope';
 
 /** `appointment` null creates one; `defaultStart` pre-fills the time (e.g. the day tapped in the calendar). */
 export function AppointmentEditor({
@@ -29,7 +30,8 @@ export function AppointmentEditor({
   const confirm = useConfirm();
   const toast = useToast();
   const [title, setTitle] = useState(appointment?.title ?? defaultTitle ?? '');
-  const [babies, setBabies] = useState<BabyScope>(appointment?.babies ?? 'both');
+  // Before the birth most appointments are the mother's (scans, check-ups, classes).
+  const [babies, setBabies] = usePhaseScope(appointment?.babies);
   const [start, setStart] = useState(toLocalInput(appointment?.start ?? defaultStart ?? new Date().toISOString()));
   const [location, setLocation] = useState(appointment?.location ?? '');
   const [notes, setNotes] = useState(appointment?.notes ?? '');
@@ -110,7 +112,7 @@ export function AppointmentEditor({
             </>
           )}
         </Field>
-        <ScopePicker value={babies} onChange={setBabies} />
+        <ScopePicker value={babies} onChange={setBabies} kind="appointment" />
         <Field label={t('appt.when')}>
           {(p) => <TextInput {...p} type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />}
         </Field>

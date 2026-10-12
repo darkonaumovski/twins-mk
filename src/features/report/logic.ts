@@ -24,10 +24,13 @@ export function reportTotals(rows: readonly ReportDay[]): DaySummary {
   return total;
 }
 
-/** Notes still to discuss that concern one of these twins (or the family as a whole). */
-export function openNotesFor(notes: readonly DoctorNote[], slots: readonly TwinSlot[]): DoctorNote[] {
+/**
+ * Notes still to discuss that concern one of these twins. Notes for the mother (`babies: 'none'`)
+ * only when the report's "Include notes for the mother" switch is on.
+ */
+export function openNotesFor(notes: readonly DoctorNote[], slots: readonly TwinSlot[], includeMother = false): DoctorNote[] {
   return notes
     .filter((n) => n.deletedAt === null && n.reviewedAt === null)
-    .filter((n) => n.babies === 'none' || slotsFor(n.babies).some((s) => slots.includes(s)))
+    .filter((n) => (n.babies === 'none' ? includeMother : slotsFor(n.babies).some((s) => slots.includes(s))))
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }

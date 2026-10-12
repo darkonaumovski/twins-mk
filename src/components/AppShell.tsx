@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CalendarDays, History, House, ListChecks, Menu, Plus, Settings, ShoppingCart, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, CalendarDays, History, House, ListChecks, Menu, Plus, Settings, Wallet, type LucideIcon } from 'lucide-react';
 import { useLive, useSettings } from '@/data/StoreContext';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { cx } from './ui';
+import { navTabs, type NavKey } from './navTabs';
 import { ErrorBoundary } from './ErrorBoundary';
 
 interface NavItem {
@@ -48,27 +49,19 @@ export function AppShell() {
   const { t } = useTranslation();
   const settings = useSettings();
   const ui = useLogUI();
-  const planner = settings?.phase === 'planner';
   const location = useLocation();
   const unread = useLive((s) => s.activity.unseenCount(), []) ?? 0;
-  const notifications: NavItem = { to: '/notifications', label: t('nav.notifications'), icon: Bell, badge: unread };
-
-  const prepTabs: NavItem[] = [
-    { to: '/checklist', label: t('nav.checklist'), icon: ListChecks },
-    { to: '/budget', label: t('nav.budget'), icon: Wallet },
-    { to: '/shopping', label: t('nav.shopping'), icon: ShoppingCart },
-    notifications,
-    { to: '/settings', label: t('nav.settings'), icon: Settings },
-  ];
-  const plannerLeft: NavItem[] = [
-    { to: '/today', label: t('nav.today'), icon: House },
-    { to: '/history', label: t('nav.history'), icon: History },
-  ];
-  const plannerRight: NavItem[] = [
-    { to: '/plan', label: t('nav.plan'), icon: CalendarDays },
-    notifications,
-    { to: '/more', label: t('nav.more'), icon: Menu },
-  ];
+  const items: Record<NavKey, NavItem> = {
+    checklist: { to: '/checklist', label: t('nav.checklist'), icon: ListChecks },
+    plan: { to: '/plan', label: t('nav.plan'), icon: CalendarDays },
+    budget: { to: '/budget', label: t('nav.budget'), icon: Wallet },
+    notifications: { to: '/notifications', label: t('nav.notifications'), icon: Bell, badge: unread },
+    settings: { to: '/settings', label: t('nav.settings'), icon: Settings },
+    today: { to: '/today', label: t('nav.today'), icon: House },
+    history: { to: '/history', label: t('nav.history'), icon: History },
+    more: { to: '/more', label: t('nav.more'), icon: Menu },
+  };
+  const layout = settings ? navTabs(settings.phase) : null;
 
   return (
     <div className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] print:pb-0">
@@ -85,12 +78,11 @@ export function AppShell() {
         className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden"
       >
         <ul className="mx-auto flex max-w-2xl">
-          {settings && !planner && prepTabs.map((item) => <Tab key={item.to} {...item} />)}
-          {planner && (
+          {layout?.left.map((key) => (
+            <Tab key={key} {...items[key]} />
+          ))}
+          {layout?.logButton && (
             <>
-              {plannerLeft.map((item) => (
-                <Tab key={item.to} {...item} />
-              ))}
               <li className="flex flex-1 items-center justify-center">
                 <button
                   type="button"
@@ -101,8 +93,8 @@ export function AppShell() {
                   <Plus aria-hidden size={32} strokeWidth={2.5} />
                 </button>
               </li>
-              {plannerRight.map((item) => (
-                <Tab key={item.to} {...item} />
+              {layout.right.map((key) => (
+                <Tab key={key} {...items[key]} />
               ))}
             </>
           )}

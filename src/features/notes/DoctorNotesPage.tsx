@@ -4,13 +4,15 @@ import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Circle, FileText, Trash2 } from 'lucide-react';
 import { Button, IconButton } from '@/components/Button';
-import { Page, TextArea, cx } from '@/components/ui';
+import { Page, Segmented, TextArea, cx } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useLive, useStore } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
-import type { BabyScope, DoctorNote } from '@/data/types';
+import type { DoctorNote } from '@/data/types';
 import { ScopeBadges, ScopePicker } from '@/features/plan/shared';
+import { usePhaseScope } from '@/features/plan/usePhaseScope';
+import { filterNotes, type NoteFilter } from './logic';
 
 function NoteRow({ note }: { note: DoctorNote }) {
   const { t, i18n } = useTranslation();
@@ -38,7 +40,7 @@ function NoteRow({ note }: { note: DoctorNote }) {
       <div className="min-w-0 flex-1 py-2">
         <p className={cx('whitespace-pre-wrap', discussed && 'text-muted')}>{note.text}</p>
         <p className="mt-1 flex items-center gap-2 text-xs text-muted">
-          <ScopeBadges scope={note.babies} />
+          <ScopeBadges scope={note.babies} kind="note" />
           {format(new Date(note.createdAt), 'd MMM, HH:mm', { locale: dateLocale(i18n.language) })}
           {discussed && ` · ${t('notes.discussed')}`}
         </p>
@@ -56,9 +58,15 @@ export function DoctorNotesPage() {
   const store = useStore();
   const toast = useToast();
   const [text, setText] = useState('');
-  const [babies, setBabies] = useState<BabyScope>('both');
+  // Before the birth, questions are mostly for the obstetrician.
+  const [babies, setBabies] = usePhaseScope(undefined);
   const [showDiscussed, setShowDiscussed] = useState(false);
-  const notes = useLive(async (s) => (await s.doctorNotes.list()).sort((a, b) => b.createdAt.localeCompare(a.createdAt)), []);
+  const [filter, setFilter] = useState<NoteFilter>('all');
+  const all = useLive(async (s) => (await s.doctorNotes.list()).sort((a, b) => b.createdAt.localeCompare(a.createdAt)), []);
+  const hasMother = Boolean(all?.some((n) => n.babies === 'none'));
+  // The filter only exists while there are notes for the mother; without them, show everything.
+  const active: NoteFilter = hasMother ? filter : 'all';
+  const notes = all && filterNotes(all, active);
   const open = notes?.filter((n) => n.reviewedAt === null) ?? [];
   const discussed = notes?.filter((n) => n.reviewedAt !== null) ?? [];
 
@@ -67,6 +75,8 @@ export function DoctorNotesPage() {
     if (!text.trim()) return;
     await store.doctorNotes.create({ text: text.trim(), babies, reviewedAt: null });
     setText('');
+    // Show the new note, whichever group it is in.
+    setFilter('all');
     toast({ message: t('notes.added') });
   };
 
@@ -88,12 +98,21 @@ export function DoctorNotesPage() {
           aria-label={t('notes.add')}
           maxLength={2000}
         />
-        <ScopePicker value={babies} onChange={setBabies} />
+        <ScopePicker value={babies} onChange={setBabies} kind="note" />
         <Button type="submit" className="w-full" disabled={!text.trim()}>
           {t('notes.add')}
         </Button>
       </form>
 
+      {hasMother && (
+        <Segmented<NoteFilter>
+          label={t('notes.show')}
+          hideLabel
+          value={active}
+          options={(['all', 'twins', 'mother'] as const).map((v) => ({ value: v, label: t(`notes.filter.${v}`) }))}
+          onChange={setFilter}
+        />
+      )}
       {notes && open.length === 0 && (
         <p className="rounded-2xl border border-dashed border-line p-5 text-center text-muted">{t('notes.empty')}</p>
       )}

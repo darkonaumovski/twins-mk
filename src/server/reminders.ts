@@ -203,7 +203,8 @@ export function reminderMessage(reminder: DueReminder, lang: 'mk' | 'en', data: 
   } else {
     title = who ? t('reminders.routineDue', { title: reminder.title, who }) : reminder.title;
   }
-  return { title, body, tag: `reminder:${reminder.key}`, url: './#/today' };
+  // An appointment can be before the birth: the start page then picks the screen for the phase.
+  return { title, body, tag: `reminder:${reminder.key}`, url: reminder.kind === 'appointments' ? './#/' : './#/today' };
 }
 
 /** The test notification from Settings. */

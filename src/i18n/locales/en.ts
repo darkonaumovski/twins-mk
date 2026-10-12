@@ -390,6 +390,7 @@ const en = {
     tasks: 'Tasks',
     for: 'For',
     family: 'Family',
+    pregnancyMother: 'Pregnancy / mother',
   },
   appt: {
     add: 'Add appointment',
@@ -721,6 +722,7 @@ const en = {
     growth: 'Growth',
     notes: 'Questions for the doctor',
     noNotes: 'No open questions.',
+    includeMother: 'Include notes for the mother',
     atBirth: 'at birth',
     textLine: '{{feeds}} feeds, {{ml}} ml, breast {{breast}} min, {{wet}} wet / {{dirty}} dirty, sleep {{sleep}} h, {{meds}} medicines',
     disclaimer: 'What the parents logged in Twins Organizer. Not medical advice.',
@@ -780,6 +782,9 @@ const en = {
     deleteConfirm: 'Delete this note?',
     deleted: 'Note deleted',
     added: 'Note added',
+    forMother: 'For the mother',
+    show: 'Show',
+    filter: { all: 'All', twins: 'Twins', mother: 'Mother' },
   },
   reminders: {
     title: 'Reminders',

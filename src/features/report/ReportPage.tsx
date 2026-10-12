@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { addDays, format, parseISO } from 'date-fns';
 import { Printer, Share2 } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { Page, Segmented } from '@/components/ui';
+import { Page, Segmented, Toggle } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { formatNumber, todayISO } from '@/lib/format';
-import type { Baby, TwinSlot } from '@/data/types';
+import type { Baby, TwinSlot, DoctorNote } from '@/data/types';
 import { daysEnding, growthPoints, localDay, type DaySummary } from '@/features/history/summary';
 import { BABY_IDS, type Who } from '@/features/log/logic';
 import { colorOf, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
@@ -31,6 +31,7 @@ export function ReportPage() {
   const ageText = useAgeText();
   const [who, setWho] = useState<Who>('both');
   const [period, setPeriod] = useState<Period>('7');
+  const [includeMother, setIncludeMother] = useState(false);
   const lastDay = todayISO();
   const days = daysEnding(lastDay, Number(period));
   const data = useLive(
@@ -56,7 +57,10 @@ export function ReportPage() {
     const rows = reportRows(data.entries, BABY_IDS[slot], days, now);
     return { slot, rows, total: reportTotals(rows) };
   });
-  const notes = openNotesFor(data.notes, slots);
+  const notes = openNotesFor(data.notes, slots, includeMother);
+  // In a report about the twins, a question for the mother says so.
+  const noteText = (n: DoctorNote) => (n.babies === 'none' ? `${t('notes.forMother')}: ${n.text}` : n.text);
+  const hasMotherNotes = data.notes.some((n) => n.babies === 'none' && n.reviewedAt === null);
   const range = `${format(parseISO(days[0]), 'd MMM', { locale })} – ${format(parseISO(lastDay), 'd MMM yyyy', { locale })}`;
 
   const line = (s: DaySummary) =>
@@ -72,7 +76,7 @@ export function ReportPage() {
   const shareText = [
     `${t('report.title')} · ${range}`,
     ...perTwin.flatMap(({ slot, rows }) => ['', name(slot), ...rows.map((r) => `${dayLabel(r.date)}: ${line(r.summary)}`)]),
-    ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${n.text}`)] : []),
+    ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${noteText(n)}`)] : []),
     '',
     t('report.disclaimer'),
   ].join('\n');
@@ -109,6 +113,7 @@ export function ReportPage() {
           options={PERIODS.map((n) => ({ value: `${n}` as Period, label: t('report.days', { count: n }) }))}
           onChange={setPeriod}
         />
+        {hasMotherNotes && <Toggle label={t('report.includeMother')} checked={includeMother} onChange={setIncludeMother} />}
         <div className="grid grid-cols-2 gap-2">
           <Button onClick={() => window.print()}>
             <Printer aria-hidden size={20} />
@@ -221,7 +226,7 @@ export function ReportPage() {
           ) : (
             <ul className="list-disc space-y-1 pl-5">
               {notes.map((n) => (
-                <li key={n.id}>{n.text}</li>
+                <li key={n.id}>{noteText(n)}</li>
               ))}
             </ul>
           )}

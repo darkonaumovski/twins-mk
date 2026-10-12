@@ -3,6 +3,7 @@
 A calm, phone-first app for parents expecting twins.
 
 - **Before birth:** a preparation checklist with a starter list for twins (must-haves aimed to be ready by week 32, because twins often come early), a countdown to the due date or a planned delivery date, a budget and a shopping mode.
+- **Plan before the birth:** the bottom navigation is Checklist, Plan, Budget, Notifications and Settings (the shopping list is one tap away from the budget). Plan holds the appointments (scans, check-ups, classes), the parents' tasks and the contraction timer; routines and daily care come after the birth. Appointments that are not for a twin are labelled **Pregnancy / mother**. **Notes for the doctor** can be **for the mother** too, with a filter (all, the twins, the mother); the twins' report leaves them out unless **Include notes for the mother** is switched on.
 - **Contraction timer:** under the countdown, **Contractions** opens a full-screen timer: one big Start / Stop button, every contraction with its length and the time since the one before, and the count, average length and average interval for the last 60 minutes. The screen stays on while it is open. It is synced, so the other parent can follow from elsewhere; their phone tells them once when timing starts (the first contraction after a pause of more than 2 hours), not for every contraction. It gives no thresholds, alerts or advice: follow the instructions of your hospital or midwife. **Clear all** removes the list (with undo).
 - **After birth:** a daily planner and tracker for feeds, diapers, sleep, medicines, growth, appointments, routines and parent tasks, always for Twin A, Twin B or both.
 
@@ -265,7 +266,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 
 **Newer and older phones together.** A phone skips synced collections and log entry types it does not know (they come from a newer version on the other phone): they stay stored and synced, but are not shown. If a screen still crashes, its **Reload** button switches to a waiting app update first.
 
-Newer versions also add optional fields to existing records; an older phone may drop them when it edits such a record. A running pumping timer looks like a 0 ml session on an older phone: stop it on a newer phone before editing it on the older one, or it may keep counting as running.
+Newer versions also add optional fields to existing records; an older phone may drop them when it edits such a record. A running pumping timer looks like a 0 ml session on an older phone: stop it on a newer phone before editing it on the older one, or it may keep counting as running. Appointments and notes for the doctor that are not about a twin read "Pregnancy / mother" and "For the mother" on newer phones, but "Family" on older ones, where such notes also always go into the report.
 
 ### Tests
 
@@ -288,6 +289,7 @@ Newer versions also add optional fields to existing records; an older phone may 
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)
 - the pumping timer (one per family, minutes rounded up, running sessions left out of totals, older sessions without an end, two phones stopping and saving the same session with one stash container)
 - supplies (use since the count, days left at the recent pace, restocking without losing the other phone's use)
+- the bottom navigation per phase (at most five tabs, Plan in both), the "Pregnancy / mother" and "For the mother" labels, the notes filter and the report's notes for the mother, and the push text for a pregnancy appointment
 - routine scheduling and upcoming items, daily care per twin, the medicine interval check (warns only with an interval the parents set), and routines that skip a twin in hospital
 - milestones side by side (built-in ones with fixed ids, custom ones paired by title)
 - actual and corrected age, weight change since birth, and the doctor's report (daily rows, totals, open notes)

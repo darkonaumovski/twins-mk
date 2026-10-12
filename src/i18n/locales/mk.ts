@@ -391,6 +391,7 @@ const mk: Translation = {
     tasks: 'Задачи',
     for: 'За',
     family: 'Семејство',
+    pregnancyMother: 'Бременост / мајка',
   },
   appt: {
     add: 'Додај термин',
@@ -724,6 +725,7 @@ const mk: Translation = {
     growth: 'Раст',
     notes: 'Прашања за лекарот',
     noNotes: 'Нема отворени прашања.',
+    includeMother: 'Вклучи ги и белешките за мајката',
     atBirth: 'при раѓање',
     textLine: '{{feeds}} хранења, {{ml}} ml, дојка {{breast}} мин, {{wet}} мокри / {{dirty}} валкани, спиење {{sleep}} ч, {{meds}} лекови',
     disclaimer: 'Она што родителите го запишале во Twins Organizer. Не е медицински совет.',
@@ -783,6 +785,9 @@ const mk: Translation = {
     deleteConfirm: 'Да се избрише белешката?',
     deleted: 'Белешката е избришана',
     added: 'Белешката е додадена',
+    forMother: 'За мајката',
+    show: 'Прикажи',
+    filter: { all: 'Сите', twins: 'Бебињата', mother: 'Мајката' },
   },
   reminders: {
     title: 'Потсетници',

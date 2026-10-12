@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { useLive } from '@/data/StoreContext';
-import type { NightShift } from '@/data/types';
+import type { BabyScope, NightShift } from '@/data/types';
+import { scopeLabelKey } from '@/features/plan/logic';
 import { useBabies, useTwinName } from '@/features/twins/twins';
 import { dateLocale } from '@/i18n';
 import { useCaregiverName } from '@/lib/caregivers';
@@ -78,7 +79,13 @@ export function useFieldText() {
 
       if (path === 'babyId') return twin(text);
       if (PEOPLE.has(path)) return person(text);
-      if (path === 'babies') return text === 'both' ? t('twins.both') : text === 'none' ? t('activity.value.noTwin') : twin(text);
+      if (path === 'babies') {
+        // Appointments and notes name 'none' as the mother's ("Pregnancy / mother", "For the mother").
+        const kind = collection === 'appointments' ? 'appointment' : collection === 'doctorNotes' ? 'note' : null;
+        const key = kind && scopeLabelKey(text as BabyScope, kind);
+        if (key) return t(key);
+        return text === 'both' ? t('twins.both') : text === 'none' ? t('activity.value.noTwin') : twin(text);
+      }
       if (path === 'categoryId') {
         const category = lookups?.categories.find((c) => c.id === text);
         return category ? label(category) : '—';

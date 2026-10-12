@@ -38,7 +38,7 @@ describe('doctor report', () => {
     expect(reportTotals(rows)).toMatchObject({ feeds: 3, ml: 220, diapers: 1 });
   });
 
-  it('lists notes still to discuss for these twins and the family', () => {
+  it('lists notes still to discuss for these twins, and the mother’s only when asked', () => {
     const note = (id: string, babies: DoctorNote['babies'], reviewedAt: string | null = null): DoctorNote => ({
       id,
       text: id,
@@ -50,7 +50,9 @@ describe('doctor report', () => {
       deviceId: 'd',
     });
     const notes = [note('a', 'A'), note('b', 'B'), note('c', 'both'), note('d', 'none'), note('e', 'A', 'x')];
-    expect(openNotesFor(notes, ['A']).map((x) => x.id)).toEqual(['a', 'c', 'd']);
-    expect(openNotesFor(notes, ['A', 'B']).map((x) => x.id)).toEqual(['a', 'b', 'c', 'd']);
+    expect(openNotesFor(notes, ['A']).map((x) => x.id)).toEqual(['a', 'c']);
+    expect(openNotesFor(notes, ['A', 'B']).map((x) => x.id)).toEqual(['a', 'b', 'c']);
+    expect(openNotesFor(notes, ['A'], true).map((x) => x.id)).toEqual(['a', 'c', 'd']);
+    expect(openNotesFor(notes, ['A', 'B'], true).map((x) => x.id)).toEqual(['a', 'b', 'c', 'd']);
   });
 });

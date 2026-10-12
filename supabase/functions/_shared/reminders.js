@@ -4954,7 +4954,8 @@ var en = {
 		routines: "Routines",
 		tasks: "Tasks",
 		for: "For",
-		family: "Family"
+		family: "Family",
+		pregnancyMother: "Pregnancy / mother"
 	},
 	appt: {
 		add: "Add appointment",
@@ -5283,6 +5284,7 @@ var en = {
 		growth: "Growth",
 		notes: "Questions for the doctor",
 		noNotes: "No open questions.",
+		includeMother: "Include notes for the mother",
 		atBirth: "at birth",
 		textLine: "{{feeds}} feeds, {{ml}} ml, breast {{breast}} min, {{wet}} wet / {{dirty}} dirty, sleep {{sleep}} h, {{meds}} medicines",
 		disclaimer: "What the parents logged in Twins Organizer. Not medical advice.",
@@ -5341,7 +5343,14 @@ var en = {
 		empty: "Nothing to discuss yet.",
 		deleteConfirm: "Delete this note?",
 		deleted: "Note deleted",
-		added: "Note added"
+		added: "Note added",
+		forMother: "For the mother",
+		show: "Show",
+		filter: {
+			all: "All",
+			twins: "Twins",
+			mother: "Mother"
+		}
 	},
 	reminders: {
 		title: "Reminders",
@@ -6284,7 +6293,8 @@ var mk = {
 		routines: "Рутини",
 		tasks: "Задачи",
 		for: "За",
-		family: "Семејство"
+		family: "Семејство",
+		pregnancyMother: "Бременост / мајка"
 	},
 	appt: {
 		add: "Додај термин",
@@ -6613,6 +6623,7 @@ var mk = {
 		growth: "Раст",
 		notes: "Прашања за лекарот",
 		noNotes: "Нема отворени прашања.",
+		includeMother: "Вклучи ги и белешките за мајката",
 		atBirth: "при раѓање",
 		textLine: "{{feeds}} хранења, {{ml}} ml, дојка {{breast}} мин, {{wet}} мокри / {{dirty}} валкани, спиење {{sleep}} ч, {{meds}} лекови",
 		disclaimer: "Она што родителите го запишале во Twins Organizer. Не е медицински совет.",
@@ -6671,7 +6682,14 @@ var mk = {
 		empty: "Сè уште нема ништо за разговор.",
 		deleteConfirm: "Да се избрише белешката?",
 		deleted: "Белешката е избришана",
-		added: "Белешката е додадена"
+		added: "Белешката е додадена",
+		forMother: "За мајката",
+		show: "Прикажи",
+		filter: {
+			all: "Сите",
+			twins: "Бебињата",
+			mother: "Мајката"
+		}
 	},
 	reminders: {
 		title: "Потсетници",
@@ -7485,7 +7503,7 @@ function reminderMessage(reminder, lang, data) {
 		title,
 		body,
 		tag: `reminder:${reminder.key}`,
-		url: "./#/today"
+		url: reminder.kind === "appointments" ? "./#/" : "./#/today"
 	};
 }
 /** The test notification from Settings. */

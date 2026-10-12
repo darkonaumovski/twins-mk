@@ -103,6 +103,23 @@ describe('due reminders', () => {
     expect(message.body).toBe('Двајцата · Дом здравје');
   });
 
+  it('reads well for a pregnancy appointment (no twin)', () => {
+    const appt: Appointment = {
+      ...meta,
+      id: 'a2',
+      title: 'Ultrasound',
+      babies: 'none',
+      start: '2026-10-11T08:30:00.000Z',
+      location: 'Clinic',
+      notes: '',
+    };
+    const due = dueReminders(data({ routines: [], appointments: [appt] }), at('2026-10-11T07:31:00Z'));
+    expect(due.map((d) => d.babies)).toEqual(['none']);
+    expect(reminderMessage(due[0], 'en', data())).toMatchObject({ title: 'Ultrasound at 10:30', body: 'Clinic', url: './#/' });
+    const noPlace = reminderMessage({ ...due[0], location: '' }, 'mk', data());
+    expect(noPlace).toMatchObject({ title: 'Ultrasound во 10:30', body: '' });
+  });
+
   it('says when a feed is due from the parents’ own interval, but not while a breastfeed runs', () => {
     const babies = [baby('A', { feedIntervalMin: 180 }), baby('B')];
     const bottle = log({ type: 'feed', data: { method: 'bottle', ml: 90, milk: 'formula' }, start: '2026-10-11T04:00:00.000Z' });

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, PartyPopper, Store } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Check, PartyPopper, Store, Wallet } from 'lucide-react';
 import { Page, Toggle } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import { useSettings, useStore } from '@/data/StoreContext';
@@ -67,7 +68,15 @@ export function ShoppingPage() {
   };
 
   return (
-    <Page title={t('shopping.title')}>
+    <Page
+      title={t('shopping.title')}
+      actions={
+        <Link to="/budget" className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3 font-semibold text-accent">
+          <Wallet aria-hidden size={18} />
+          {t('nav.budget')}
+        </Link>
+      }
+    >
       <div className="rounded-2xl border border-line bg-surface px-4">
         <Toggle label={t('shopping.mustOnly')} checked={mustOnly} onChange={changeMustOnly} />
       </div>
