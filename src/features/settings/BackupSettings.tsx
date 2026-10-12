@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Download, Info, Share2, Upload } from 'lucide-react';
+import { Download, FileSpreadsheet, Info, Share2, Upload } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Section } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
@@ -9,6 +9,13 @@ import { useToast } from '@/components/Toast';
 import { useStore } from '@/data/StoreContext';
 import { BackupError, exportBackup, importBackup, parseBackup } from '@/data/backup';
 import { dateLocale } from '@/i18n';
+import { toCsv } from '@/lib/csv';
+import { zip } from '@/lib/zip';
+import { useLabel } from '@/lib/labels';
+import { useCaregiverName } from '@/lib/caregivers';
+import { useBabies, useTwinName } from '@/features/twins/twins';
+import { scopeLabelKey } from '@/features/plan/logic';
+import { buildCsvFiles, csvZipName, type CsvText } from './csvExport';
 
 import { markBackupDone, readLastBackup } from './backupLogic';
 
@@ -30,26 +37,85 @@ export function BackupSettings() {
 
   const remember = () => setLastBackup(markBackupDone());
 
-  const download = async () => {
-    const file = await makeFile();
+  const saveFile = (file: File) => {
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
     a.href = url;
     a.download = file.name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  };
+
+  const download = async () => {
+    saveFile(await makeFile());
     remember();
   };
 
   const canShareFiles = typeof navigator.canShare === 'function';
-  const share = async () => {
-    const file = await makeFile();
-    if (!navigator.canShare?.({ files: [file] })) return download();
+  /** The phone's share sheet where it can share files, otherwise a download. True once handed over. */
+  const shareFile = async (file: File, title: string) => {
+    if (!navigator.canShare?.({ files: [file] })) {
+      saveFile(file);
+      return true;
+    }
     try {
-      await navigator.share({ files: [file], title: t('backup.shareTitle') });
-      remember();
+      await navigator.share({ files: [file], title });
+      return true;
     } catch (e) {
-      if ((e as Error).name !== 'AbortError') await download();
+      if ((e as Error).name === 'AbortError') return false;
+      saveFile(file);
+      return true;
+    }
+  };
+  const share = async () => {
+    if (await shareFile(await makeFile(), t('backup.shareTitle'))) remember();
+  };
+
+  // Spreadsheet export: names instead of ids, headers in this phone's language.
+  const twin = useTwinName(useBabies());
+  const person = useCaregiverName();
+  const label = useLabel();
+  const [csvBusy, setCsvBusy] = useState(false);
+  const exportCsv = async () => {
+    if (csvBusy) return;
+    setCsvBusy(true);
+    try {
+      const [logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, babies] = await Promise.all([
+        store.logs.listAll(),
+        store.pumps.listAll(),
+        store.milkStash.listAll(),
+        store.appointments.listAll(),
+        store.tasks.listAll(),
+        store.milestones.listAll(),
+        store.prepItems.listAll(),
+        store.categories.listAll(),
+        store.contractions.listAll(),
+        store.babies.listAll(),
+      ]);
+      const tx: CsvText = {
+        t: t as unknown as CsvText['t'],
+        twin,
+        person,
+        label,
+        scope: (scope, kind) => {
+          const key = scopeLabelKey(scope, kind);
+          return key ? t(key) : twin(scope);
+        },
+      };
+      const files = buildCsvFiles(
+        { logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, babies },
+        tx,
+      );
+      const now = new Date();
+      const blob = zip(
+        files.map((f) => ({ name: f.fileName, data: toCsv(f.rows) })),
+        now,
+      );
+      await shareFile(new File([blob], csvZipName(now), { type: 'application/zip' }), t('csv.shareTitle'));
+    } catch {
+      toast({ message: t('csv.failed') });
+    } finally {
+      setCsvBusy(false);
     }
   };
 
@@ -95,6 +161,13 @@ export function BackupSettings() {
             {t('backup.share')}
           </Button>
         )}
+      </div>
+      <div className="space-y-1.5">
+        <Button variant="secondary" className="w-full" onClick={() => void exportCsv()} disabled={csvBusy} aria-busy={csvBusy}>
+          <FileSpreadsheet aria-hidden size={18} />
+          {t('csv.export')}
+        </Button>
+        <p className="text-sm text-muted">{t('csv.exportHint')}</p>
       </div>
       <div className="space-y-1.5">
         <Button variant="secondary" className="w-full" onClick={() => fileInput.current?.click()}>

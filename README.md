@@ -194,6 +194,7 @@ Backups are still worth making: sync copies mistakes too, and the server is not 
 
 - **Download backup** saves a `.json` file with everything (checklist, logs, plans, notes, settings shared by both parents).
 - **Send backup** opens the phone's share sheet, so you can send the file to the other parent in a chat app.
+- **Export as spreadsheet (CSV)** makes `twins-organizer-YYYY-MM-DD.zip` (through the share sheet where the phone supports it) with one CSV file each for the log, pumping, the milk stash, appointments, tasks, milestones (with the age and corrected age in days), the checklist and contractions. Twin and family names instead of ids, the local date and time in separate columns, numbers with a decimal point, headers in the phone's language, deleted records left out, and UTF-8 with a byte order mark so Excel shows Cyrillic. On a computer set to a language that uses `;` between columns, Excel may put everything in one column: open the file with **Data → From Text/CSV** instead. It is for reading and sharing, not a backup (it cannot be imported).
 - **Import a backup** _merges_ the file into this phone. For each record, the most recently changed version wins. Records deleted on the other phone are deleted here too. Nothing else is removed, so importing an old backup cannot undo newer changes.
 
 Without sync, you can bring two phones in line by hand: send a backup from phone A to phone B and import it, then do the same from B to A.
@@ -297,6 +298,7 @@ Newer versions also add optional fields to existing records; an older phone may 
 - the night appearance switch, "stop both" timers and the backup reminder
 - translation completeness (same keys, plural forms and placeholders in both languages)
 - the CSV and ZIP writers (quoting, Cyrillic with a byte order mark, CRC-32, UTF-8 file names, unzipped again in the test)
+- the spreadsheet export (one file per area with headers in the phone's language, names instead of ids, notes with commas, quotes and line breaks, text that looks like an Excel formula, running pumping timers and deleted records left out, milestone ages, header-only files when there is nothing yet)
 
 ## Privacy
 

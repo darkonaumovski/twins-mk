@@ -1,0 +1,302 @@
+import { format } from 'date-fns';
+import { isKnownLog } from '@/data/logTypes';
+import type {
+  Appointment,
+  Baby,
+  BabyScope,
+  Category,
+  Contraction,
+  ISODateTime,
+  LogEntry,
+  Milestone,
+  MilkStashItem,
+  ParentTask,
+  PrepItem,
+  Pump,
+} from '@/data/types';
+import type { CsvCell } from '@/lib/csv';
+import { ageInfo } from '@/features/twins/age';
+import { finishedPumps } from '@/features/milk/logic';
+import { contractionRows } from '@/features/contractions/logic';
+import type { ScopeKind } from '@/features/plan/logic';
+
+/** Everything the spreadsheet export reads (live and deleted records; deleted ones are left out here). */
+export interface CsvData {
+  logs: readonly LogEntry[];
+  pumps: readonly Pump[];
+  milkStash: readonly MilkStashItem[];
+  appointments: readonly Appointment[];
+  tasks: readonly ParentTask[];
+  milestones: readonly Milestone[];
+  prepItems: readonly PrepItem[];
+  categories: readonly Category[];
+  contractions: readonly Contraction[];
+  babies: readonly Baby[];
+}
+
+/** Text in the phone's language: headers, names instead of ids, and translated values. */
+export interface CsvText {
+  t: (key: string, options?: Record<string, unknown>) => string;
+  twin: (babyId: string) => string;
+  person: (caregiverId: string) => string;
+  /** A checklist record's name, translated while it is still the starter text. */
+  label: (record: { name: string; seedKey: string | null }) => string;
+  scope: (scope: BabyScope, kind: ScopeKind) => string;
+}
+
+export interface CsvFile {
+  fileName: string;
+  rows: CsvCell[][];
+}
+
+const live = <T extends { deletedAt: string | null }>(list: readonly T[]) => list.filter((r) => r.deletedAt === null);
+/** A damaged timestamp gives an empty cell instead of failing the whole export. */
+const stamp = (iso: ISODateTime | null | undefined, pattern: string) =>
+  iso && !Number.isNaN(Date.parse(iso)) ? format(new Date(iso), pattern) : '';
+const day = (iso: ISODateTime) => stamp(iso, 'yyyy-MM-dd');
+const time = (iso: ISODateTime) => stamp(iso, 'HH:mm');
+const minutesBetween = (from: ISODateTime, to: ISODateTime) => Math.round((Date.parse(to) - Date.parse(from)) / 60_000);
+
+/**
+ * Free text, safe to open in Excel: a cell that starts with = + - or @ would be read as a
+ * formula ("-ate well" shows as #NAME?), so it gets a leading apostrophe. In a CSV file the
+ * apostrophe stays visible ("'-ate well"); that is the price of never running a formula.
+ */
+export function text(value: string | null | undefined): string {
+  if (!value) return '';
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
+/** An optional field a newer version may add to an entry's data (rash, stool colour, head size). */
+function extra(data: object, key: string): unknown {
+  return (data as Record<string, unknown>)[key];
+}
+
+function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
+  const { t } = tx;
+  const header = [
+    'date',
+    'time',
+    'twin',
+    'type',
+    'method',
+    'side',
+    'ml',
+    'milk',
+    'topUpMl',
+    'diaper',
+    'rash',
+    'stoolColor',
+    'sleepMinutes',
+    'medicine',
+    'dose',
+    'temperature',
+    'weightG',
+    'lengthCm',
+    'headCm',
+    'minutes',
+    'size',
+    'note',
+    'loggedBy',
+  ].map((k) => t(`csv.logs.${k}`));
+  const rows = live(entries)
+    .filter(isKnownLog)
+    .sort((a, b) => a.start.localeCompare(b.start) || a.babyId.localeCompare(b.babyId))
+    .map((e) => {
+      const c: Record<string, CsvCell> = {};
+      switch (e.type) {
+        case 'feed':
+          c.method = t(`log.${e.data.method === 'breast' ? 'breast' : 'bottle'}`);
+          if (e.data.method === 'breast') {
+            c.side = t(`activity.value.side.${e.data.side}`);
+            if (e.data.topUp) {
+              c.topUpMl = e.data.topUp.ml;
+              c.milk = t(`activity.value.milk.${e.data.topUp.milk}`);
+            }
+            c.minutes = e.end ? minutesBetween(e.start, e.end) : t('csv.running');
+          } else {
+            c.ml = e.data.ml;
+            c.milk = t(`activity.value.milk.${e.data.milk}`);
+          }
+          break;
+        case 'diaper': {
+          c.diaper = t(`activity.value.diaper.${e.data.kind}`);
+          const rash = extra(e.data, 'rash');
+          if (typeof rash === 'boolean') c.rash = rash ? t('activity.yes') : t('activity.no');
+          const color = extra(e.data, 'color');
+          if (typeof color === 'string') c.stoolColor = t(`csv.stoolColor.${color}`, { defaultValue: color });
+          break;
+        }
+        case 'sleep':
+          c.sleepMinutes = e.end ? minutesBetween(e.start, e.end) : t('csv.running');
+          break;
+        case 'med':
+          c.medicine = text(e.data.name);
+          c.dose = text(e.data.dose);
+          break;
+        case 'temp':
+          c.temperature = e.data.celsius;
+          break;
+        case 'measure': {
+          c.weightG = e.data.weightG;
+          c.lengthCm = e.data.lengthCm;
+          const head = extra(e.data, 'headCm');
+          if (typeof head === 'number') c.headCm = head;
+          break;
+        }
+        case 'tummy':
+          c.minutes = e.data.minutes;
+          break;
+        case 'spitup':
+          c.size = t(`activity.value.size.${e.data.size}`);
+          break;
+        case 'note':
+          c.note = text(e.data.text);
+          break;
+        case 'bath':
+          break;
+      }
+      return [
+        day(e.start),
+        time(e.start),
+        tx.twin(e.babyId),
+        t(`log.${e.type}`),
+        c.method,
+        c.side,
+        c.ml,
+        c.milk,
+        c.topUpMl,
+        c.diaper,
+        c.rash,
+        c.stoolColor,
+        c.sleepMinutes,
+        c.medicine,
+        c.dose,
+        c.temperature,
+        c.weightG,
+        c.lengthCm,
+        c.headCm,
+        c.minutes,
+        c.size,
+        c.note,
+        tx.person(e.loggedBy),
+      ];
+    });
+  return { fileName: 'logs.csv', rows: [header, ...rows] };
+}
+
+function pumpingCsv(pumps: readonly Pump[], tx: CsvText): CsvFile {
+  const header = ['date', 'time', 'minutes', 'leftMl', 'rightMl', 'totalMl', 'loggedBy'].map((k) => tx.t(`csv.pumping.${k}`));
+  // A running timer is not a finished session yet.
+  const rows = finishedPumps(pumps)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .map((p) => [day(p.start), time(p.start), p.minutes, p.leftMl, p.rightMl, p.totalMl, tx.person(p.loggedBy)]);
+  return { fileName: 'pumping.csv', rows: [header, ...rows] };
+}
+
+function stashCsv(items: readonly MilkStashItem[], tx: CsvText): CsvFile {
+  const header = ['date', 'time', 'ml', 'place', 'usedOn'].map((k) => tx.t(`csv.stash.${k}`));
+  const rows = live(items)
+    .sort((a, b) => a.pumpedAt.localeCompare(b.pumpedAt))
+    .map((s) => [day(s.pumpedAt), time(s.pumpedAt), s.ml, tx.t(`stash.${s.location}`), s.usedAt ? day(s.usedAt) : '']);
+  return { fileName: 'milk-stash.csv', rows: [header, ...rows] };
+}
+
+function appointmentsCsv(appointments: readonly Appointment[], tx: CsvText): CsvFile {
+  const header = ['date', 'time', 'title', 'for', 'place', 'notes'].map((k) => tx.t(`csv.appointments.${k}`));
+  const rows = live(appointments)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .map((a) => [day(a.start), time(a.start), text(a.title), tx.scope(a.babies, 'appointment'), text(a.location), text(a.notes)]);
+  return { fileName: 'appointments.csv', rows: [header, ...rows] };
+}
+
+function tasksCsv(tasks: readonly ParentTask[], tx: CsvText): CsvFile {
+  const header = ['title', 'who', 'due', 'done', 'notes'].map((k) => tx.t(`csv.tasks.${k}`));
+  const rows = live(tasks)
+    .sort((a, b) => (a.due ?? '9999').localeCompare(b.due ?? '9999') || a.createdAt.localeCompare(b.createdAt))
+    .map((task) => [
+      text(task.title),
+      task.assignee ? tx.person(task.assignee) : '',
+      task.due ?? '',
+      task.done ? tx.t('activity.yes') : tx.t('activity.no'),
+      text(task.notes),
+    ]);
+  return { fileName: 'tasks.csv', rows: [header, ...rows] };
+}
+
+function milestonesCsv(milestones: readonly Milestone[], babies: readonly Baby[], tx: CsvText): CsvFile {
+  const header = ['twin', 'milestone', 'date', 'ageDays', 'correctedAgeDays', 'note'].map((k) => tx.t(`csv.milestones.${k}`));
+  const rows = live(milestones)
+    .filter((m) => m.date !== null)
+    .sort((a, b) => a.date!.localeCompare(b.date!) || a.babyId.localeCompare(b.babyId))
+    .map((m) => {
+      const baby = babies.find((b) => b.id === m.babyId && b.deletedAt === null);
+      // The age on that day (noon, so the time zone never moves it to another day).
+      const age = baby ? ageInfo(baby, new Date(`${m.date}T12:00:00`)) : null;
+      const title = m.key ? tx.t(`milestones.keys.${m.key}`) : text(m.title);
+      return [tx.twin(m.babyId), title, m.date, age?.actualDays, age?.correctedDays, text(m.note)];
+    });
+  return { fileName: 'milestones.csv', rows: [header, ...rows] };
+}
+
+function checklistCsv(items: readonly PrepItem[], categories: readonly Category[], tx: CsvText): CsvFile {
+  const header = ['category', 'item', 'scope', 'quantity', 'acquired', 'status', 'estimatedUnitPrice', 'actualPrice', 'store'].map((k) =>
+    tx.t(`csv.checklist.${k}`),
+  );
+  const cats = new Map(live(categories).map((c) => [c.id, c]));
+  const rows = live(items)
+    .sort(
+      (a, b) =>
+        (cats.get(a.categoryId)?.order ?? 999) - (cats.get(b.categoryId)?.order ?? 999) || a.order - b.order || a.id.localeCompare(b.id),
+    )
+    .map((item) => {
+      const cat = cats.get(item.categoryId);
+      const task = item.kind === 'task';
+      return [
+        cat ? text(tx.label(cat)) : '',
+        text(tx.label(item)),
+        task ? '' : tx.t(`activity.value.scope.${item.scope}`),
+        task ? '' : item.quantity,
+        task ? '' : item.acquired,
+        task ? (item.done ? tx.t('activity.yes') : tx.t('activity.no')) : tx.t(`status.${item.status}`),
+        item.estimatedUnitPrice,
+        item.actualPrice,
+        text(item.store),
+      ];
+    });
+  return { fileName: 'checklist.csv', rows: [header, ...rows] };
+}
+
+function contractionsCsv(list: readonly Contraction[], tx: CsvText): CsvFile {
+  const header = ['date', 'start', 'lengthSec', 'sincePreviousSec'].map((k) => tx.t(`csv.contractions.${k}`));
+  const rows = contractionRows(list)
+    .reverse()
+    .map((r) => [day(r.start), format(new Date(r.start), 'HH:mm:ss'), r.durationSec, r.sincePreviousSec]);
+  return { fileName: 'contractions.csv', rows: [header, ...rows] };
+}
+
+/** One spreadsheet per area. Every file has its header row, even when there is nothing in it yet. */
+export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
+  // Names are typed by the parents too, so they get the same formula guard as notes.
+  const tx: CsvText = {
+    ...raw,
+    twin: (id) => text(raw.twin(id)),
+    person: (id) => text(raw.person(id)),
+    scope: (scope, kind) => text(raw.scope(scope, kind)),
+  };
+  return [
+    logsCsv(data.logs, tx),
+    pumpingCsv(data.pumps, tx),
+    stashCsv(data.milkStash, tx),
+    appointmentsCsv(data.appointments, tx),
+    tasksCsv(data.tasks, tx),
+    milestonesCsv(data.milestones, data.babies, tx),
+    checklistCsv(data.prepItems, data.categories, tx),
+    contractionsCsv(data.contractions, tx),
+  ];
+}
+
+/** `twins-organizer-2026-10-12.zip` */
+export function csvZipName(now: Date): string {
+  return `twins-organizer-${format(now, 'yyyy-MM-dd')}.zip`;
+}

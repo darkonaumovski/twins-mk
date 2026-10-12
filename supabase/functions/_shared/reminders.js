@@ -5390,6 +5390,94 @@ var en = {
 			invalidRecord: "This backup file is damaged and was not imported."
 		}
 	},
+	csv: {
+		export: "Export as spreadsheet (CSV)",
+		exportHint: "A zip file with one CSV spreadsheet each for the log, pumping, the milk stash, appointments, tasks, milestones, the checklist and contractions. If Excel puts everything in one column, open it with “Data → From Text/CSV”.",
+		shareTitle: "Twins Organizer spreadsheets",
+		failed: "The spreadsheets could not be made.",
+		running: "running",
+		logs: {
+			date: "Date",
+			time: "Time",
+			twin: "Twin",
+			type: "Type",
+			method: "Method",
+			side: "Side",
+			ml: "ml",
+			milk: "Milk",
+			topUpMl: "Top-up (ml)",
+			diaper: "Diaper",
+			rash: "Rash",
+			stoolColor: "Stool colour",
+			sleepMinutes: "Sleep (min)",
+			medicine: "Medicine",
+			dose: "Dose",
+			temperature: "Temperature (°C)",
+			weightG: "Weight (g)",
+			lengthCm: "Length (cm)",
+			headCm: "Head (cm)",
+			minutes: "Minutes",
+			size: "Size",
+			note: "Note",
+			loggedBy: "Logged by"
+		},
+		pumping: {
+			date: "Date",
+			time: "Time",
+			minutes: "Minutes",
+			leftMl: "Left (ml)",
+			rightMl: "Right (ml)",
+			totalMl: "Total (ml)",
+			loggedBy: "Logged by"
+		},
+		stash: {
+			date: "Pumped on",
+			time: "Time",
+			ml: "ml",
+			place: "Place",
+			usedOn: "Used on"
+		},
+		appointments: {
+			date: "Date",
+			time: "Time",
+			title: "What",
+			for: "For",
+			place: "Where",
+			notes: "Notes"
+		},
+		tasks: {
+			title: "Task",
+			who: "Who",
+			due: "Due",
+			done: "Done",
+			notes: "Notes"
+		},
+		milestones: {
+			twin: "Twin",
+			milestone: "Milestone",
+			date: "Date",
+			ageDays: "Age (days)",
+			correctedAgeDays: "Corrected age (days)",
+			note: "Note"
+		},
+		checklist: {
+			category: "Category",
+			item: "Item",
+			scope: "Per twin or shared",
+			quantity: "Quantity",
+			acquired: "Acquired",
+			status: "Status",
+			estimatedUnitPrice: "Estimated price each",
+			actualPrice: "Paid",
+			store: "Store"
+		},
+		contractions: {
+			date: "Date",
+			start: "Start",
+			lengthSec: "Length (seconds)",
+			sincePreviousSec: "Since previous (seconds)"
+		}
+	},
 	sync: {
 		title: "Sync between phones",
 		intro: "Both parents see the same data. A change on one phone shows up on the other within seconds. Without internet, changes wait on the phone and are sent later.",
@@ -6727,6 +6815,94 @@ var mk = {
 			notBackup: "Ова не е резервна копија од Twins Organizer.",
 			newerVersion: "Оваа копија е од понова верзија на Twins Organizer. Прво ажурирајте ја апликацијата.",
 			invalidRecord: "Датотеката е оштетена и не е внесена."
+		}
+	},
+	csv: {
+		export: "Извези како табела (CSV)",
+		exportHint: "Зип-датотека со по една CSV-табела за записите, измолзувањето, залихата млеко, термините, задачите, важните моменти, листата и контракциите. Ако Excel не ги подели колоните, отворете ја преку „Податоци → Од текст/CSV“.",
+		shareTitle: "Twins Organizer – табели",
+		failed: "Табелите не можеа да се направат.",
+		running: "тече",
+		logs: {
+			date: "Датум",
+			time: "Време",
+			twin: "Близнак",
+			type: "Вид",
+			method: "Начин",
+			side: "Страна",
+			ml: "ml",
+			milk: "Млеко",
+			topUpMl: "Дополнување (ml)",
+			diaper: "Пелена",
+			rash: "Осип",
+			stoolColor: "Боја на столицата",
+			sleepMinutes: "Сон (мин)",
+			medicine: "Лек",
+			dose: "Доза",
+			temperature: "Температура (°C)",
+			weightG: "Тежина (g)",
+			lengthCm: "Должина (cm)",
+			headCm: "Обем на главата (cm)",
+			minutes: "Минути",
+			size: "Големина",
+			note: "Белешка",
+			loggedBy: "Запишал/а"
+		},
+		pumping: {
+			date: "Датум",
+			time: "Време",
+			minutes: "Минути",
+			leftMl: "Лева (ml)",
+			rightMl: "Десна (ml)",
+			totalMl: "Вкупно (ml)",
+			loggedBy: "Запишал/а"
+		},
+		stash: {
+			date: "Измолзено на",
+			time: "Време",
+			ml: "ml",
+			place: "Каде",
+			usedOn: "Искористено на"
+		},
+		appointments: {
+			date: "Датум",
+			time: "Време",
+			title: "Што",
+			for: "За",
+			place: "Каде",
+			notes: "Белешки"
+		},
+		tasks: {
+			title: "Задача",
+			who: "Кој",
+			due: "Рок",
+			done: "Завршено",
+			notes: "Белешки"
+		},
+		milestones: {
+			twin: "Близнак",
+			milestone: "Важен момент",
+			date: "Датум",
+			ageDays: "Возраст (денови)",
+			correctedAgeDays: "Коригирана возраст (денови)",
+			note: "Белешка"
+		},
+		checklist: {
+			category: "Категорија",
+			item: "Предмет",
+			scope: "По близнак или заедничко",
+			quantity: "Количина",
+			acquired: "Набавено",
+			status: "Статус",
+			estimatedUnitPrice: "Проценета цена по парче",
+			actualPrice: "Платено",
+			store: "Продавница"
+		},
+		contractions: {
+			date: "Датум",
+			start: "Почеток",
+			lengthSec: "Траење (секунди)",
+			sincePreviousSec: "Од претходната (секунди)"
 		}
 	},
 	sync: {

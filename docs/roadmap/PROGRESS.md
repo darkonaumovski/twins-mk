@@ -23,8 +23,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins       |
 | F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today                 |
 | F03 | Contraction timer        | ✅     | d9fe6a5       | Checklist → Contractions (prep phase); Plan in F04          |
-| F04 | Plan before the birth    | ✅     | (next commit) | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
-| F05 | Spreadsheet export (CSV) | ⬜     |               |                                                             |
+| F04 | Plan before the birth    | ✅     | 0c8f7f6       | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
+| F05 | Spreadsheet export (CSV) | ✅     | (next commit) | Settings → Backup → Export as spreadsheet (CSV)             |
 | F06 | Descriptive insights     | ⬜     |               |                                                             |
 
 ## Phase 2: health records and the mother
@@ -91,6 +91,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F04 · Tapping an appointment's push reminder now opens the start page (`./#/`), which picks the screen for the phase (the checklist before the birth, Today after); other reminders still open Today. Function bundle rebuilt.
 - 2026-10-12 · F04 · The notes filter only shows while there are notes for the mother; without them the list shows all. Adding a note resets the filter to All, so the new note is visible. Shopping has a link back to Budget.
 - 2026-10-12 · F04 · Push text for a 'none' appointment already read well ("Ultrasound at 10:30", body: the place); no change to `src/server`, only a test.
+- 2026-10-12 · F05 · `buildCsvFiles` (pure, tested) builds the files; the button zips them with `src/lib/zip.ts` and shares or downloads the zip like "Send backup". It does not count as a backup (no "last backup" update).
+- 2026-10-12 · F05 · Comma separator, as the spec says. Excel on a PC with Macedonian regional settings expects `;`; the hint under the button and the README say to use "Data → From Text/CSV" then. A `sep=,` line was not added: it makes Excel ignore the byte order mark and garble Cyrillic.
+- 2026-10-12 · F05 · Text cells (notes, titles, names) that start with `=`, `+`, `-` or `@` get a leading `'`, so Excel never runs them as formulas. In a CSV the apostrophe stays visible ("'- ate well"); numbers are left alone.
+- 2026-10-12 · F05 · Android Chrome does not share `.zip` files through the share sheet, so on Android the zip downloads (then share it from Downloads); iPhone shows the share sheet. A running breastfeed or sleep says "running" in its minutes cell; a damaged timestamp gives empty date/time cells instead of failing the export.
+- 2026-10-12 · F05 · logs.csv has every spec column. "Rash", "Stool colour" and "Head (cm)" are filled from F08/F09's optional fields when present, so those features need no CSV change for logs. Added two columns the spec did not list: "Minutes" also carries breastfeeding length, and "Size" holds the spit-up size (otherwise lost). Bath rows have only date, time, twin and type.
+- 2026-10-12 · F05 · Milestones: age and corrected age as whole days on the milestone's date (numbers sort and calculate in a spreadsheet); corrected age only for twins born before 37+0, negative before term. Milestones without a date are left out.
+- 2026-10-12 · F05 · checklist.csv: the price column is the estimated price per piece (as entered); tasks in the checklist have no scope/quantity, and their status column says Yes/No for done.
+- 2026-10-12 · F05 · contractions.csv is already there (F03). Later features add theirs (vaccines, mother, foods).
 
 ## Phone test checklists
 
@@ -140,6 +148,15 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 4. Open **Notes for the doctor** from the calendar, add a question: it is preset to **For the mother**. The filter **All / Twins / Mother** appears.
 5. Switch to the daily planner (Settings → Twins), open **Report**: the mother's question is not there until **Include notes for the mother** is switched on.
 6. With push reminders on, an appointment for the mother arrives as "Ultrasound at 10:30" with the place underneath.
+
+### F05 (spreadsheet export)
+
+1. Settings → Backup → **Export as spreadsheet (CSV)**. The share sheet opens with `twins-organizer-<today>.zip` (or it downloads).
+2. Send it to yourself and open it on a computer: 8 CSV files.
+3. Open `logs.csv` in Excel or LibreOffice: Cyrillic names read correctly, one row per entry, date and time in separate columns, twin names (not ids).
+4. Write a note with a comma and quotes ("ate, "well"") and export again: the note stays in one cell.
+5. If Excel shows everything in one column, use **Data → From Text/CSV**: the columns separate.
+6. Delete an entry and export again: it is gone from the file. With a pumping timer running, it is not in `pumping.csv`.
 
 ## Follow-ups
 
