@@ -18,14 +18,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 1: quick wins
 
-| ID  | Feature                  | Status | Commit        | Notes                                                       |
-| --- | ------------------------ | ------ | ------------- | ----------------------------------------------------------- |
-| F01 | Twin rhythm chart        | ✅     | 512227f       | History → "Twin rhythm"; settings in Settings → Twins       |
-| F02 | Pumping timer            | ✅     | fc9493c       | More → Start pumping; running card on Today                 |
-| F03 | Contraction timer        | ✅     | d9fe6a5       | Checklist → Contractions (prep phase); Plan in F04          |
-| F04 | Plan before the birth    | ✅     | 0c8f7f6       | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
-| F05 | Spreadsheet export (CSV) | ✅     | cc83510       | Settings → Backup → Export as spreadsheet (CSV)             |
-| F06 | Descriptive insights     | 🟨     | (next commit) | History → "This week"                                       |
+| ID  | Feature                  | Status | Commit                 | Notes                                                       |
+| --- | ------------------------ | ------ | ---------------------- | ----------------------------------------------------------- |
+| F01 | Twin rhythm chart        | ✅     | 512227f                | History → "Twin rhythm"; settings in Settings → Twins       |
+| F02 | Pumping timer            | ✅     | fc9493c                | More → Start pumping; running card on Today                 |
+| F03 | Contraction timer        | ✅     | d9fe6a5                | Checklist → Contractions (prep phase); Plan in F04          |
+| F04 | Plan before the birth    | ✅     | 0c8f7f6                | Prep tabs: Checklist, Plan, Budget, Notifications, Settings |
+| F05 | Spreadsheet export (CSV) | ✅     | cc83510                | Settings → Backup → Export as spreadsheet (CSV)             |
+| F06 | Descriptive insights     | ✅     | 7ca7417, (next commit) | History → "This week"                                       |
 
 ## Phase 2: health records and the mother
 
@@ -105,10 +105,35 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-12 · F06 · Feed gaps are taken between feed starts inside the week only; a gap whose days in between include one with no feeds for that twin is left out. A tandem feed is one entry per twin, so it counts once per twin naturally.
 - 2026-10-12 · F06 · The change from the week before is shown as an arrow and the absolute difference in muted text (screen readers hear "more/less than the week before"). No change, or nothing to compare, shows nothing. ml and breastfeeding rows appear only when there is something to show.
 - 2026-10-12 · F06 · The night-hours hint in Settings now also mentions the day/night split.
+- 2026-10-13 · F06 review · Today is left out of the per-day averages until it is over (it would pull them down every morning); the card says so. It still counts for the longest sleep and the feed gaps.
+- 2026-10-13 · F06 review · Missing data shows as "–", not 0: no sleep logged means no sleep figure, no feeds logged means no feed figures.
+- 2026-10-13 · F06 review · A day counts as "with entries" if an entry starts in it or a sleep or breastfeed from before runs into it (last night's sleep into an empty morning).
+- 2026-10-13 · F06 review · A gap between feeds is left out when the two starts are more than one day apart or the gap is 24 hours or more (missing data). The longest sleep is "the night of …" when most of it fell in the night hours.
+- 2026-10-13 · F06 review · The title says "This week" for the week ending today and "7 days to …" for an earlier one. A daylight-saving test (`insights.dst.test.ts`, Europe/Skopje) checks the 25-hour night of 25 Oct.
 
 ## Phone test checklists
 
 <!-- Per feature: 3–8 steps Darko can follow on his phone. -->
+
+### Phase 1, combined (one session, both phones)
+
+Before: run `005_roadmap_collections.sql` once in Supabase (a second run must also succeed). Install the `roadmap` build on both phones (see "Try it" below).
+
+1. **Sync still works:** log a bottle on phone A; it shows on phone B within seconds.
+2. **Preparation phase** (Settings → Twins → Daily planner off): the tabs are Checklist, Plan, Budget, Notifications, Settings; Budget links to Shopping and back.
+3. **Plan before the birth:** Plan has Calendar and Tasks plus the Contractions card. A new appointment defaults to "Pregnancy / mother"; a new note for the doctor defaults to "For the mother", and the notes filter appears.
+4. **Contractions:** Checklist (or Plan) → Contractions. Start/Stop three times: lengths, intervals and "Last 60 minutes" add up; the screen stays on. Phone B gets one "Started timing contractions" message, not one per contraction. Delete one (undo), then Clear all (undo).
+5. **Daily planner** (switch it back on). History → **Twin rhythm**: A above B per day, a "both twins" feed draws one line through both rows, night hours shaded, 7/14 days, the table view, and tapping a day opens it.
+6. **Pumping timer:** + → More → Start pumping (both sides). Today shows it; phone B too. Stop on either phone: the sheet asks for the ml with the minutes filled in; save with the stash on: one stash container, even if both phones saved.
+7. **This week** (History): per twin, longest sleep, sleep per day (day/night), between feeds, feeds and ml per day, arrows against the week before, "Based on N days", and "Today counts once it is over". Tap a value for the explanation.
+8. **Report:** More → Report. The mother's notes are left out until "Include notes for the mother" is on, and then marked "For the mother".
+9. **Spreadsheets:** Settings → Backup → Export as spreadsheet (CSV): a zip with 8 files (on Android it downloads). `logs.csv` opens in Excel with Cyrillic intact.
+10. **Settings → Twins:** change night hours and "together" minutes; the rhythm chart and This week follow on both phones.
+11. **Night appearance** and a narrow phone: the rhythm chart, the contraction timer and This week stay readable.
+
+### Try it on a phone from this computer
+
+On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and open the printed Network address on the phone (for example `http://192.168.x.x:5173`). Or `npm run build && npm run preview -- --host` for the production build. Installing and offline mode need HTTPS, so those are tested on the deployed site after merging.
 
 ### F00 (foundation)
 
@@ -176,5 +201,3 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 ## Follow-ups
 
 <!-- Things noticed along the way that are out of scope. -->
-
-- F06 review findings still to fix (next session, before Phase 2): (1) a twin with no sleep or no feeds logged in the week shows "0 min" / "0" instead of "–"; (2) today, a partial day, counts as a full day in the averages, so they dip every morning; (3) a day counts as active only if an entry starts in it (sleep spilling into an empty morning is dropped); (4) simplify the skipped-day gap rule and consider leaving out gaps of 24 h or more; (5) "night" for the longest sleep is decided by its start only; (6) tests for DST, a 00:00–06:00 night, from = to, a sleep starting before the week; (7) format ml with summary.ml; (8) useMemo for the weekly computation; (9) aria-describedby from each value to its label; (10) wording: "Доење на ден", "Врз основа на", one-sentence explanations, "7 дена до …" when a past day is selected; (11) a combined Phase 1 phone checklist in this file.

@@ -104,11 +104,69 @@ describe('weekly insights', () => {
     }
   });
 
-  it('counts a running sleep up to now', () => {
-    const now = new Date(2026, 9, 11, 23, 0);
-    const w = weekInsights([sleep(at(11, 20), null)], 'baby-A', '2026-10-11', NIGHT, now);
-    expect(w.longestSleep).toEqual({ minutes: 180, day: '2026-10-11', night: true });
-    expect(w.sleepPerDay).toEqual({ total: 180, day: 0, night: 180 });
+  it('counts a running sleep up to now, and leaves today out of the averages until it is over', () => {
+    // Last night's sleep is still running at 09:00: its night (the 10th) is over, today (the 11th) is not.
+    const now = new Date(2026, 9, 11, 9, 0);
+    const w = weekInsights([sleep(at(10, 20), null), bottle(at(11, 8))], 'baby-A', '2026-10-11', NIGHT, now);
+    expect(w.longestSleep).toEqual({ minutes: 780, day: '2026-10-10', night: true });
+    // The 10th counts (the sleep runs into it); today's 08:00 feed does not pull the averages down yet.
+    expect(w).toMatchObject({ days: 1, todayLeftOut: true, sleepPerDay: { total: 660, day: 0, night: 660 }, feedsPerDay: null });
+    // A week in the past has nothing left out.
+    expect(weekInsights([], 'baby-A', '2026-10-04', NIGHT, now).todayLeftOut).toBe(false);
+  });
+
+  it('shows missing data as missing, not as zero', () => {
+    // Only feeds logged: no sleep figure. Only sleep logged: no feed figures.
+    const feedsOnly = weekInsights([bottle(at(9, 9)), bottle(at(9, 12))], 'baby-A', '2026-10-11', NIGHT, late);
+    expect(feedsOnly).toMatchObject({ days: 1, sleepPerDay: null, feedsPerDay: 2, breastMinPerDay: null });
+    const sleepOnly = weekInsights([sleep(at(9, 13), at(9, 15))], 'baby-A', '2026-10-11', NIGHT, late);
+    expect(sleepOnly).toMatchObject({ days: 1, feedsPerDay: null, mlPerDay: null, sleepPerDay: { total: 120 } });
+  });
+
+  it('counts a sleep that spills into a day with nothing else logged', () => {
+    // 20:00 on the 9th to 10:00 on the 10th; nothing else on the 10th.
+    const w = weekInsights([sleep(at(9, 20), at(10, 10)), bottle(at(9, 9))], 'baby-A', '2026-10-11', NIGHT, late);
+    expect(w.days).toBe(2);
+    expect(w.sleepPerDay).toEqual({ total: 420, day: 90, night: 330 });
+  });
+
+  it('counts a sleep that started in the week before only where it falls', () => {
+    // 22:00 on the 4th (previous week) to 08:00 on the 5th: the first hour is in this week.
+    const entries = [sleep(at(4, 22), at(5, 8)), bottle(at(5, 9))];
+    const { current, previous } = insightsWithChange(entries, 'baby-A', '2026-10-11', NIGHT, late);
+    expect(current.sleepPerDay).toEqual({ total: 60, day: 60, night: 0 });
+    expect(current.longestSleep).toBeNull();
+    expect(previous.longestSleep?.minutes).toBe(600);
+  });
+
+  it('calls a sleep "night" when most of it falls in the night hours', () => {
+    const early = { from: '00:00', to: '06:00' };
+    // 23:00–05:00 with a 00:00–06:00 night: 5 of 6 hours at night.
+    expect(weekInsights([sleep(at(10, 23), at(11, 5))], 'baby-A', '2026-10-11', early, late).longestSleep).toEqual({
+      minutes: 360,
+      day: '2026-10-10',
+      night: true,
+    });
+  });
+
+  it('splits day and night for a night within the day, and has no night when the times are equal', () => {
+    const entries = [sleep(at(10, 23), at(11, 2)), bottle(at(10, 9))];
+    expect(weekInsights(entries, 'baby-A', '2026-10-11', { from: '00:00', to: '06:00' }, late).sleepPerDay).toEqual({
+      total: 180,
+      day: 60,
+      night: 120,
+    });
+    expect(weekInsights(entries, 'baby-A', '2026-10-11', { from: '07:00', to: '07:00' }, late).sleepPerDay).toEqual({
+      total: 180,
+      day: 180,
+      night: 0,
+    });
+  });
+
+  it('leaves out a gap of a full day or more between feeds', () => {
+    // 08:00 on the 10th and 06:00 on the 12th fall on neighbouring days (the 12th's 06:00 is the 11th's night).
+    const w = weekInsights([bottle(at(10, 8)), bottle(at(12, 6))], 'baby-A', '2026-10-12', NIGHT, late);
+    expect(w.feedGapMin).toBeNull();
   });
 
   it('gives nothing to average for a twin with no entries (e.g. still in hospital and not logged)', () => {
@@ -117,6 +175,7 @@ describe('weekly insights', () => {
       sleepPerDay: null,
       feedsPerDay: null,
       longestSleep: null,
+      feedGapMin: null,
     });
   });
 
