@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { useToast } from '@/components/Toast';
@@ -24,6 +25,7 @@ export function ChangeNotifier() {
   const store = useStore();
   const engine = useSyncEngine();
   const toast = useToast();
+  const navigate = useNavigate();
   const prefs = useDevicePrefs();
   const describe = useDescribeEntry();
   const twin = useTwinName(useBabies());
@@ -31,8 +33,8 @@ export function ChangeNotifier() {
   const parentName = useCaregiverName();
   const caregiverIds = useCaregivers()?.map((c) => c.id) ?? ['p1', 'p2'];
 
-  const latest = useRef({ t, i18n, toast, prefs, describe, twin, label, parentName, caregiverIds });
-  latest.current = { t, i18n, toast, prefs, describe, twin, label, parentName, caregiverIds };
+  const latest = useRef({ t, i18n, toast, navigate, prefs, describe, twin, label, parentName, caregiverIds });
+  latest.current = { t, i18n, toast, navigate, prefs, describe, twin, label, parentName, caregiverIds };
 
   useEffect(
     () =>
@@ -61,9 +63,12 @@ export function ChangeNotifier() {
         const summary = summarizeChanges(news, p.parent, helpers);
         if (!summary) return;
 
-        if (document.visibilityState === 'visible') ctx.toast({ message: summary.toast });
+        if (document.visibilityState === 'visible') {
+          ctx.toast({ message: summary.toast, action: { label: ctx.t('activity.view'), onClick: () => ctx.navigate('/notifications') } });
+        }
         // Same tag, so a burst of changes replaces one notification instead of stacking up.
-        else void showNotification(summary.title, summary.body, 'sync-changes');
+        // Tapping it opens the notification history.
+        else void showNotification(summary.title, summary.body, 'sync-changes', '#/notifications');
       }),
     [engine, store],
   );

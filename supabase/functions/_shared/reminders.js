@@ -4585,7 +4585,10 @@ var en = {
 		history: "History",
 		log: "Log",
 		plan: "Plan",
-		more: "More"
+		more: "More",
+		notifications: "Updates",
+		unread_one: "{{count}} unread",
+		unread_other: "{{count}} unread"
 	},
 	common: {
 		close: "Close",
@@ -5447,6 +5450,193 @@ var en = {
 			deleted: "Milestone removed: {{title}} · {{twin}}"
 		}
 	},
+	activity: {
+		title: "Notifications",
+		intro: "Every change in the app: who made it, when, and exactly what changed. Tap a change to see the details. Kept on this phone for 90 days.",
+		alertsOff: "Change alerts are off in Settings, but changes are still listed here.",
+		filter: "Show",
+		filterAll: "All",
+		filterOthers: "From others",
+		filterMine: "Mine",
+		empty: "No changes yet. Changes made on this phone, and those sync brings in from the other phones, appear here.",
+		emptyFiltered: "No changes here yet.",
+		today: "Today",
+		yesterday: "Yesterday",
+		you: "(you)",
+		new: "New",
+		view: "View",
+		unknown: "Change from a newer version of the app",
+		noFieldChanges: "No details to show for this change.",
+		becomes: "changed to",
+		exactTime: "At {{when}}",
+		thisPhone: "on this phone",
+		otherPhone: "on another phone",
+		showMore: "Show older changes",
+		clear: "Clear history",
+		clearTitle: "Clear the notification history?",
+		clearBody: "Only this list on this phone is cleared. Nothing else changes, and the other phones keep their own history.",
+		yes: "Yes",
+		no: "No",
+		days_one: "{{count}} day",
+		days_other: "{{count}} days",
+		action: {
+			added: "Added",
+			changed: "Changed",
+			deleted: "Deleted"
+		},
+		value: {
+			noTwin: "Neither twin",
+			method: {
+				breast: "Breast",
+				bottle: "Bottle"
+			},
+			side: {
+				left: "Left",
+				right: "Right",
+				both: "Both sides"
+			},
+			milk: {
+				breast: "Breast milk",
+				formula: "Formula"
+			},
+			size: {
+				small: "Small",
+				large: "Large"
+			},
+			diaper: {
+				wet: "Wet",
+				dirty: "Dirty",
+				both: "Wet + dirty"
+			},
+			ruleKind: {
+				afterLast: "Every few hours after the last one",
+				everyDays: "At set times"
+			},
+			neededByKind: {
+				week: "Pregnancy week",
+				date: "Date"
+			},
+			phase: {
+				prep: "Preparation",
+				planner: "Daily planner"
+			},
+			scope: {
+				perBaby: "Per twin",
+				shared: "Shared"
+			},
+			priority: {
+				must: "Must have",
+				nice: "Nice to have"
+			},
+			source: {
+				diapers: "Diapers",
+				formula: "Formula"
+			},
+			prepKind: {
+				item: "Item",
+				task: "Task"
+			},
+			location: {
+				home: "Home",
+				hospital: "Hospital",
+				fridge: "Fridge",
+				freezer: "Freezer"
+			}
+		},
+		field: {
+			name: "Name",
+			title: "Title",
+			text: "Text",
+			notes: "Notes",
+			note: "Note",
+			type: "Type",
+			kind: "Kind",
+			key: "Milestone",
+			status: "Status",
+			done: "Done",
+			active: "Active",
+			babyId: "Twin",
+			babies: "Twins",
+			loggedBy: "Logged by",
+			assignee: "Assigned to",
+			start: "Start",
+			end: "End",
+			due: "Due",
+			date: "Date",
+			location: "Place",
+			categoryId: "Category",
+			scope: "Quantity is",
+			quantity: "Quantity",
+			acquired: "Have",
+			priority: "Priority",
+			estimatedUnitPrice: "Estimated price (each)",
+			actualPrice: "Price paid",
+			store: "Store",
+			link: "Link",
+			neededBy_kind: "Needed by",
+			neededBy_week: "Needed by week",
+			neededBy_date: "Needed by date",
+			slot: "Twin",
+			color: "Colour",
+			birthDateTime: "Born",
+			birthWeightG: "Birth weight",
+			birthLengthCm: "Birth length",
+			feedIntervalMin: "Feeds about every",
+			gestationWeeksAtBirth: "Weeks of pregnancy at birth",
+			gestationDaysAtBirth: "Days (gestation)",
+			data_method: "How",
+			data_side: "Side",
+			data_ml: "Amount",
+			data_milk: "Milk",
+			data_topUp_ml: "Top-up bottle",
+			data_topUp_milk: "Top-up milk",
+			data_kind: "Diaper",
+			data_name: "Medicine",
+			data_dose: "Dose",
+			data_weightG: "Weight",
+			data_lengthCm: "Length",
+			data_text: "Note",
+			data_celsius: "Temperature",
+			data_size: "Size",
+			data_minutes: "Minutes",
+			minutes: "Minutes",
+			leftMl: "Left side",
+			rightMl: "Right side",
+			totalMl: "Total",
+			ml: "Amount",
+			pumpedAt: "Pumped",
+			usedAt: "Used",
+			source: "Supply",
+			stock: "Stock",
+			countedAt: "Counted",
+			packSize: "Pack size",
+			lowThresholdDays: "Warn when left for less than",
+			rule_kind: "Repeats",
+			rule_hours: "Every",
+			rule_logType: "Counted from",
+			rule_days: "Every",
+			rule_times: "Times",
+			rule_startDate: "Starting",
+			med_name: "Medicine",
+			med_dose: "Dose",
+			med_minIntervalHours: "At least this long between doses",
+			onlyWhenHome: "Only while at home",
+			routineId: "Routine",
+			occurrence: "For",
+			reviewedAt: "Discussed with the doctor",
+			currency: "Currency",
+			dueDate: "Due date",
+			expectedDelivery: "Planned delivery",
+			parent1Name: "Parent 1",
+			parent2Name: "Parent 2",
+			phase: "App mode",
+			feedNudgeMin: "Offer to feed the other twin within",
+			stashUseWithinDays_fridge: "Use within (fridge)",
+			stashUseWithinDays_freezer: "Use within (freezer)",
+			nightShifts: "Night shifts",
+			timeZone: "Time zone"
+		}
+	},
 	install: {
 		title: "Install",
 		why: "Installed on the home screen, the app opens like any other, works without internet and keeps its data safer.",
@@ -5643,7 +5833,10 @@ var mk = {
 		history: "Историја",
 		log: "Запиши",
 		plan: "План",
-		more: "Повеќе"
+		more: "Повеќе",
+		notifications: "Новости",
+		unread_one: "{{count}} непрочитано",
+		unread_other: "{{count}} непрочитани"
 	},
 	common: {
 		close: "Затвори",
@@ -6503,6 +6696,193 @@ var mk = {
 		milestones: {
 			added: "{{title}} · {{twin}} · {{when}}",
 			deleted: "Избришан момент: {{title}} · {{twin}}"
+		}
+	},
+	activity: {
+		title: "Известувања",
+		intro: "Секоја промена во апликацијата: кој ја направил, кога и што точно е променето. Допрете промена за деталите. Се чуваат на овој телефон 90 дена.",
+		alertsOff: "Известувањата за промени се исклучени во Поставки, но промените сепак се прикажуваат тука.",
+		filter: "Прикажи",
+		filterAll: "Сите",
+		filterOthers: "Од другите",
+		filterMine: "Мои",
+		empty: "Сè уште нема промени. Тука се прикажуваат промените направени на овој телефон и оние што синхронизацијата ги носи од другите телефони.",
+		emptyFiltered: "Сè уште нема промени тука.",
+		today: "Денес",
+		yesterday: "Вчера",
+		you: "(ти)",
+		new: "Ново",
+		view: "Види",
+		unknown: "Промена од понова верзија на апликацијата",
+		noFieldChanges: "Нема детали за оваа промена.",
+		becomes: "сменето во",
+		exactTime: "Во {{when}}",
+		thisPhone: "на овој телефон",
+		otherPhone: "на друг телефон",
+		showMore: "Прикажи постари промени",
+		clear: "Избриши ја историјата",
+		clearTitle: "Да се избрише историјата на известувања?",
+		clearBody: "Се брише само оваа листа на овој телефон. Ништо друго не се менува, а другите телефони ја чуваат својата историја.",
+		yes: "Да",
+		no: "Не",
+		days_one: "{{count}} ден",
+		days_other: "{{count}} дена",
+		action: {
+			added: "Додадено",
+			changed: "Изменето",
+			deleted: "Избришано"
+		},
+		value: {
+			noTwin: "Ниту еден близнак",
+			method: {
+				breast: "Дојка",
+				bottle: "Шише"
+			},
+			side: {
+				left: "Лева",
+				right: "Десна",
+				both: "Двете страни"
+			},
+			milk: {
+				breast: "Мајчино млеко",
+				formula: "Адаптирано млеко"
+			},
+			size: {
+				small: "Мало",
+				large: "Големо"
+			},
+			diaper: {
+				wet: "Мокра",
+				dirty: "Валкана",
+				both: "Мокра + валкана"
+			},
+			ruleKind: {
+				afterLast: "На секои неколку часа по последното",
+				everyDays: "Во одредени часови"
+			},
+			neededByKind: {
+				week: "Недела од бременоста",
+				date: "Датум"
+			},
+			phase: {
+				prep: "Подготовка",
+				planner: "Дневен планер"
+			},
+			scope: {
+				perBaby: "По близнак",
+				shared: "Заедничко"
+			},
+			priority: {
+				must: "Неопходно",
+				nice: "Добро е да има"
+			},
+			source: {
+				diapers: "Пелени",
+				formula: "Адаптирано млеко"
+			},
+			prepKind: {
+				item: "Предмет",
+				task: "Задача"
+			},
+			location: {
+				home: "Дома",
+				hospital: "Болница",
+				fridge: "Фрижидер",
+				freezer: "Замрзнувач"
+			}
+		},
+		field: {
+			name: "Име",
+			title: "Наслов",
+			text: "Текст",
+			notes: "Белешки",
+			note: "Белешка",
+			type: "Вид",
+			kind: "Вид",
+			key: "Пресвртница",
+			status: "Статус",
+			done: "Завршено",
+			active: "Активно",
+			babyId: "Близнак",
+			babies: "Близнаци",
+			loggedBy: "Запишал/а",
+			assignee: "Задолжен/а",
+			start: "Почеток",
+			end: "Крај",
+			due: "Рок",
+			date: "Датум",
+			location: "Место",
+			categoryId: "Категорија",
+			scope: "Количината е",
+			quantity: "Количина",
+			acquired: "Имаме",
+			priority: "Приоритет",
+			estimatedUnitPrice: "Проценета цена (по парче)",
+			actualPrice: "Платена цена",
+			store: "Продавница",
+			link: "Линк",
+			neededBy_kind: "Потребно до",
+			neededBy_week: "Потребно до недела",
+			neededBy_date: "Потребно до датум",
+			slot: "Близнак",
+			color: "Боја",
+			birthDateTime: "Роден/а",
+			birthWeightG: "Тежина при раѓање",
+			birthLengthCm: "Должина при раѓање",
+			feedIntervalMin: "Се храни на секои",
+			gestationWeeksAtBirth: "Недели бременост при раѓањето",
+			gestationDaysAtBirth: "Денови (бременост)",
+			data_method: "Како",
+			data_side: "Страна",
+			data_ml: "Количина",
+			data_milk: "Млеко",
+			data_topUp_ml: "Дополнително шише",
+			data_topUp_milk: "Млеко за дополнување",
+			data_kind: "Пелена",
+			data_name: "Лек",
+			data_dose: "Доза",
+			data_weightG: "Тежина",
+			data_lengthCm: "Должина",
+			data_text: "Белешка",
+			data_celsius: "Температура",
+			data_size: "Големина",
+			data_minutes: "Минути",
+			minutes: "Минути",
+			leftMl: "Лева страна",
+			rightMl: "Десна страна",
+			totalMl: "Вкупно",
+			ml: "Количина",
+			pumpedAt: "Измолзено",
+			usedAt: "Искористено",
+			source: "Залиха",
+			stock: "Залиха",
+			countedAt: "Пребројано",
+			packSize: "Големина на пакување",
+			lowThresholdDays: "Предупреди кога има за помалку од",
+			rule_kind: "Се повторува",
+			rule_hours: "На секои",
+			rule_logType: "Сметано од",
+			rule_days: "На секои",
+			rule_times: "Часови",
+			rule_startDate: "Од",
+			med_name: "Лек",
+			med_dose: "Доза",
+			med_minIntervalHours: "Најмалку толку меѓу дозите",
+			onlyWhenHome: "Само додека е дома",
+			routineId: "Рутина",
+			occurrence: "За",
+			reviewedAt: "Разговарано со лекарот",
+			currency: "Валута",
+			dueDate: "Термин за породување",
+			expectedDelivery: "Планирано породување",
+			parent1Name: "Родител 1",
+			parent2Name: "Родител 2",
+			phase: "Режим на апликацијата",
+			feedNudgeMin: "Понуди хранење на другиот близнак во рок од",
+			stashUseWithinDays_fridge: "Искористи во рок од (фрижидер)",
+			stashUseWithinDays_freezer: "Искористи во рок од (замрзнувач)",
+			nightShifts: "Ноќни смени",
+			timeZone: "Временска зона"
 		}
 	},
 	install: {

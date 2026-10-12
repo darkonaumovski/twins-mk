@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
 import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ToastProvider } from '@/components/Toast';
 import { openDexieStore } from '@/data/dexieStore';
@@ -9,6 +10,7 @@ import { SyncEngine } from '@/data/sync/engine';
 import { SyncProvider } from '@/data/sync/SyncContext';
 import { MemoryServer } from '@/data/sync/memoryRemote';
 import { initI18n } from '@/i18n';
+import { ActivityRecorder } from '@/features/activity/ActivityRecorder';
 import { ChangeNotifier } from './ChangeNotifier';
 
 const engines: SyncEngine[] = [];
@@ -51,9 +53,12 @@ describe('<ChangeNotifier>', () => {
     render(
       <StoreProvider store={dad.store}>
         <SyncProvider engine={dad.engine}>
-          <ToastProvider>
-            <ChangeNotifier />
-          </ToastProvider>
+          <MemoryRouter>
+            <ToastProvider>
+              <ChangeNotifier />
+              <ActivityRecorder />
+            </ToastProvider>
+          </MemoryRouter>
         </SyncProvider>
       </StoreProvider>,
     );
@@ -75,5 +80,10 @@ describe('<ChangeNotifier>', () => {
       },
     ]);
     expect(await screen.findByText('Marija: Bottle · Ema · 90 ml Formula', {}, { timeout: 3000 })).toBeTruthy();
+
+    // It is also in Dad's notification history, credited to Mom and not seen yet.
+    await waitFor(async () => expect(await dad.store.activity.unseenCount()).toBe(1));
+    const [entry] = await dad.store.activity.list(1);
+    expect(entry).toMatchObject({ collection: 'logs', by: 'p2', mine: false });
   });
 });

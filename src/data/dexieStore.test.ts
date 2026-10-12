@@ -221,3 +221,46 @@ describe('data from newer versions', () => {
     expect(await store.settings.get()).toMatchObject({ expectedDelivery: null });
   });
 });
+
+describe('Notification history', () => {
+  it('stamps who made each change and keeps own changes in the history', async () => {
+    const { store, advance } = await makeStore();
+    await store.device.update({ parent: 'p2' });
+    const created = await store.tasks.create(task('Buy diapers'));
+    advance(60_000);
+    const done = await store.tasks.update(created.id, { done: true });
+
+    expect(created.updatedBy).toBe('p2');
+    expect(done.updatedBy).toBe('p2');
+    const history = await store.activity.list(10);
+    expect(history.map((e) => [e.collection, e.by, e.mine, e.seen])).toEqual([
+      ['tasks', 'p2', true, 1],
+      ['tasks', 'p2', true, 1],
+    ]);
+    expect(history[0].previous).toMatchObject({ done: false });
+    expect(history[0].record).toMatchObject({ done: true });
+    expect(await store.activity.unseenCount()).toBe(0);
+  });
+
+  it('counts changes from others until they are seen, and prunes old ones', async () => {
+    const { store } = await makeStore();
+    const record = { ...(await store.tasks.create(task('A'))), deviceId: 'other' };
+    const incoming = (at: string) => ({ at, collection: 'tasks', recordId: record.id, by: 'p1', mine: false, seen: 0, record }) as const;
+    await store.activity.add([incoming('2026-01-01T00:00:00.000Z'), incoming('2026-10-11T09:00:00.000Z')]);
+
+    expect(await store.activity.unseenCount()).toBe(2);
+    await store.activity.markAllSeen();
+    expect(await store.activity.unseenCount()).toBe(0);
+
+    await store.activity.prune('2026-06-01T00:00:00.000Z', 1);
+    expect((await store.activity.list(10)).map((e) => e.at)).toEqual(['2026-10-11T09:00:00.000Z']);
+  });
+
+  it('does not record merges from a backup or the server', async () => {
+    const { store } = await makeStore();
+    const record = { ...(await store.tasks.create(task('A'))), id: 'from-backup', title: 'B' };
+    await store.activity.clear();
+    await store.tasks.merge([record]);
+    expect(await store.activity.list(10)).toEqual([]);
+  });
+});

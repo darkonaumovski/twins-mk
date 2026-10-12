@@ -1,5 +1,6 @@
 import type { MergeStats } from './merge';
 import type {
+  ActivityEntry,
   Appointment,
   Baby,
   Caregiver,
@@ -112,8 +113,23 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'milestones',
 ];
 
+/** This phone's notification history (local only). */
+export interface ActivityRepository {
+  /** Newest first, up to `limit` entries. */
+  list(limit: number): Promise<ActivityEntry[]>;
+  /** Saves changes that sync brought in from another phone. */
+  add(entries: ActivityEntry[]): Promise<void>;
+  /** Changes from other phones not seen yet. */
+  unseenCount(): Promise<number>;
+  markAllSeen(): Promise<void>;
+  /** Drops entries older than `before` and all but the newest `keep`. */
+  prune(before: ISODateTime, keep: number): Promise<void>;
+  clear(): Promise<void>;
+}
+
 export interface DataStore extends SyncedCollections {
   device: DevicePrefsRepository;
+  activity: ActivityRepository;
   /**
    * Re-runs `query` whenever data it read changes and emits the result.
    * Queries should only read through this store's repositories.

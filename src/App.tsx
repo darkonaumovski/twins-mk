@@ -11,6 +11,7 @@ import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
 import { PushSync } from '@/features/plan/PushSettings';
 import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
+import { ActivityRecorder } from '@/features/activity/ActivityRecorder';
 import { LastSeenTracker } from '@/features/family/Handover';
 import { TimerWakeLock } from '@/features/log/useLogActions';
 import { TodayPage } from '@/features/today/TodayPage';
@@ -27,6 +28,7 @@ const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(
 const StashPage = lazy(() => import('@/features/milk/StashPage').then((m) => ({ default: m.StashPage })));
 const SuppliesPage = lazy(() => import('@/features/supplies/SuppliesPage').then((m) => ({ default: m.SuppliesPage })));
 const MilestonesPage = lazy(() => import('@/features/milestones/MilestonesPage').then((m) => ({ default: m.MilestonesPage })));
+const NotificationsPage = lazy(() => import('@/features/activity/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 const ReportPage = lazy(() => import('@/features/report/ReportPage').then((m) => ({ default: m.ReportPage })));
 const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
@@ -51,6 +53,7 @@ export function App() {
             <ReminderSync />
             <PushSync />
             <ChangeNotifier />
+            <ActivityRecorder />
             <LastSeenTracker />
             <TimerWakeLock />
             <UpdatePrompt />
@@ -67,6 +70,7 @@ export function App() {
                 <Route path="/supplies" element={<SuppliesPage />} />
                 <Route path="/report" element={<ReportPage />} />
                 <Route path="/milestones" element={<MilestonesPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/checklist" element={<ChecklistPage />} />
                 <Route path="/budget" element={<BudgetPage />} />

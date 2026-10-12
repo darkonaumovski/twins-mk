@@ -15,6 +15,8 @@ export interface Entity {
   deletedAt: ISODateTime | null;
   /** Device that last wrote the record. Used as a merge tie-breaker. */
   deviceId: string;
+  /** Who made the last change (this phone's user at the time). Absent on records written by older versions. */
+  updatedBy?: CaregiverId;
 }
 
 /** Fields a caller supplies when creating a record; metadata is filled in by the repository. */
@@ -111,6 +113,29 @@ export interface DevicePrefs {
   push?: PushPrefs | null;
   /** `onDuty`: during a night shift that belongs to someone else, do not announce their changes. */
   changeAlertsMode?: 'always' | 'onDuty';
+}
+
+/**
+ * One change in this phone's notification history: something this phone's user did, or a
+ * change from another phone that sync brought in. Kept on this phone only (never synced or
+ * exported), with both versions of the record so the exact fields that changed can be shown.
+ */
+export interface ActivityEntry {
+  /** Auto-increment key; absent before the entry is saved. */
+  key?: number;
+  /** When the change was made (the record's `updatedAt`). */
+  at: ISODateTime;
+  collection: string;
+  recordId: string;
+  /** Who made it, if known. */
+  by: CaregiverId | null;
+  /** Made on this phone. */
+  mine: boolean;
+  /** 0 until this phone's user has opened the notifications (always 1 for own changes). A number, so it can be indexed. */
+  seen: 0 | 1;
+  record: Entity;
+  /** The version it replaced; undefined for something new. */
+  previous?: Entity;
 }
 
 /** Which family a phone syncs with. */

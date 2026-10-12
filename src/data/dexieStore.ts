@@ -3,6 +3,7 @@ import { planMerge, type MergeStats } from './merge';
 import { isKnownLog, isTimed } from './logTypes';
 import {
   COLLECTIONS,
+  type ActivityRepository,
   type CollectionName,
   type DataStore,
   type DevicePrefsRepository,
@@ -12,7 +13,9 @@ import {
 } from './repository';
 import type { AppliedChange, OutboxEntry, SyncLocal } from './sync/types';
 import type {
+  ActivityEntry,
   Appointment,
+  CaregiverId,
   Baby,
   Caregiver,
   Category,
@@ -38,6 +41,7 @@ import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
 
 type OutboxTable = Table<OutboxEntry, [string, string]>;
+type ActivityTable = Table<ActivityEntry, number>;
 
 class TwinsDb extends Dexie {
   settings!: Table<SharedSettings, string>;
@@ -60,6 +64,8 @@ class TwinsDb extends Dexie {
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
   syncMeta!: Table<{ key: string; value: number }, string>;
+  /** This phone's notification history: own changes and changes sync brought in. Never synced. */
+  activity!: ActivityTable;
 
   constructor(name: string) {
     super(name);
@@ -96,12 +102,19 @@ class TwinsDb extends Dexie {
     this.version(5)
       .stores({ milestones: 'id, babyId' })
       .upgrade(() => {});
+    // Notification history (local only). A new, empty table.
+    this.version(6)
+      .stores({ activity: '++key, at, seen' })
+      .upgrade(() => {});
   }
 }
 
 interface Context {
   deviceId: string;
+  /** Who uses this phone now; stamped on every change as `updatedBy`. */
+  caregiver: CaregiverId;
   now: () => Date;
+  activity: ActivityTable;
 }
 
 /** A timestamp that is strictly later than `previous`, so edits always win a merge against older versions. */
@@ -118,9 +131,28 @@ class DexieRepository<T extends Entity> implements Repository<T> {
     private readonly outbox: OutboxTable,
   ) {}
 
-  /** Runs `fn` in one transaction over this table and the outbox. */
+  /** Runs `fn` in one transaction over this table, the outbox and the history. */
   private tx<R>(fn: () => Promise<R>) {
-    return this.table.db.transaction('rw', this.table, this.outbox, fn);
+    return this.table.db.transaction('rw', this.table, this.outbox, this.ctx.activity, fn);
+  }
+
+  /** Adds this phone's own changes to the notification history; call inside `tx`. */
+  private remember(changes: readonly { record: T; previous?: T }[]) {
+    const collection = this.table.name;
+    const entries: ActivityEntry[] = changes
+      // Creating the shared settings record the first time is not a change anyone made.
+      .filter((c) => !(collection === 'settings' && !c.previous))
+      .map(({ record, previous }) => ({
+        at: record.updatedAt,
+        collection,
+        recordId: record.id,
+        by: this.ctx.caregiver,
+        mine: true,
+        seen: 1,
+        record,
+        previous,
+      }));
+    return this.ctx.activity.bulkAdd(entries);
   }
 
   /** Marks records for upload to the sync server; call inside `tx`. */
@@ -151,6 +183,7 @@ class DexieRepository<T extends Entity> implements Repository<T> {
       updatedAt: ts,
       deletedAt: null,
       deviceId: this.ctx.deviceId,
+      updatedBy: this.ctx.caregiver,
     } as unknown as T;
   }
 
@@ -164,6 +197,7 @@ class DexieRepository<T extends Entity> implements Repository<T> {
     await this.tx(async () => {
       await this.table.bulkAdd(records);
       await this.enqueue(records);
+      await this.remember(records.map((record) => ({ record })));
     });
     return records;
   }
@@ -178,9 +212,11 @@ class DexieRepository<T extends Entity> implements Repository<T> {
         id,
         updatedAt: nextTimestamp(this.ctx, existing.updatedAt),
         deviceId: this.ctx.deviceId,
+        updatedBy: this.ctx.caregiver,
       } as T;
       await this.table.put(next);
       await this.enqueue([next]);
+      await this.remember([{ record: next, previous: existing }]);
       return next;
     });
   }
@@ -287,7 +323,7 @@ class DexieSettingsRepository implements SettingsRepository {
   }
 
   async update(patch: Partial<Omit<SharedSettings, keyof Entity>>) {
-    return this.table.db.transaction('rw', this.table, this.outbox, async () => {
+    return this.table.db.transaction('rw', this.table, this.outbox, this.ctx.activity, async () => {
       if (!(await this.table.get('shared'))) {
         const { id: _id, ...defaults } = DEFAULT_SETTINGS;
         await this.repo.create({ ...defaults, id: 'shared' } as NewRecord<SharedSettings>);
@@ -306,7 +342,10 @@ class DexieSettingsRepository implements SettingsRepository {
 }
 
 class DexieDevicePrefsRepository implements DevicePrefsRepository {
-  constructor(private readonly table: Table<DevicePrefs, string>) {}
+  constructor(
+    private readonly table: Table<DevicePrefs, string>,
+    private readonly ctx: Context,
+  ) {}
 
   async get(): Promise<DevicePrefs> {
     const prefs = await this.table.get('device');
@@ -318,6 +357,7 @@ class DexieDevicePrefsRepository implements DevicePrefsRepository {
     return this.table.db.transaction('rw', this.table, async () => {
       const next = { ...(await this.get()), ...patch };
       await this.table.put(next);
+      this.ctx.caregiver = next.parent;
       return next;
     });
   }
@@ -347,7 +387,12 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     await db.device.put(prefs);
   }
 
-  const ctx: Context = { deviceId: prefs.deviceId, now: options.now ?? (() => new Date()) };
+  const ctx: Context = {
+    deviceId: prefs.deviceId,
+    caregiver: prefs.parent,
+    now: options.now ?? (() => new Date()),
+    activity: db.activity,
+  };
   const repo = <T extends Entity>(table: Table<T, string>) => new DexieRepository(table, ctx, db.outbox);
   const settings = new DexieSettingsRepository(db.settings, ctx, db.outbox);
   const logs = new DexieLogRepository(db.logs, ctx, db.outbox);
@@ -373,10 +418,37 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
   return {
     db,
     ...collections,
-    device: new DexieDevicePrefsRepository(db.device),
+    device: new DexieDevicePrefsRepository(db.device, ctx),
+    activity: createActivity(db.activity),
     live: (query) => liveQuery(query),
     transaction: (fn) => db.transaction('rw', db.tables, fn),
     sync: createSyncLocal(db, raw),
+  };
+}
+
+function createActivity(table: ActivityTable): ActivityRepository {
+  return {
+    list: (limit) => table.orderBy('at').reverse().limit(limit).toArray(),
+
+    async add(entries) {
+      await table.bulkAdd(entries);
+    },
+
+    unseenCount: () => table.where('seen').equals(0).count(),
+
+    async markAllSeen() {
+      await table.where('seen').equals(0).modify({ seen: 1 });
+    },
+
+    async prune(before, keep) {
+      await table.db.transaction('rw', table, async () => {
+        await table.where('at').below(before).delete();
+        const extra = await table.orderBy('at').reverse().offset(keep).primaryKeys();
+        await table.bulkDelete(extra);
+      });
+    },
+
+    clear: () => table.clear(),
   };
 }
 

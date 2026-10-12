@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, History, House, ListChecks, Menu, Plus, Settings, ShoppingCart, Wallet, type LucideIcon } from 'lucide-react';
-import { useSettings } from '@/data/StoreContext';
+import { Bell, CalendarDays, History, House, ListChecks, Menu, Plus, Settings, ShoppingCart, Wallet, type LucideIcon } from 'lucide-react';
+import { useLive, useSettings } from '@/data/StoreContext';
 import { useLogUI } from '@/features/log/LogUIContext';
 import { cx } from './ui';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -11,11 +11,14 @@ interface NavItem {
   to: string;
   label: string;
   icon: LucideIcon;
+  /** Unread count shown on the icon. */
+  badge?: number;
 }
 
-function Tab({ to, label, icon: Icon }: NavItem) {
+function Tab({ to, label, icon: Icon, badge }: NavItem) {
+  const { t } = useTranslation();
   return (
-    <li className="flex-1">
+    <li className="min-w-0 flex-1">
       <NavLink
         to={to}
         className={({ isActive }) =>
@@ -24,10 +27,16 @@ function Tab({ to, label, icon: Icon }: NavItem) {
       >
         {({ isActive }) => (
           <>
-            <span className={cx('rounded-full px-4 py-1', isActive && 'bg-accent-soft')}>
+            <span className={cx('relative rounded-full px-4 py-1', isActive && 'bg-accent-soft')}>
               <Icon aria-hidden size={22} strokeWidth={isActive ? 2.4 : 2} />
+              {!!badge && (
+                <span className="absolute top-0 right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[0.6875rem] leading-none font-bold text-white dark:text-bg">
+                  {badge > 99 ? '99+' : badge}
+                  <span className="sr-only"> {t('nav.unread', { count: badge })}</span>
+                </span>
+              )}
             </span>
-            {label}
+            <span className="max-w-full truncate px-0.5">{label}</span>
           </>
         )}
       </NavLink>
@@ -41,11 +50,14 @@ export function AppShell() {
   const ui = useLogUI();
   const planner = settings?.phase === 'planner';
   const location = useLocation();
+  const unread = useLive((s) => s.activity.unseenCount(), []) ?? 0;
+  const notifications: NavItem = { to: '/notifications', label: t('nav.notifications'), icon: Bell, badge: unread };
 
   const prepTabs: NavItem[] = [
     { to: '/checklist', label: t('nav.checklist'), icon: ListChecks },
     { to: '/budget', label: t('nav.budget'), icon: Wallet },
     { to: '/shopping', label: t('nav.shopping'), icon: ShoppingCart },
+    notifications,
     { to: '/settings', label: t('nav.settings'), icon: Settings },
   ];
   const plannerLeft: NavItem[] = [
@@ -54,6 +66,7 @@ export function AppShell() {
   ];
   const plannerRight: NavItem[] = [
     { to: '/plan', label: t('nav.plan'), icon: CalendarDays },
+    notifications,
     { to: '/more', label: t('nav.more'), icon: Menu },
   ];
 

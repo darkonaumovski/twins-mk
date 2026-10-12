@@ -149,8 +149,8 @@ export interface ChangeSummary {
 }
 
 /**
- * Summarises changes from another phone. Log entries and pumping sessions name who
- * logged them; anything else is credited to the only other person in the family,
+ * Summarises changes from another phone, credited to who made them (`updatedBy`). On records
+ * from older versions, log entries and pumping sessions name who logged them; anything else is credited to the only other person in the family,
  * or to "the other phone" when there are helpers too and it could have been anyone.
  */
 export function summarizeChanges(changes: readonly AppliedChange[], me: CaregiverId, h: ChangeTextHelpers, max = 3): ChangeSummary | null {
@@ -158,10 +158,17 @@ export function summarizeChanges(changes: readonly AppliedChange[], me: Caregive
   // Newest first, and one line per distinct text (a "both twins" feed is two records).
   const ordered = [...changes].sort((a, b) => b.record.updatedAt.localeCompare(a.record.updatedAt));
   const lines = [...new Set(ordered.map((c) => changeLine(c, h)))];
-  // Log entries and pumping sessions say who logged them.
+  // Newer versions stamp who made each change; on older records, log entries and pumping sessions say who logged them.
+  const stamped = ordered.find((c) => c.record.updatedBy);
   const log = ordered.find((c) => c.collection === 'logs' || c.collection === 'pumps');
   const others = h.caregiverIds.filter((id) => id !== me);
-  const author: CaregiverId | null = log ? (log.record as LogEntry | Pump).loggedBy : others.length === 1 ? others[0] : null;
+  const author: CaregiverId | null = stamped
+    ? stamped.record.updatedBy!
+    : log
+      ? (log.record as LogEntry | Pump).loggedBy
+      : others.length === 1
+        ? others[0]
+        : null;
   const who = author ? h.parentName(author) : h.t('changes.otherPhone');
 
   const shown = lines.slice(0, max);
