@@ -5271,6 +5271,28 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	vaccines: {
+		title: "Vaccinations",
+		intro: "All the vaccinations the twins were given, as on the vaccination card. The app has no schedule of its own: ask your paediatrician.",
+		add: "Add",
+		new: "New vaccination",
+		name: "Vaccine",
+		namePlaceholder: "As written on the card",
+		dose: "Dose number (optional)",
+		doseShort: "dose {{dose}}",
+		doseInvalid: "A whole number, e.g. 2, or leave it empty.",
+		date: "Date",
+		place: "Where",
+		lot: "Batch / lot (optional)",
+		notes: "Reactions or notes",
+		empty: "None yet.",
+		planNext: "Plan next dose",
+		nextTitle: "{{name}} – dose {{dose}}",
+		nextTitleOpen: "{{name}} – next dose",
+		deleteConfirm: "Delete this vaccination for {{name}}?",
+		deleted: "Vaccination deleted",
+		groupNote: "Entered for both twins; changes here only apply to {{name}}."
+	},
 	age: {
 		actual: "Age {{age}}",
 		corrected: "corrected {{age}}",
@@ -5326,8 +5348,13 @@ var en = {
 			wet: "Wet",
 			dirty: "Dirty",
 			sleep: "Sleep h",
-			meds: "Meds"
-		}
+			meds: "Meds",
+			vaccine: "Vaccine",
+			dose: "Dose",
+			place: "Where"
+		},
+		vaccines: "Vaccinations",
+		noVaccines: "No vaccinations in this period."
 	},
 	task: {
 		add: "Add task",
@@ -5421,7 +5448,7 @@ var en = {
 	},
 	csv: {
 		export: "Export as spreadsheet (CSV)",
-		exportHint: "A zip file with one CSV spreadsheet each for the log, pumping, the milk stash, appointments, tasks, milestones, the checklist and contractions. If Excel puts everything in one column, open it with “Data → From Text/CSV”.",
+		exportHint: "A zip file with one CSV spreadsheet each for the log, pumping, the milk stash, appointments, tasks, milestones, the checklist, contractions and vaccinations. If Excel puts everything in one column, open it with “Data → From Text/CSV”.",
 		shareTitle: "Twins Organizer spreadsheets",
 		failed: "The spreadsheets could not be made.",
 		running: "running",
@@ -5505,6 +5532,15 @@ var en = {
 			start: "Start",
 			lengthSec: "Length (seconds)",
 			sincePreviousSec: "Since previous (seconds)"
+		},
+		vaccines: {
+			twin: "Twin",
+			date: "Date",
+			vaccine: "Vaccine",
+			dose: "Dose",
+			place: "Where",
+			lot: "Batch / lot",
+			notes: "Reactions or notes"
 		}
 	},
 	sync: {
@@ -5605,6 +5641,11 @@ var en = {
 			done: "Done: {{title}}",
 			undone: "No longer done: {{title}}",
 			unknown: "a routine"
+		},
+		vaccines: {
+			added: "Vaccination: {{name}} · {{twin}} · {{when}}",
+			changed: "Vaccination edited: {{name}} · {{twin}}",
+			deleted: "Vaccination deleted: {{name}} · {{twin}}"
 		},
 		doctorNotes: {
 			added: "New note for the doctor: {{text}}",
@@ -5836,7 +5877,10 @@ var en = {
 			timeZone: "Time zone",
 			rhythmTogetherMin: "Feeds count as together within",
 			nightHours_from: "Night hours from",
-			nightHours_to: "Night hours to"
+			nightHours_to: "Night hours to",
+			dose: "Dose",
+			place: "Where",
+			lot: "Batch / lot"
 		}
 	},
 	install: {
@@ -6727,6 +6771,28 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	vaccines: {
+		title: "Вакцини",
+		intro: "Сите вакцини што ги примиле бебињата, како во картонот за вакцинација. Апликацијата нема свој распоред: прашајте го педијатарот.",
+		add: "Додај",
+		new: "Нова вакцина",
+		name: "Вакцина",
+		namePlaceholder: "Како што пишува во картонот",
+		dose: "Која доза (по избор)",
+		doseShort: "{{dose}}. доза",
+		doseInvalid: "Цел број, на пр. 2, или оставете празно.",
+		date: "Датум",
+		place: "Каде",
+		lot: "Серија / лот (по избор)",
+		notes: "Реакции или белешки",
+		empty: "Сè уште нема.",
+		planNext: "Закажи ја следната доза",
+		nextTitle: "{{name}} – {{dose}}. доза",
+		nextTitleOpen: "{{name}} – следна доза",
+		deleteConfirm: "Да се избрише вакцината за {{name}}?",
+		deleted: "Вакцината е избришана",
+		groupNote: "Запишано за двајцата; промените тука важат само за {{name}}."
+	},
 	age: {
 		actual: "Возраст {{age}}",
 		corrected: "коригирана {{age}}",
@@ -6782,8 +6848,13 @@ var mk = {
 			wet: "Мокри",
 			dirty: "Валкани",
 			sleep: "Спиење ч",
-			meds: "Лекови"
-		}
+			meds: "Лекови",
+			vaccine: "Вакцина",
+			dose: "Доза",
+			place: "Каде"
+		},
+		vaccines: "Вакцини",
+		noVaccines: "Нема вакцини во овој период."
 	},
 	task: {
 		add: "Додај задача",
@@ -6877,7 +6948,7 @@ var mk = {
 	},
 	csv: {
 		export: "Извези како табела (CSV)",
-		exportHint: "Зип-датотека со по една CSV-табела за записите, измолзувањето, залихата млеко, термините, задачите, важните моменти, листата и контракциите. Ако Excel не ги подели колоните, отворете ја преку „Податоци → Од текст/CSV“.",
+		exportHint: "Зип-датотека со по една CSV-табела за записите, измолзувањето, залихата млеко, термините, задачите, важните моменти, листата, контракциите и вакцините. Ако Excel не ги подели колоните, отворете ја преку „Податоци → Од текст/CSV“.",
 		shareTitle: "Twins Organizer – табели",
 		failed: "Табелите не можеа да се направат.",
 		running: "тече",
@@ -6961,6 +7032,15 @@ var mk = {
 			start: "Почеток",
 			lengthSec: "Траење (секунди)",
 			sincePreviousSec: "Од претходната (секунди)"
+		},
+		vaccines: {
+			twin: "Близнак",
+			date: "Датум",
+			vaccine: "Вакцина",
+			dose: "Доза",
+			place: "Каде",
+			lot: "Серија / лот",
+			notes: "Реакции или белешки"
 		}
 	},
 	sync: {
@@ -7061,6 +7141,11 @@ var mk = {
 			done: "Завршено: {{title}}",
 			undone: "Повеќе не е означено како завршено: {{title}}",
 			unknown: "рутина"
+		},
+		vaccines: {
+			added: "Вакцина: {{name}} · {{twin}} · {{when}}",
+			changed: "Изменета вакцина: {{name}} · {{twin}}",
+			deleted: "Избришана вакцина: {{name}} · {{twin}}"
 		},
 		doctorNotes: {
 			added: "Нова белешка за лекарот: {{text}}",
@@ -7292,7 +7377,10 @@ var mk = {
 			timeZone: "Временска зона",
 			rhythmTogetherMin: "Хранења „заедно“ во рок од",
 			nightHours_from: "Ноќни часови од",
-			nightHours_to: "Ноќни часови до"
+			nightHours_to: "Ноќни часови до",
+			dose: "Доза",
+			place: "Каде",
+			lot: "Серија / лот"
 		}
 	},
 	install: {

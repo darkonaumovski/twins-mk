@@ -23,6 +23,7 @@ import type {
   RoutineDone,
   SharedSettings,
   Supply,
+  Vaccine,
 } from './types';
 
 /**
@@ -93,6 +94,7 @@ export interface SyncedCollections {
   caregivers: Repository<Caregiver>;
   milestones: Repository<Milestone>;
   contractions: Repository<Contraction>;
+  vaccines: Repository<Vaccine>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -114,6 +116,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'caregivers',
   'milestones',
   'contractions',
+  'vaccines',
 ];
 
 /** This phone's notification history (local only). */

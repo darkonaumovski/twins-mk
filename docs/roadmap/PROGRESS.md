@@ -29,13 +29,13 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 2: health records and the mother
 
-| ID  | Feature                           | Status | Commit | Notes |
-| --- | --------------------------------- | ------ | ------ | ----- |
-| F07 | Vaccination record                | ⬜     |        |       |
-| F08 | Diaper details                    | ⬜     |        |       |
-| F09 | Head circumference and WHO curves | ⬜     |        |       |
-| F10 | Mother's recovery                 | ⬜     |        |       |
-| F11 | Action buttons on push reminders  | ⬜     |        |       |
+| ID  | Feature                           | Status | Commit | Notes                                             |
+| --- | --------------------------------- | ------ | ------ | ------------------------------------------------- |
+| F07 | Vaccination record                | ✅     |        | More → Vaccinations; report section; vaccines.csv |
+| F08 | Diaper details                    | ⬜     |        |                                                   |
+| F09 | Head circumference and WHO curves | ⬜     |        |                                                   |
+| F10 | Mother's recovery                 | ⬜     |        |                                                   |
+| F11 | Action buttons on push reminders  | ⬜     |        |                                                   |
 
 ## Phase 3: memories and later months
 
@@ -110,6 +110,13 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F06 review · A day counts as "with entries" if an entry starts in it or a sleep or breastfeed from before runs into it (last night's sleep into an empty morning).
 - 2026-10-13 · F06 review · A gap between feeds is left out when the two starts are more than one day apart or the gap is 24 hours or more (missing data). The longest sleep is "the night of …" when most of it fell in the night hours.
 - 2026-10-13 · F06 review · The title says "This week" for the week ending today and "7 days to …" for an earlier one. A daylight-saving test (`insights.dst.test.ts`, Europe/Skopje) checks the 25-hour night of 25 Oct.
+- 2026-10-13 · F07 · New synced collection `vaccines` (Dexie version 8, indexes `babyId`, `date`) in all 7 places of A2; migration 005 already had the name. The backup round-trip test is in `vaccines/logic.test.ts`.
+- 2026-10-13 · F07 · **Plan next dose** opens a new, prefilled appointment (title, same twins) instead of saving one first: the parent picks the date and saves, and Cancel leaves no empty appointment behind. It saves the vaccination's form first, so a corrected dose is kept and counted on. `AppointmentEditor` got an optional `defaultBabies`.
+- 2026-10-13 · F07 · Without a dose number the next appointment is "<vaccine> – next dose". The dose must be a whole number from 1 (empty means not noted); anything else is asked again, never rounded.
+- 2026-10-13 · F07 · "Same twins" for the next dose means both when the linked record of the other twin still exists, otherwise only this twin.
+- 2026-10-13 · F07 · The report lists date, twin, vaccine, dose and place for the period (both ends included); lot and notes are in the CSV only, to keep the printed table narrow. The shared text has one line per vaccination.
+- 2026-10-13 · F07 · Deleting a vaccination deletes only that twin's record (with undo), like editing. Names and places are suggested from earlier entries, most recent first, once each ignoring case.
+- 2026-10-13 · F07 · Change alerts: "Vaccination: Hexa · Ema · 14 Oct", one line per twin (like log entries).
 
 ## Phone test checklists
 
@@ -197,6 +204,17 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 4. Pick a day last week with the date arrows: the card shows that week, with arrows and differences against the week before it (grey, no red/green).
 5. A twin with entries on only some days says "Based on N days with entries".
 6. Change the night hours in Settings → Twins: the day/night split follows.
+
+### F07 (vaccinations) — run migration 005 first
+
+1. More → **Vaccinations**: two columns, one per twin, each with "None yet."
+2. **+ Add**: the twin picker is on **Both**. Enter "Hexa", dose 1, today, a place, save: one card in each column.
+3. Add another one for one twin only, with an older date: it goes below the newer one, in that twin's column only. The name field suggests "Hexa".
+4. Open Twin A's card, change the notes and save: Twin B's card is unchanged.
+5. Open a card, change the dose to 2 and tap **Plan next dose**: a new appointment "Hexa – 3. доза" for both twins opens; pick a date and save. Cancel instead: no appointment is added.
+6. Type 2,5 as the dose: the form asks for a whole number.
+7. More → **Report**: the "Vaccinations" section lists them for the period; Settings → Backup → Export as spreadsheet has `vaccines.csv`.
+8. On the other phone: "Vaccination: Hexa · <twin> · <date>" arrives and both cards show up.
 
 ## Follow-ups
 

@@ -19,6 +19,7 @@ import type {
   Routine,
   RoutineDone,
   Supply,
+  Vaccine,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -171,6 +172,10 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       if (ct.end)
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
+    }
+    case 'vaccines': {
+      const v = c.record as Vaccine;
+      return t(`changes.vaccines.${action}`, { name: v.name, twin: h.twin(v.babyId), when: h.day(v.date) });
     }
   }
 }

@@ -2,7 +2,7 @@ import { createInstance } from 'i18next';
 import { beforeAll, describe, expect, it } from 'vitest';
 import en from '@/i18n/locales/en';
 import mk from '@/i18n/locales/mk';
-import type { Baby, Category, Contraction, Entity, LogEntry, Milestone, MilkStashItem, PrepItem, Pump } from '@/data/types';
+import type { Baby, Category, Contraction, Entity, LogEntry, Milestone, MilkStashItem, PrepItem, Pump, Vaccine } from '@/data/types';
 import { toCsv } from '@/lib/csv';
 import { scopeLabelKey } from '@/features/plan/logic';
 import { buildCsvFiles, csvZipName, text, type CsvData, type CsvText } from './csvExport';
@@ -41,6 +41,7 @@ const empty: CsvData = {
   prepItems: [],
   categories: [],
   contractions: [],
+  vaccines: [],
   babies: [],
 };
 const file = (data: Partial<CsvData>, name: string) => buildCsvFiles({ ...empty, ...data }, tx).find((f) => f.fileName === name)!;
@@ -57,6 +58,7 @@ describe('spreadsheet export', () => {
       'milestones.csv',
       'checklist.csv',
       'contractions.csv',
+      'vaccines.csv',
     ]);
     for (const f of files) expect(f.rows).toHaveLength(1);
     expect(files[0].rows[0].slice(0, 4)).toEqual(['Date', 'Time', 'Twin', 'Type']);
@@ -321,6 +323,38 @@ describe('spreadsheet export', () => {
     expect(rows.slice(1)).toEqual([
       ['2026-10-11', '10:00:00', 65, null],
       ['2026-10-11', '10:06:00', null, 360],
+    ]);
+  });
+
+  it('lists vaccinations oldest first with names, dose and lot, leaving deleted ones out', () => {
+    const v = (id: string, babyId: string, date: string, over: Partial<Vaccine> = {}): Vaccine => ({
+      ...meta(id),
+      babyId,
+      name: 'Hexa',
+      dose: 2,
+      date,
+      place: 'Health centre, room 3',
+      lot: 'AB12',
+      notes: '',
+      groupId: 'g',
+      ...over,
+    });
+    const rows = file(
+      {
+        vaccines: [
+          v('b', 'baby-B', '2026-10-01'),
+          v('a', 'baby-A', '2026-10-01', { notes: '-fever in the evening' }),
+          v('old', 'baby-A', '2026-08-01', { name: 'BCG', dose: null, place: '', lot: '' }),
+          v('gone', 'baby-A', '2026-09-01', { deletedAt: 'x' }),
+        ],
+      },
+      'vaccines.csv',
+    ).rows;
+    expect(rows[0]).toEqual(['Twin', 'Date', 'Vaccine', 'Dose', 'Where', 'Batch / lot', 'Reactions or notes']);
+    expect(rows.slice(1)).toEqual([
+      ['Ема', '2026-08-01', 'BCG', null, '', '', ''],
+      ['Ема', '2026-10-01', 'Hexa', 2, 'Health centre, room 3', 'AB12', "'-fever in the evening"],
+      ['Ана', '2026-10-01', 'Hexa', 2, 'Health centre, room 3', 'AB12', ''],
     ]);
   });
 

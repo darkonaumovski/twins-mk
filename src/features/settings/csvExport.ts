@@ -13,6 +13,7 @@ import type {
   ParentTask,
   PrepItem,
   Pump,
+  Vaccine,
 } from '@/data/types';
 import type { CsvCell } from '@/lib/csv';
 import { ageInfo } from '@/features/twins/age';
@@ -31,6 +32,7 @@ export interface CsvData {
   prepItems: readonly PrepItem[];
   categories: readonly Category[];
   contractions: readonly Contraction[];
+  vaccines: readonly Vaccine[];
   babies: readonly Baby[];
 }
 
@@ -275,6 +277,14 @@ function contractionsCsv(list: readonly Contraction[], tx: CsvText): CsvFile {
   return { fileName: 'contractions.csv', rows: [header, ...rows] };
 }
 
+function vaccinesCsv(list: readonly Vaccine[], tx: CsvText): CsvFile {
+  const header = ['twin', 'date', 'vaccine', 'dose', 'place', 'lot', 'notes'].map((k) => tx.t(`csv.vaccines.${k}`));
+  const rows = live(list)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.babyId.localeCompare(b.babyId) || a.createdAt.localeCompare(b.createdAt))
+    .map((v) => [tx.twin(v.babyId), v.date, text(v.name), v.dose, text(v.place), text(v.lot), text(v.notes)]);
+  return { fileName: 'vaccines.csv', rows: [header, ...rows] };
+}
+
 /** One spreadsheet per area. Every file has its header row, even when there is nothing in it yet. */
 export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
   // Names are typed by the parents too, so they get the same formula guard as notes.
@@ -293,6 +303,7 @@ export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
     milestonesCsv(data.milestones, data.babies, tx),
     checklistCsv(data.prepItems, data.categories, tx),
     contractionsCsv(data.contractions, tx),
+    vaccinesCsv(data.vaccines, tx),
   ];
 }
 

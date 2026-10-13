@@ -88,6 +88,23 @@ export interface Contraction extends Entity {
   end: ISODateTime | null;
 }
 
+/**
+ * One vaccination given to one twin. "Both twins" makes two records linked by `groupId`; editing
+ * one never changes the other. The app has no schedule, names or ages of its own.
+ */
+export interface Vaccine extends Entity {
+  babyId: string;
+  name: string;
+  /** Dose number, if the parents note it. */
+  dose: number | null;
+  date: ISODate;
+  place: string;
+  /** Batch / lot number from the card, if noted. */
+  lot: string;
+  notes: string;
+  groupId: string | null;
+}
+
 /** What a phone wants push reminders for. */
 export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';
 

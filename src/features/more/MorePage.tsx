@@ -10,6 +10,7 @@ import {
   Settings,
   ShoppingCart,
   Star,
+  Syringe,
   TrendingUp,
   Wallet,
   type LucideIcon,
@@ -46,6 +47,7 @@ export function MorePage() {
         items={[
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
           { to: '/milestones', label: t('milestones.pageTitle'), icon: Star },
+          { to: '/vaccines', label: t('vaccines.title'), icon: Syringe },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },
           { to: '/report', label: t('report.title'), icon: FileText },
           { to: '/stash', label: t('stash.title'), icon: Refrigerator },

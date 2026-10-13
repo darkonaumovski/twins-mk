@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import en from '@/i18n/locales/en';
 import mk from '@/i18n/locales/mk';
 import type { AppliedChange } from '@/data/sync/types';
-import type { Contraction, Entity, LogEntry, MilkStashItem, ParentTask, PrepItem, Pump, Supply } from '@/data/types';
+import type { Contraction, Entity, LogEntry, MilkStashItem, ParentTask, PrepItem, Pump, Supply, Vaccine } from '@/data/types';
 import { changeAction, changeLine, fromOtherPhone, summarizeChanges, withoutRoutineContractions, type ChangeTextHelpers } from './changes';
 
 const i18n = createInstance();
@@ -120,6 +120,30 @@ describe('change notifications', () => {
     expect(changeLine({ collection: 'supplies', record: supply, previous: undefined }, h)).toBe('Supplies updated: Diapers');
     // A pumping session names the parent who logged it.
     expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
+  });
+
+  it('describes vaccinations, one line per twin like log entries', () => {
+    const vac = (babyId: string) =>
+      ({
+        ...meta({ id: `v-${babyId}`, updatedBy: 'p2' }),
+        babyId,
+        name: 'Hexa',
+        dose: 1,
+        date: '2026-10-14',
+        place: '',
+        lot: '',
+        notes: '',
+        groupId: 'g',
+      }) as Vaccine;
+    const added = (v: Vaccine): AppliedChange => ({ collection: 'vaccines', record: v, previous: undefined });
+    expect(changeLine(added(vac('baby-A')), h)).toBe('Vaccination: Hexa · Ema · 14 Oct');
+    expect(summarizeChanges([added(vac('baby-A')), added(vac('baby-B'))], 'p1', h)?.body).toBe(
+      ['Vaccination: Hexa · Ema · 14 Oct', 'Vaccination: Hexa · Ana · 14 Oct'].join('\n'),
+    );
+    const edited = { ...vac('baby-B'), notes: 'slept' };
+    expect(changeLine({ collection: 'vaccines', record: edited, previous: vac('baby-B') }, h)).toBe('Vaccination edited: Hexa · Ana');
+    const deleted = { ...vac('baby-B'), deletedAt: 'x' };
+    expect(changeLine({ collection: 'vaccines', record: deleted, previous: vac('baby-B') }, h)).toBe('Vaccination deleted: Hexa · Ana');
   });
 
   it('announces only the first contraction after a pause of more than 2 hours', () => {

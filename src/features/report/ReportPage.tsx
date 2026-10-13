@@ -7,11 +7,12 @@ import { Page, Segmented, Toggle } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { formatNumber, todayISO } from '@/lib/format';
-import type { Baby, TwinSlot, DoctorNote } from '@/data/types';
+import type { Baby, TwinSlot, DoctorNote, Vaccine } from '@/data/types';
 import { daysEnding, growthPoints, localDay, type DaySummary } from '@/features/history/summary';
 import { BABY_IDS, type Who } from '@/features/log/logic';
 import { colorOf, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
 import { useAgeText } from '@/features/twins/useAge';
+import { vaccinesInPeriod } from '@/features/vaccines/logic';
 import { openNotesFor, reportRows, reportTotals } from './logic';
 
 const PERIODS = [7, 14, 30] as const;
@@ -37,12 +38,13 @@ export function ReportPage() {
   const data = useLive(
     async (s) => {
       const from = addDays(parseISO(days[0]), -1).toISOString();
-      const [entries, measures, notes] = await Promise.all([
+      const [entries, measures, notes, vaccines] = await Promise.all([
         s.logs.listBetween(from, localDay(lastDay).to.toISOString()),
         s.logs.list(),
         s.doctorNotes.list(),
+        s.vaccines.list(),
       ]);
-      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes };
+      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes, vaccines };
     },
     [period, lastDay],
   );
@@ -58,6 +60,9 @@ export function ReportPage() {
     return { slot, rows, total: reportTotals(rows) };
   });
   const notes = openNotesFor(data.notes, slots, includeMother);
+  const vaccines = vaccinesInPeriod(data.vaccines, slots, days[0], lastDay);
+  const doseText = (v: Vaccine) => (v.dose === null ? '' : t('vaccines.doseShort', { dose: v.dose }));
+  const vaccineText = (v: Vaccine) => [dayLabel(v.date), name(v.babyId), v.name, doseText(v), v.place].filter(Boolean).join(' · ');
   // In a report about the twins, a question for the mother says so.
   const noteText = (n: DoctorNote) => (n.babies === 'none' ? `${t('notes.forMother')}: ${n.text}` : n.text);
   const hasMotherNotes = data.notes.some((n) => n.babies === 'none' && n.reviewedAt === null);
@@ -76,6 +81,7 @@ export function ReportPage() {
   const shareText = [
     `${t('report.title')} · ${range}`,
     ...perTwin.flatMap(({ slot, rows }) => ['', name(slot), ...rows.map((r) => `${dayLabel(r.date)}: ${line(r.summary)}`)]),
+    ...(vaccines.length ? ['', t('report.vaccines'), ...vaccines.map((v) => `• ${vaccineText(v)}`)] : []),
     ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${noteText(n)}`)] : []),
     '',
     t('report.disclaimer'),
@@ -217,6 +223,36 @@ export function ReportPage() {
               )}
             </tbody>
           </table>
+        </section>
+
+        <section className="space-y-2 break-inside-avoid-page">
+          <h3 className="text-base font-semibold">{t('report.vaccines')}</h3>
+          {vaccines.length === 0 ? (
+            <p className="text-muted">{t('report.noVaccines')}</p>
+          ) : (
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr>
+                  <th className={head}>{t('report.col.date')}</th>
+                  <th className={head}>{t('report.col.twin')}</th>
+                  <th className={head}>{t('report.col.vaccine')}</th>
+                  <th className={head}>{t('report.col.dose')}</th>
+                  <th className={head}>{t('report.col.place')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vaccines.map((v) => (
+                  <tr key={v.id}>
+                    <td className={`${cell} text-left`}>{dayLabel(v.date)}</td>
+                    <td className={`${cell} text-left`}>{name(v.babyId)}</td>
+                    <td className={`${cell} text-left`}>{v.name}</td>
+                    <td className={cell}>{v.dose ?? '–'}</td>
+                    <td className={`${cell} text-left`}>{v.place || '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
 
         <section className="space-y-2 break-inside-avoid-page">

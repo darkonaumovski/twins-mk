@@ -7,7 +7,7 @@ import { Field, TextArea, TextInput } from '@/components/ui';
 import { useConfirm } from '@/components/Confirm';
 import { useToast } from '@/components/Toast';
 import { useLive, useStore } from '@/data/StoreContext';
-import type { Appointment } from '@/data/types';
+import type { Appointment, BabyScope } from '@/data/types';
 import { fromLocalInput, toLocalInput } from '@/features/log/logic';
 import { ScopePicker } from './shared';
 import { usePhaseScope } from './usePhaseScope';
@@ -17,12 +17,15 @@ export function AppointmentEditor({
   appointment,
   defaultStart,
   defaultTitle,
+  defaultBabies,
   onClose,
 }: {
   appointment: Appointment | null;
   defaultStart?: string;
   /** Title for a new appointment, e.g. from an example. */
   defaultTitle?: string;
+  /** Twins for a new appointment, e.g. the next dose of a vaccination; otherwise from the phase. */
+  defaultBabies?: BabyScope;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -31,7 +34,7 @@ export function AppointmentEditor({
   const toast = useToast();
   const [title, setTitle] = useState(appointment?.title ?? defaultTitle ?? '');
   // Before the birth most appointments are the mother's (scans, check-ups, classes).
-  const [babies, setBabies] = usePhaseScope(appointment?.babies);
+  const [babies, setBabies] = usePhaseScope(appointment?.babies ?? defaultBabies);
   const [start, setStart] = useState(toLocalInput(appointment?.start ?? defaultStart ?? new Date().toISOString()));
   const [location, setLocation] = useState(appointment?.location ?? '');
   const [notes, setNotes] = useState(appointment?.notes ?? '');

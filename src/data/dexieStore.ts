@@ -37,6 +37,7 @@ import type {
   RoutineDone,
   SharedSettings,
   Supply,
+  Vaccine,
 } from './types';
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
@@ -62,6 +63,7 @@ class TwinsDb extends Dexie {
   caregivers!: Table<Caregiver, string>;
   milestones!: Table<Milestone, string>;
   contractions!: Table<Contraction, string>;
+  vaccines!: Table<Vaccine, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -111,6 +113,10 @@ class TwinsDb extends Dexie {
     // Contraction timer (before the birth). A new, empty table.
     this.version(7)
       .stores({ contractions: 'id, start' })
+      .upgrade(() => {});
+    // Vaccination record. A new, empty table.
+    this.version(8)
+      .stores({ vaccines: 'id, babyId, date' })
       .upgrade(() => {});
   }
 }
@@ -419,6 +425,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     caregivers: repo(db.caregivers),
     milestones: repo(db.milestones),
     contractions: repo(db.contractions),
+    vaccines: repo(db.vaccines),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 
