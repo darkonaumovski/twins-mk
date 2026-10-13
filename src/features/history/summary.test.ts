@@ -138,6 +138,14 @@ describe('growthPoints', () => {
     ]);
   });
 
+  it('carries the head circumference, empty at birth and on older entries without it', () => {
+    const points = growthPoints(baby, [
+      entry({ type: 'measure', data: { weightG: null, lengthCm: null, headCm: 35.5 }, start: at(9, 9) }),
+      entry({ type: 'measure', data: { weightG: 2500, lengthCm: 47 }, start: at(5, 9) }),
+    ]);
+    expect(points.map((p) => p.headCm)).toEqual([null, null, 35.5]);
+  });
+
   it('skips the birth point when no birth measurements were entered', () => {
     expect(growthPoints({ ...baby, birthWeightG: null, birthLengthCm: null }, [])).toEqual([]);
   });

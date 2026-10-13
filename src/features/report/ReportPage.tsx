@@ -233,6 +233,7 @@ export function ReportPage() {
                 <th className={head}>{t('report.col.date')}</th>
                 <th className={head}>{t('growth.weight')}</th>
                 <th className={head}>{t('growth.length')}</th>
+                <th className={head}>{t('growth.head')}</th>
               </tr>
             </thead>
             <tbody>
@@ -246,6 +247,7 @@ export function ReportPage() {
                     </td>
                     <td className={cell}>{p.weightG ?? '–'}</td>
                     <td className={cell}>{p.lengthCm === null ? '–' : formatNumber(p.lengthCm, i18n.language)}</td>
+                    <td className={cell}>{p.headCm === null ? '–' : formatNumber(p.headCm, i18n.language)}</td>
                   </tr>
                 )),
               )}

@@ -15,7 +15,7 @@ import { useCaregiverName } from '@/lib/caregivers';
 import { useFormatAgo } from '@/lib/useNow';
 import { medCheck } from '@/features/plan/logic';
 import { useMedData, useMedGuard } from '@/features/plan/useMeds';
-import type { DiaperData, FeedData, LogEntry, LogType, Milk, SpitupData } from '@/data/types';
+import type { DiaperData, FeedData, LogEntry, LogType, MeasureData, Milk, SpitupData } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
 import { detailsOf, diaperData, NO_DETAILS, type DiaperDetails } from './diaperDetails';
@@ -44,6 +44,7 @@ interface Draft {
   dose: string;
   weight: string;
   length: string;
+  head: string;
   text: string;
   celsius: string;
   spit: SpitupData['size'];
@@ -77,6 +78,7 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
     dose: '',
     weight: '',
     length: '',
+    head: '',
     text: '',
     celsius: '',
     spit: 'small',
@@ -101,6 +103,7 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
     case 'measure':
       d.weight = entry.data.weightG?.toString() ?? '';
       d.length = entry.data.lengthCm?.toString().replace('.', ',') ?? '';
+      d.head = entry.data.headCm?.toString().replace('.', ',') ?? '';
       break;
     case 'note':
       d.text = entry.data.text;
@@ -197,8 +200,12 @@ export function EntryEditor(props: Props) {
       case 'measure': {
         const weightG = draft.weight.trim() ? parseAmount(draft.weight) : null;
         const lengthCm = draft.length.trim() ? parseAmount(draft.length) : null;
-        if (weightG === null && lengthCm === null) return t('log.measureEmpty');
-        return { type: 'measure', data: { weightG: weightG === null ? null : Math.round(weightG), lengthCm }, start, end: null };
+        const headCm = draft.head.trim() ? parseAmount(draft.head) : null;
+        if (weightG === null && lengthCm === null && headCm === null) return t('log.measureEmpty');
+        const data: MeasureData = { weightG: weightG === null ? null : Math.round(weightG), lengthCm };
+        // Left out when empty, so an entry without it looks like one from an older version.
+        if (headCm !== null) data.headCm = headCm;
+        return { type: 'measure', data, start, end: null };
       }
       case 'note':
         if (!draft.text.trim()) return t('log.required');
@@ -415,6 +422,9 @@ export function EntryEditor(props: Props) {
             </Field>
             <Field label={t('log.lengthCm')}>
               {(p) => <TextInput {...p} inputMode="decimal" value={draft.length} onChange={(e) => set('length', e.target.value)} />}
+            </Field>
+            <Field label={t('log.headCm')}>
+              {(p) => <TextInput {...p} inputMode="decimal" value={draft.head} onChange={(e) => set('head', e.target.value)} />}
             </Field>
           </div>
         )}

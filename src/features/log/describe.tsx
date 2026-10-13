@@ -67,6 +67,8 @@ export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
           const parts = [];
           if (entry.data.weightG !== null) parts.push(t('log.summary.weight', { g: entry.data.weightG }));
           if (entry.data.lengthCm !== null) parts.push(t('log.summary.length', { cm: entry.data.lengthCm }));
+          if (typeof entry.data.headCm === 'number')
+            parts.push(t('log.summary.head', { cm: formatNumber(entry.data.headCm, i18n.language) }));
           return { title: t('log.measure'), detail: parts.join(' · ') };
         }
         case 'note':

@@ -109,6 +109,8 @@ export interface GrowthPoint {
   at: string;
   weightG: number | null;
   lengthCm: number | null;
+  /** Head circumference; not taken at birth in the twin setup, and absent on older entries. */
+  headCm: number | null;
   /** True for the birth measurement taken from the twin's setup. */
   birth: boolean;
 }
@@ -117,11 +119,11 @@ export interface GrowthPoint {
 export function growthPoints(baby: Baby | undefined, entries: readonly LogEntry[]): GrowthPoint[] {
   const points: GrowthPoint[] = [];
   if (baby?.birthDateTime && (baby.birthWeightG !== null || baby.birthLengthCm !== null)) {
-    points.push({ at: baby.birthDateTime, weightG: baby.birthWeightG, lengthCm: baby.birthLengthCm, birth: true });
+    points.push({ at: baby.birthDateTime, weightG: baby.birthWeightG, lengthCm: baby.birthLengthCm, headCm: null, birth: true });
   }
   for (const e of entries) {
     if (e.type !== 'measure' || e.deletedAt !== null || e.babyId !== baby?.id) continue;
-    points.push({ at: e.start, weightG: e.data.weightG, lengthCm: e.data.lengthCm, birth: false });
+    points.push({ at: e.start, weightG: e.data.weightG, lengthCm: e.data.lengthCm, headCm: e.data.headCm ?? null, birth: false });
   }
   return points.sort((a, b) => a.at.localeCompare(b.at));
 }

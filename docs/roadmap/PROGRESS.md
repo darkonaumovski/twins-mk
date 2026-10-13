@@ -32,8 +32,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | ID  | Feature                           | Status | Commit  | Notes                                                  |
 | --- | --------------------------------- | ------ | ------- | ------------------------------------------------------ |
 | F07 | Vaccination record                | ✅     | 2274b16 | More → Vaccinations; report section; vaccines.csv      |
-| F08 | Diaper details                    | ✅     |         | Entry editor → Details; report rash column and colours |
-| F09 | Head circumference and WHO curves | ⬜     |         |                                                        |
+| F08 | Diaper details                    | ✅     | 44ec3ca | Entry editor → Details; report rash column and colours |
+| F09 | Head circumference and WHO curves | ✅     |         | Growth → head chart; "Show WHO reference curves"       |
 | F10 | Mother's recovery                 | ⬜     |         |                                                        |
 | F11 | Action buttons on push reminders  | ⬜     |         |                                                        |
 
@@ -124,6 +124,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F08 · Timeline and change messages show the details as plain lower-case words after the kind ("Dirty · rash · green · soft").
 - 2026-10-13 · F08 · Report: the rash column appears only for a twin with a rash in the period (keeps the table narrow otherwise); colours and textures are one line under the twin's table, in a fixed order with counts. The shared text adds "Rash N" to a day with a rash, and the same colour/texture line. Counted by the day the diaper was logged, as the other columns.
 - 2026-10-13 · F08 · CSV: a "Stool texture" column after "Stool colour" (F05 already had rash and colour). A value from a newer version without a word here is written as stored.
+
+- 2026-10-13 · F09 · WHO data: the six monthly percentile tables (`tab_wfa_*_p_0_5`, `tab_lhfa_*_p_0_2`, `tab_hcfa_*_p_0_5`) from https://www.who.int/tools/child-growth-standards/standards (cdn.who.int), downloaded 2026-10-13; the CDC copy refused automated downloads. Months 0–24, L/M/S columns, converted by a script (source and date in `growth/who/tables.ts`). The test checks 36 published P3/P50/P97 values (both sexes, all three measures, 0 and 12 months): every one matches after rounding to 0.1 as WHO prints them.
+- 2026-10-13 · F09 · Monthly rows (not the daily expanded tables): one point per month is smooth enough on a 340 px chart and keeps the chunk at 3.5 kB. It is a separate chunk, loaded through `tablesIfWanted()` only with the switch on and girl/boy set (tested with a spy loader).
+- 2026-10-13 · F09 · With the curves on, Growth shows one twin at a time (**Curves for**, A or B): the two twins can differ in sex and gestation, so they cannot share one age axis or one set of curves. With the curves off, the date charts for both twins are unchanged (plus the new head chart).
+- 2026-10-13 · F09 · The x-axis is days of age (corrected for a twin born before 37+0, so a premature twin's early points sit left of 0); the curves start at 0. Ticks are weeks for up to 3 months, then months. The tooltip and table show the age, never a percentile. All five lines look the same (thin, dashed, the muted grey at 55 % opacity), so no line stands out as a target and nothing is coloured as good or bad. The value axis also fits the curves where they cross the chart edges. With the curves on, the page shows "Loading the reference curves…" until the chunk is there (if it fails, the date charts stay), and a twin without measurements gets "No measurements for … yet."
+- 2026-10-13 · F09 · `LineChart` got optional `reference`, `domain`, `day` and `formatTick`; existing charts pass none of them and render as before.
+- 2026-10-13 · F09 · "Girl or boy" is a three-way choice in the twin setup (girl, boy, not set). Head size is optional in the measurement editor; an empty one is left out of the entry, as on older entries. The birth measurement from the setup has no head size.
+- 2026-10-13 · F09 · The per-phone switch lives on the Growth page (next to the charts), not in Settings → Appearance.
 
 ## Phone test checklists
 
@@ -233,6 +241,17 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 6. More → **Report**: a **Rash** column for that twin and a line "Dirty diapers · Colour: green 1 · Texture: soft 1". The other twin has no rash column.
 7. Export as spreadsheet: `logs.csv` has the rash, stool colour and stool texture columns filled.
 8. An older entry (logged before the update) opens with Details folded and empty.
+
+### F09 (head circumference and reference curves)
+
+1. Growth → **Add measurement**: there is a **Head circumference (cm)** field. Save one with only the head size: Growth shows a third chart.
+2. Settings → Twins (twin setup): each twin has **Girl or boy** (girl, boy, not set) with "Only used for the optional reference curves."
+3. Growth: **Show WHO reference curves** is off. Turn it on: a **Curves for** picker appears.
+4. For a twin with girl/boy not set: a note asks to set it, with a link to the setup. Set it.
+5. The weight, length and head charts show that twin against age, with thin grey lines behind the points and the caption "Reference curves (WHO). Not a verdict: ask your paediatrician." Tap a point: the tooltip shows the age and value only.
+6. For a twin born before 37 weeks (e.g. 35 + 4), the chart says the axis is the corrected age, and the birth point sits left of 0.
+7. On the other phone the curves stay off (per phone). Turn them off again: the usual date charts for both twins come back.
+8. More → Report: the growth table has a head column.
 
 ## Follow-ups
 

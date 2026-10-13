@@ -143,6 +143,8 @@ export interface DevicePrefs {
   push?: PushPrefs | null;
   /** `onDuty`: during a night shift that belongs to someone else, do not announce their changes. */
   changeAlertsMode?: 'always' | 'onDuty';
+  /** Draw the WHO reference curves behind the growth charts (absent means off). */
+  whoCurves?: boolean;
 }
 
 /**
@@ -235,7 +237,11 @@ export interface Baby extends Entity {
   gestationDaysAtBirth?: number | null;
   /** Where the twin is now; absent means home. */
   location?: BabyLocation;
+  /** Only used to pick the optional WHO reference curves; absent or null means not set. */
+  sex?: BabySex | null;
 }
+
+export type BabySex = 'female' | 'male';
 
 export type BabyLocation = 'home' | 'hospital';
 
@@ -256,7 +262,8 @@ export type StoolTexture = 'watery' | 'soft' | 'formed' | 'hard';
 export type DiaperData = { kind: 'wet' | 'dirty' | 'both'; rash?: boolean; color?: StoolColor; texture?: StoolTexture };
 export type SleepData = Record<string, never>;
 export type MedData = { name: string; dose: string };
-export type MeasureData = { weightG: number | null; lengthCm: number | null };
+/** `headCm` (head circumference) is absent on older entries. */
+export type MeasureData = { weightG: number | null; lengthCm: number | null; headCm?: number | null };
 export type NoteData = { text: string };
 export type TempData = { celsius: number };
 export type SpitupData = { size: 'small' | 'large' };

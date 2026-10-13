@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { Field, Page, TextInput, cx } from '@/components/ui';
+import { Field, Page, Segmented, TextInput, cx } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import { useStore } from '@/data/StoreContext';
 import { parseAmount } from '@/features/checklist/logic';
 import { BABY_IDS, SLOTS, fromLocalInput, toLocalInput } from '@/features/log/logic';
-import type { Baby, NewRecord, TwinColor, TwinSlot } from '@/data/types';
+import type { Baby, BabySex, NewRecord, TwinColor, TwinSlot } from '@/data/types';
 import { colorsClash, DEFAULT_COLORS, TWIN_COLORS, twinStyle, TwinBadge, useBabies } from './twins';
 
 interface TwinDraft {
@@ -22,7 +22,10 @@ interface TwinDraft {
   /** Gestational age at birth, weeks and days as typed; empty means not entered. */
   gaWeeks: string;
   gaDays: string;
+  sex: SexChoice;
 }
+
+type SexChoice = BabySex | 'unset';
 
 function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
   return {
@@ -34,6 +37,7 @@ function toDraft(baby: Baby | undefined, slot: TwinSlot): TwinDraft {
     feedHours: baby?.feedIntervalMin ? String(Math.round((baby.feedIntervalMin / 60) * 100) / 100).replace('.', ',') : '',
     gaWeeks: baby?.gestationWeeksAtBirth?.toString() ?? '',
     gaDays: baby?.gestationDaysAtBirth?.toString() ?? '',
+    sex: baby?.sex ?? 'unset',
   };
 }
 
@@ -101,6 +105,7 @@ export function SetupPage() {
         feedIntervalMin: feedHours === null ? null : Math.round(feedHours * 60),
         gestationWeeksAtBirth: gaWeeks,
         gestationDaysAtBirth: gaWeeks === null ? null : gaDays,
+        sex: d.sex === 'unset' ? null : d.sex,
       };
     }
     await store.transaction(async () => {
@@ -267,6 +272,17 @@ export function SetupPage() {
                   />
                 )}
               </Field>
+              <Segmented<SexChoice>
+                label={t('twins.sex')}
+                hint={t('twins.sexHint')}
+                value={d.sex}
+                options={[
+                  { value: 'female', label: t('twins.female') },
+                  { value: 'male', label: t('twins.male') },
+                  { value: 'unset', label: t('twins.sexNotSet') },
+                ]}
+                onChange={(sex) => update(slot, { sex })}
+              />
             </fieldset>
           );
         })}

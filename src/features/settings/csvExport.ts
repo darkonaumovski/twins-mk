@@ -69,11 +69,6 @@ export function text(value: string | null | undefined): string {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
-/** An optional field a newer version may add to an entry's data (rash, stool colour, head size). */
-function extra(data: object, key: string): unknown {
-  return (data as Record<string, unknown>)[key];
-}
-
 function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
   const { t } = tx;
   const header = [
@@ -143,8 +138,7 @@ function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
         case 'measure': {
           c.weightG = e.data.weightG;
           c.lengthCm = e.data.lengthCm;
-          const head = extra(e.data, 'headCm');
-          if (typeof head === 'number') c.headCm = head;
+          if (typeof e.data.headCm === 'number') c.headCm = e.data.headCm;
           break;
         }
         case 'tummy':

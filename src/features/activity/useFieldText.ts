@@ -38,6 +38,7 @@ const UNITS: Record<string, string> = {
   'data.weightG': 'g',
   birthWeightG: 'g',
   'data.lengthCm': 'cm',
+  'data.headCm': 'cm',
   birthLengthCm: 'cm',
   'data.celsius': '°C',
   'data.minutes': 'min',
@@ -95,6 +96,7 @@ export function useFieldText() {
       if (path === 'type' || path === 'rule.logType') return t(`log.${text}`, { defaultValue: text });
       if (path === 'key' && collection === 'milestones') return t(`milestones.keys.${text}`, { defaultValue: text });
       if (path === 'color') return t(`twins.colors.${text}`, { defaultValue: text });
+      if (path === 'sex') return text === 'female' ? t('twins.female') : text === 'male' ? t('twins.male') : text;
       if (path === 'slot') return text === 'A' ? t('twins.letterA') : t('twins.letterB');
       if (path === 'kind' && collection === 'prepItems') return t(`activity.value.prepKind.${text}`, { defaultValue: text });
       if (path === 'data.color') return t(`diaper.colors.${text}`, { defaultValue: text });
