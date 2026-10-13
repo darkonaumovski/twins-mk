@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Baby, CalendarHeart, ChevronRight, Sprout } from 'lucide-react';
+import { AlertTriangle, Baby, CalendarHeart, Camera, ChevronRight, Sprout } from 'lucide-react';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useSettings } from '@/data/StoreContext';
 import { formatLongDate } from '@/lib/format';
@@ -74,6 +74,14 @@ export function Countdown({
         </p>
         <ProgressBar value={overall.done} max={overall.total} label={t('checklist.overall', { ...overall })} className="bg-surface!" />
       </div>
+
+      {c && (
+        <Link to="/photos" className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface px-4 py-2">
+          <Camera aria-hidden size={22} className="shrink-0 text-accent" />
+          <span className="flex-1 font-semibold">{t('photos.bumpLink')}</span>
+          <ChevronRight aria-hidden size={20} className="shrink-0 text-muted" />
+        </Link>
+      )}
 
       {showArrived && (
         <Link to="/setup" className="flex min-h-14 items-center gap-3 rounded-2xl bg-surface px-4 py-2">

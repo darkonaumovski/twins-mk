@@ -1,6 +1,7 @@
 import { incomingWins } from '../merge';
 import { newId } from '@/lib/ids';
 import { normalizeCode } from './engine';
+import type { PhotoMime } from '../types';
 import { SyncError, type PushRegistration, type RemoteChange, type SyncChange, type SyncMembership, type SyncRemote } from './types';
 
 interface StoredRow extends RemoteChange {
@@ -17,6 +18,8 @@ export class MemoryServer {
   private readonly rows = new Map<string, StoredRow>();
   private readonly listeners = new Set<{ familyId: string; client: MemoryRemote; onChange: () => void }>();
   private seq = 0;
+  /** The photos bucket: `<familyId>/<path>` → image. Only members of that family may read, write or delete. */
+  readonly storage = new Map<string, { blob: Blob; contentType: string }>();
   /** Push subscriptions by endpoint (nothing is sent: there is no push service here). */
   readonly pushSubscriptions = new Map<string, PushRegistration & { familyId: string; userId: string }>();
 
@@ -143,6 +146,30 @@ export class MemoryRemote implements SyncRemote {
   sendTestPush(endpoint: string) {
     return this.call(() => {
       if (this.server.pushSubscriptions.get(endpoint)?.userId !== this.userId) throw new SyncError('failed', 'no_subscription');
+    });
+  }
+
+  uploadPhoto(familyId: string, path: string, blob: Blob, contentType: PhotoMime) {
+    return this.call(() => {
+      this.server.assertMember(this.userId, familyId);
+      // The bucket's limits (migration 006): 3 MB, WebP or JPEG only.
+      if (blob.size > 3 * 1024 * 1024 || !['image/webp', 'image/jpeg'].includes(contentType))
+        throw new SyncError('failed', 'photo_refused');
+      this.server.storage.set(`${familyId}/${path}`, { blob, contentType });
+    });
+  }
+
+  downloadPhoto(familyId: string, path: string) {
+    return this.call(() => {
+      this.server.assertMember(this.userId, familyId);
+      return this.server.storage.get(`${familyId}/${path}`)?.blob ?? null;
+    });
+  }
+
+  deletePhotos(familyId: string, paths: string[]) {
+    return this.call(() => {
+      this.server.assertMember(this.userId, familyId);
+      for (const path of paths) this.server.storage.delete(`${familyId}/${path}`);
     });
   }
 

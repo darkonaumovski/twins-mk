@@ -3474,6 +3474,44 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	photos: {
+		title: "Photos",
+		take: "Take photo",
+		choose: "Choose photo",
+		failed: "This picture could not be read.",
+		open: "Photo {{n}}",
+		viewer: "Photo",
+		previous: "Previous photo",
+		next: "Next photo",
+		deleteConfirm: "Delete this photo?",
+		deleted: "Photo deleted",
+		notHere: "This photo is not on this phone, and it cannot be fetched right now. It shows once both phones have synced.",
+		owner: {
+			milestone: "Milestone",
+			journal: "Journal",
+			monthly: "Monthly photo",
+			bump: "Bump photo"
+		},
+		bumpTitle: "Bump photo · week {{week}}",
+		bumpHint: "One a week, to look back on.",
+		bumpLink: "Bump photos",
+		monthlyTitle: "Twins together · {{month}}",
+		monthlyHint: "A photo of both twins each month.",
+		show: "Show",
+		all: "All",
+		together: "Together",
+		empty: "No photos yet. Add them here, or to a milestone.",
+		usage_one: "{{count}} photo on this phone, {{mb}} MB",
+		usage_other: "{{count}} photos on this phone, {{mb}} MB",
+		zip: "Download photos (zip)",
+		zipHint: "All photos in one zip file, named by date, twin and kind. They are not in the backup file.",
+		zipBoth: "both",
+		zipNone: "family",
+		zipEmpty: "There are no photos yet.",
+		zipMissing_one: "{{count}} photo could not be added (it is not on this phone).",
+		zipMissing_other: "{{count}} photos could not be added (they are not on this phone).",
+		zipFailed: "The photos could not be packed."
+	},
 	mother: {
 		title: "Mother",
 		she: "Mother",
@@ -3941,6 +3979,10 @@ var en = {
 			undone: "No longer done: {{title}}",
 			unknown: "a routine"
 		},
+		photos: {
+			added: "New photo: {{what}}",
+			deleted: "Photo deleted: {{what}}"
+		},
 		reminderSnoozes: {
 			snoozed: "Reminder snoozed until {{when}}",
 			deleted: "Snooze cancelled"
@@ -4195,6 +4237,9 @@ var en = {
 			nightHours_from: "Night hours from",
 			nightHours_to: "Night hours to",
 			data_headCm: "Head circumference",
+			takenAt: "Taken",
+			owner_kind: "Kind",
+			owner_id: "Belongs to",
 			sex: "Girl or boy",
 			data_rash: "Rash",
 			data_color: "Stool colour",
@@ -5116,6 +5161,44 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	photos: {
+		title: "Фотографии",
+		take: "Фотографирај",
+		choose: "Избери фотографија",
+		failed: "Сликата не може да се прочита.",
+		open: "Фотографија {{n}}",
+		viewer: "Фотографија",
+		previous: "Претходна фотографија",
+		next: "Следна фотографија",
+		deleteConfirm: "Да се избрише фотографијата?",
+		deleted: "Фотографијата е избришана",
+		notHere: "Фотографијата не е на овој телефон и сега не може да се преземе. Ќе се појави откако двата телефона ќе се синхронизираат.",
+		owner: {
+			milestone: "Важен момент",
+			journal: "Дневник",
+			monthly: "Месечна фотографија",
+			bump: "Стомаче"
+		},
+		bumpTitle: "Стомачето · {{week}}. недела",
+		bumpHint: "По една неделно, за спомен.",
+		bumpLink: "Фотографии од стомачето",
+		monthlyTitle: "Двајцата заедно · {{month}}",
+		monthlyHint: "Фотографија од двајцата секој месец.",
+		show: "Прикажи",
+		all: "Сите",
+		together: "Заедно",
+		empty: "Сè уште нема фотографии. Додајте ги тука или кај некој важен момент.",
+		usage_one: "{{count}} фотографија на овој телефон, {{mb}} MB",
+		usage_other: "{{count}} фотографии на овој телефон, {{mb}} MB",
+		zip: "Преземи ги фотографиите (zip)",
+		zipHint: "Сите фотографии во една зип-датотека, со датум, близнак и вид во името. Ги нема во датотеката за резервна копија.",
+		zipBoth: "двајцата",
+		zipNone: "семејство",
+		zipEmpty: "Сè уште нема фотографии.",
+		zipMissing_one: "{{count}} фотографија не можеше да се додаде (не е на овој телефон).",
+		zipMissing_other: "{{count}} фотографии не можеа да се додадат (не се на овој телефон).",
+		zipFailed: "Фотографиите не можеа да се спакуваат."
+	},
 	mother: {
 		title: "Мајка",
 		she: "Мајката",
@@ -5583,6 +5666,10 @@ var mk = {
 			undone: "Повеќе не е означено како завршено: {{title}}",
 			unknown: "рутина"
 		},
+		photos: {
+			added: "Нова фотографија: {{what}}",
+			deleted: "Избришана фотографија: {{what}}"
+		},
 		reminderSnoozes: {
 			snoozed: "Потсетникот е одложен до {{when}}",
 			deleted: "Одложувањето е откажано"
@@ -5837,6 +5924,9 @@ var mk = {
 			nightHours_from: "Ноќни часови од",
 			nightHours_to: "Ноќни часови до",
 			data_headCm: "Обем на главата",
+			takenAt: "Сликано",
+			owner_kind: "Вид",
+			owner_id: "Припаѓа на",
 			sex: "Девојче или момче",
 			data_rash: "Осип",
 			data_color: "Боја на столицата",

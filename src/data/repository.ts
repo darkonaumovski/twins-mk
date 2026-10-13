@@ -26,6 +26,8 @@ import type {
   Vaccine,
   MotherLog,
   ReminderSnooze,
+  Photo,
+  PhotoBlob,
 } from './types';
 
 /**
@@ -101,6 +103,7 @@ export interface SyncedCollections {
   vaccines: Repository<Vaccine>;
   motherLogs: Repository<MotherLog>;
   reminderSnoozes: Repository<ReminderSnooze>;
+  photos: Repository<Photo>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -125,7 +128,18 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'vaccines',
   'motherLogs',
   'reminderSnoozes',
+  'photos',
 ];
+
+/** The photos' images on this phone (local only: never synced, exported or merged). */
+export interface PhotoBlobRepository {
+  get(id: string): Promise<PhotoBlob | undefined>;
+  /** Saves the images; a missing part keeps what is already stored (e.g. a downloaded full image next to the thumbnail). */
+  put(blob: PhotoBlob): Promise<void>;
+  remove(id: string): Promise<void>;
+  /** How many photos have images on this phone, and their size in bytes (only these photos, when given). */
+  usage(only?: ReadonlySet<string>): Promise<{ count: number; bytes: number }>;
+}
 
 /** This phone's notification history (local only). */
 export interface ActivityRepository {
@@ -143,6 +157,7 @@ export interface ActivityRepository {
 
 export interface DataStore extends SyncedCollections {
   device: DevicePrefsRepository;
+  photoBlobs: PhotoBlobRepository;
   activity: ActivityRepository;
   /**
    * Re-runs `query` whenever data it read changes and emits the result.

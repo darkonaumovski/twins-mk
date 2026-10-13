@@ -99,6 +99,7 @@ export function useFieldText() {
       if (path === 'sex') return text === 'female' ? t('twins.female') : text === 'male' ? t('twins.male') : text;
       if (path === 'slot') return text === 'A' ? t('twins.letterA') : t('twins.letterB');
       if (path === 'kind' && collection === 'prepItems') return t(`activity.value.prepKind.${text}`, { defaultValue: text });
+      if (path === 'owner.kind') return t(`photos.owner.${text}`, { defaultValue: text });
       if (path === 'data.color') return t(`diaper.colors.${text}`, { defaultValue: text });
       if (path === 'data.texture') return t(`diaper.textures.${text}`, { defaultValue: text });
       if (path === 'data.kind') return t(`activity.value.diaper.${text}`, { defaultValue: text });

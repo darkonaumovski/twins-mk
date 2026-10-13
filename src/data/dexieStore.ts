@@ -8,10 +8,11 @@ import {
   type DataStore,
   type DevicePrefsRepository,
   type LogRepository,
+  type PhotoBlobRepository,
   type Repository,
   type SettingsRepository,
 } from './repository';
-import type { AppliedChange, OutboxEntry, SyncLocal } from './sync/types';
+import type { AppliedChange, OutboxEntry, PhotoUpload, SyncLocal } from './sync/types';
 import type {
   ActivityEntry,
   Appointment,
@@ -40,6 +41,9 @@ import type {
   Vaccine,
   MotherLog,
   ReminderSnooze,
+  Photo,
+  PhotoBlob,
+  PhotoMime,
 } from './types';
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
@@ -68,6 +72,11 @@ class TwinsDb extends Dexie {
   vaccines!: Table<Vaccine, string>;
   motherLogs!: Table<MotherLog, string>;
   reminderSnoozes!: Table<ReminderSnooze, string>;
+  photos!: Table<Photo, string>;
+  /** The photos' images, on this phone only. */
+  photoBlobs!: Table<PhotoBlob, string>;
+  /** Deleted photos whose Storage objects this phone removed, with the deletion it handled. */
+  photoPurged!: Table<{ id: string; deletedAt: string }, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -129,6 +138,10 @@ class TwinsDb extends Dexie {
     // "Snooze 15 min" on push reminders. A new, empty table.
     this.version(10)
       .stores({ reminderSnoozes: 'id, until' })
+      .upgrade(() => {});
+    // Photos: synced details, plus the images and purge marks on this phone only. New, empty tables.
+    this.version(11)
+      .stores({ photos: 'id, takenAt', photoBlobs: 'id', photoPurged: 'id' })
       .upgrade(() => {});
   }
 }
@@ -444,6 +457,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     vaccines: repo(db.vaccines),
     motherLogs: repo(db.motherLogs),
     reminderSnoozes: repo(db.reminderSnoozes),
+    photos: repo(db.photos),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 
@@ -452,9 +466,34 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     ...collections,
     device: new DexieDevicePrefsRepository(db.device, ctx),
     activity: createActivity(db.activity),
+    photoBlobs: createPhotoBlobs(db.photoBlobs),
     live: (query) => liveQuery(query),
     transaction: (fn) => db.transaction('rw', db.tables, fn),
     sync: createSyncLocal(db, raw),
+  };
+}
+
+function createPhotoBlobs(table: Table<PhotoBlob, string>): PhotoBlobRepository {
+  return {
+    get: (id) => table.get(id),
+    put(blob) {
+      // In one transaction, so a thumbnail and a full image arriving together never overwrite each other.
+      return table.db.transaction('rw', table, async () => {
+        const existing = await table.get(blob.id);
+        await table.put({ id: blob.id, full: blob.full ?? existing?.full ?? null, thumb: blob.thumb ?? existing?.thumb ?? null });
+      });
+    },
+    remove: (id) => table.delete(id),
+    async usage(only) {
+      let count = 0;
+      let bytes = 0;
+      await table.each((b) => {
+        if (only && !only.has(b.id)) return;
+        count++;
+        bytes += (b.full?.size ?? 0) + (b.thumb?.size ?? 0);
+      });
+      return { count, bytes };
+    },
   };
 }
 
@@ -535,15 +574,51 @@ function createSyncLocal(db: TwinsDb, repos: Record<CollectionName, DexieReposit
     },
 
     async reset() {
-      await db.transaction('rw', db.outbox, db.syncMeta, async () => {
+      await db.transaction('rw', db.outbox, db.syncMeta, db.photos, db.photoBlobs, db.photoPurged, async () => {
         await db.outbox.clear();
         await db.syncMeta.clear();
+        // A new (or rejoined) family has none of this phone's images yet: upload them again, and forget
+        // which deleted photos were removed from the old family's Storage.
+        await db.photoPurged.clear();
+        const withImages = new Set((await db.photoBlobs.toArray()).filter((b) => b.full).map((b) => b.id));
+        await db.photos.filter((p) => p.deletedAt === null && p.uploaded && withImages.has(p.id)).modify({ uploaded: false });
       });
     },
 
     watchPending(onChange) {
       const sub = liveQuery(() => db.outbox.count()).subscribe({ next: onChange, error: () => {} });
       return () => sub.unsubscribe();
+    },
+
+    photos: {
+      async toUpload() {
+        const waiting = (await db.photos.toArray()).filter((p) => p.deletedAt === null && !p.uploaded);
+        const out: PhotoUpload[] = [];
+        for (const p of waiting) {
+          const blob = await db.photoBlobs.get(p.id);
+          // Only a phone with the full image uploads (one with just a cached thumbnail must not mark it uploaded).
+          if (blob?.full) out.push({ id: p.id, mime: p.mime ?? 'image/webp', full: blob.full, thumb: blob.thumb });
+        }
+        return out;
+      },
+      async markUploaded(id) {
+        const photo = await db.photos.get(id);
+        if (photo && !photo.uploaded) await repos.photos.update(id, { uploaded: true } as Partial<Entity>);
+      },
+      async toPurge() {
+        const deleted = (await db.photos.toArray()).filter((p) => p.deletedAt !== null);
+        const out: { id: string; mime: PhotoMime }[] = [];
+        for (const p of deleted) {
+          const purged = await db.photoPurged.get(p.id);
+          // A photo deleted again after an undo is purged again.
+          if (!purged || purged.deletedAt !== p.deletedAt) out.push({ id: p.id, mime: p.mime ?? 'image/webp' });
+        }
+        return out;
+      },
+      async markPurged(id) {
+        const photo = await db.photos.get(id);
+        if (photo?.deletedAt) await db.photoPurged.put({ id, deletedAt: photo.deletedAt });
+      },
     },
   };
 }

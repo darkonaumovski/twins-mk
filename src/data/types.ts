@@ -139,6 +139,41 @@ export interface ReminderSnooze extends Entity {
   until: ISODateTime;
 }
 
+/** What a photo belongs to: a milestone, a journal entry, the monthly "twins together" photo or a bump photo. */
+export interface PhotoOwner {
+  kind: 'milestone' | 'journal' | 'monthly' | 'bump';
+  /** The milestone or journal record, the month (`2026-10`) or the pregnancy week (`week-28`); null when loose. */
+  id: string | null;
+}
+
+/**
+ * A photo's details (synced; records are capped at 64 KB on the server, so never the image itself).
+ * The images live on the phone (`photoBlobs`) and, with sync on, in the family's private Storage bucket.
+ */
+export interface Photo extends Entity {
+  takenAt: ISODateTime;
+  owner: PhotoOwner;
+  babies: BabyScope;
+  width: number;
+  height: number;
+  /** Size of the full image. */
+  bytes: number;
+  /** True once the images are in the family's Storage bucket. */
+  uploaded: boolean;
+  /** The image format (WebP, or JPEG where the phone cannot make WebP). Absent means WebP. */
+  mime?: PhotoMime;
+}
+
+export type PhotoMime = 'image/webp' | 'image/jpeg';
+
+/** The images of one photo, on this phone only (never synced or in the JSON backup). */
+export interface PhotoBlob {
+  id: string;
+  /** Null until the full image is downloaded (only the thumbnail is fetched for grids). */
+  full: Blob | null;
+  thumb: Blob | null;
+}
+
 /** What a phone wants push reminders for. */
 export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';
 

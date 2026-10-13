@@ -14,6 +14,7 @@ import { BABY_IDS, SLOTS, type Who } from '@/features/log/logic';
 import { ageInfo } from '@/features/twins/age';
 import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } from '@/features/twins/twins';
 import { useFormatAgeDays } from '@/features/twins/useAge';
+import { PhotoStrip } from '@/features/photos/PhotoParts';
 import { milestoneId, milestoneRows, type MilestoneKey, type MilestoneRow } from './logic';
 
 type Editing = { row: MilestoneRow; slot: TwinSlot } | { add: true };
@@ -143,6 +144,7 @@ function MilestoneSheet({ editing, babies, onClose }: { editing: Editing; babies
         <Field label={t('milestones.note')}>
           {(p) => <TextArea {...p} rows={3} value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />}
         </Field>
+        {existing && 'row' in editing && <PhotoStrip owner={{ kind: 'milestone', id: existing.id }} babies={editing.slot} />}
         {error && (
           <p role="alert" className="font-medium text-danger">
             {t('log.required')}

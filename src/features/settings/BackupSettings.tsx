@@ -1,3 +1,4 @@
+import { PhotoZipButton } from '@/features/photos/PhotoSettings';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -172,6 +173,7 @@ export function BackupSettings() {
         </Button>
         <p className="text-sm text-muted">{t('csv.exportHint')}</p>
       </div>
+      <PhotoZipButton />
       <div className="space-y-1.5">
         <Button variant="secondary" className="w-full" onClick={() => fileInput.current?.click()}>
           <Upload aria-hidden size={18} />

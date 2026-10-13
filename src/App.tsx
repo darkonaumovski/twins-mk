@@ -34,6 +34,7 @@ const ReportPage = lazy(() => import('@/features/report/ReportPage').then((m) =>
 const ContractionsPage = lazy(() => import('@/features/contractions/ContractionsPage').then((m) => ({ default: m.ContractionsPage })));
 const VaccinesPage = lazy(() => import('@/features/vaccines/VaccinesPage').then((m) => ({ default: m.VaccinesPage })));
 const MotherPage = lazy(() => import('@/features/mother/MotherPage').then((m) => ({ default: m.MotherPage })));
+const PhotosPage = lazy(() => import('@/features/photos/PhotosPage').then((m) => ({ default: m.PhotosPage })));
 const SetupPage = lazy(() => import('@/features/twins/SetupPage').then((m) => ({ default: m.SetupPage })));
 
 /** Home is the checklist before birth and Today after. */
@@ -77,6 +78,7 @@ export function App() {
                 <Route path="/milestones" element={<MilestonesPage />} />
                 <Route path="/vaccines" element={<VaccinesPage />} />
                 <Route path="/mother" element={<MotherPage />} />
+                <Route path="/photos" element={<PhotosPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/setup" element={<SetupPage />} />
                 <Route path="/contractions" element={<ContractionsPage />} />

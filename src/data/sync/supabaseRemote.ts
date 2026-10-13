@@ -124,6 +124,43 @@ export async function createSupabaseRemote(config: SupabaseConfig): Promise<Sync
       if (error) throw toSyncError(error);
     },
 
+    // Photos: the private "photos" bucket (migration 006), one folder per family.
+    async uploadPhoto(familyId, path, blob, contentType) {
+      await signedIn();
+      try {
+        const { error } = await client.storage.from('photos').upload(`${familyId}/${path}`, blob, { contentType, upsert: true });
+        if (error) throw toSyncError(error);
+      } catch (err) {
+        throw err instanceof SyncError ? err : toSyncError(err as Error);
+      }
+    },
+
+    async downloadPhoto(familyId, path) {
+      await signedIn();
+      try {
+        const { data, error } = await client.storage.from('photos').download(`${familyId}/${path}`);
+        if (error) {
+          // Not there (yet, or any more): the screen shows a placeholder.
+          if (/not.?found|404/i.test(`${error.message} ${(error as { statusCode?: string }).statusCode ?? ''}`)) return null;
+          throw toSyncError(error);
+        }
+        return data;
+      } catch (err) {
+        throw err instanceof SyncError ? err : toSyncError(err as Error);
+      }
+    },
+
+    async deletePhotos(familyId, paths) {
+      if (!paths.length) return;
+      await signedIn();
+      try {
+        const { error } = await client.storage.from('photos').remove(paths.map((p) => `${familyId}/${p}`));
+        if (error) throw toSyncError(error);
+      } catch (err) {
+        throw err instanceof SyncError ? err : toSyncError(err as Error);
+      }
+    },
+
     listen(familyId, { onChange, onLive }) {
       let stopped = false;
       let channel: ReturnType<SupabaseClient['channel']> | null = null;

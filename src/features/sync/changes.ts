@@ -23,6 +23,7 @@ import type {
   Vaccine,
   MotherLog,
   ReminderSnooze,
+  Photo,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -44,8 +45,17 @@ export function fromOtherPhone(changes: readonly AppliedChange[], ownDeviceId: s
       c.record.deviceId !== 'seed' &&
       changeAction(c) !== null &&
       // Entries of a type this version cannot describe (from a newer version) are not announced.
-      !(c.collection === 'logs' && !isKnownLog(c.record as LogEntry)),
+      !(c.collection === 'logs' && !isKnownLog(c.record as LogEntry)) &&
+      !isPhotoUploadMark(c),
   );
+}
+
+/** A photo's images reaching the server (`uploaded` turning true) is bookkeeping, not news. */
+function isPhotoUploadMark(c: AppliedChange): boolean {
+  if (c.collection !== 'photos' || !c.previous) return false;
+  const { uploaded: _a, updatedAt: _b, updatedBy: _c, deviceId: _d, ...now } = c.record as Photo;
+  const { uploaded: _e, updatedAt: _f, updatedBy: _g, deviceId: _h, ...before } = c.previous as Photo;
+  return JSON.stringify(now) === JSON.stringify(before);
 }
 
 /**
@@ -175,6 +185,11 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       if (ct.end)
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
+    }
+    case 'photos': {
+      const p = c.record as Photo;
+      const what = t(`photos.owner.${p.owner.kind}`);
+      return action === 'deleted' ? t('changes.photos.deleted', { what }) : t('changes.photos.added', { what });
     }
     case 'reminderSnoozes': {
       const s = c.record as ReminderSnooze;

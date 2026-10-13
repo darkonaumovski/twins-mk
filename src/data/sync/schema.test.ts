@@ -5,6 +5,7 @@ import migration002 from '../../../supabase/migrations/002_pumping_stash_supplie
 import migration003 from '../../../supabase/migrations/003_caregivers.sql?raw';
 import migration004 from '../../../supabase/migrations/004_push_milestones.sql?raw';
 import migration005 from '../../../supabase/migrations/005_roadmap_collections.sql?raw';
+import migration006 from '../../../supabase/migrations/006_photos_storage.sql?raw';
 import { COLLECTIONS } from '../repository';
 
 /**
@@ -22,6 +23,18 @@ const SUPABASE_STUBS = `
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
   create publication supabase_realtime;
+  -- Just enough of Supabase Storage for the photo policies (migration 006).
+  create schema storage;
+  create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+  create table storage.objects (
+    id uuid primary key default gen_random_uuid(),
+    bucket_id text references storage.buckets (id),
+    name text,
+    unique (bucket_id, name)
+  );
+  alter table storage.objects enable row level security;
+  grant usage on schema storage to authenticated;
+  grant select, insert, update, delete on storage.objects to authenticated;
 `;
 
 const MOM = '00000000-0000-4000-8000-000000000001';
@@ -216,6 +229,34 @@ describe('sync schema', () => {
     // An older migration run afterwards takes nothing away.
     await db.exec(migration004);
     expect(await as(MOM, () => push(family, [row('photos', '2026-10-11T09:00:00.000Z')]))).toBe(1);
+  });
+
+  it('keeps photos private to the family, by folder (migration 006, more than once)', async () => {
+    await db.exec(migration006);
+    await db.exec(migration006);
+    const [bucket] = await rpc<{ public: boolean; file_size_limit: string | number; allowed_mime_types: string[] }>(
+      `select public, file_size_limit, allowed_mime_types from storage.buckets where id = 'photos'`,
+    );
+    expect({ ...bucket, file_size_limit: Number(bucket.file_size_limit) }).toEqual({
+      public: false,
+      file_size_limit: 3145728,
+      allowed_mime_types: ['image/webp', 'image/jpeg'],
+    });
+
+    const put = (name: string) => rpc(`insert into storage.objects (bucket_id, name) values ('photos', $1)`, [name]);
+    const names = () => rpc<{ name: string }>(`select name from storage.objects where bucket_id = 'photos' order by name`);
+    await as(MOM, () => put(`${family}/p1.webp`));
+    await as(MOM, () => put(`${family}/p1.thumb.webp`));
+
+    // The other parent sees and can delete them; a stranger can do nothing with them.
+    expect((await as(DAD, names)).map((r) => r.name)).toEqual([`${family}/p1.thumb.webp`, `${family}/p1.webp`]);
+    expect(await as(STRANGER, names)).toEqual([]);
+    await expect(as(STRANGER, () => put(`${family}/p2.webp`))).rejects.toThrow();
+    await expect(as(STRANGER, () => put(`p2.webp`))).rejects.toThrow();
+    await as(STRANGER, () => rpc(`delete from storage.objects where bucket_id = 'photos'`));
+    expect(await as(DAD, names)).toHaveLength(2);
+    await as(DAD, () => rpc(`delete from storage.objects where name = $1`, [`${family}/p1.webp`]));
+    expect((await as(MOM, names)).map((r) => r.name)).toEqual([`${family}/p1.thumb.webp`]);
   });
 
   it('lets a phone leave, which also ends its push reminders', async () => {

@@ -1,5 +1,5 @@
 import type { CollectionName } from '../repository';
-import type { Entity, ReminderKind, SyncMembership } from '../types';
+import type { Entity, PhotoMime, ReminderKind, SyncMembership } from '../types';
 
 export type { SyncMembership };
 
@@ -42,6 +42,27 @@ export interface SyncLocal {
   reset(): Promise<void>;
   /** Calls back with the number of queued changes now and whenever it changes. */
   watchPending(onChange: (count: number) => void): () => void;
+  /** The photos' images (absent in stores without photos). */
+  photos?: PhotoSyncLocal;
+}
+
+/** A photo whose images still have to go up to the family's Storage bucket. */
+export interface PhotoUpload {
+  id: string;
+  mime: PhotoMime;
+  full: Blob | null;
+  thumb: Blob | null;
+}
+
+/** What the sync engine needs for photos (implemented by the Dexie store). */
+export interface PhotoSyncLocal {
+  /** Live photos marked `uploaded: false` whose images are on this phone. */
+  toUpload(): Promise<PhotoUpload[]>;
+  /** Sets `uploaded: true` (a normal edit, so the other phone learns it can download them). */
+  markUploaded(id: string): Promise<void>;
+  /** Deleted photos whose Storage objects were not removed yet (by this phone), with their format. */
+  toPurge(): Promise<{ id: string; mime: PhotoMime }[]>;
+  markPurged(id: string): Promise<void>;
 }
 
 /** `serverOutdated`: the server refuses a collection this version syncs (a migration in supabase/migrations/ was not run). */
@@ -84,4 +105,9 @@ export interface SyncRemote {
   deletePushSubscription(endpoint: string): Promise<void>;
   /** Asks the reminder function to send this phone a test notification. */
   sendTestPush(endpoint: string): Promise<void>;
+  /** Photos in the family's private Storage bucket; `path` is relative to the family's folder. */
+  uploadPhoto(familyId: string, path: string, blob: Blob, contentType: PhotoMime): Promise<void>;
+  /** The image, or null when it is not (or no longer) in Storage. */
+  downloadPhoto(familyId: string, path: string): Promise<Blob | null>;
+  deletePhotos(familyId: string, paths: string[]): Promise<void>;
 }

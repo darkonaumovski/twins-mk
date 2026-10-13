@@ -1,3 +1,4 @@
+import { PhotoUsage } from '@/features/photos/PhotoSettings';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -205,6 +206,7 @@ export function SettingsPage() {
       <InstallSettings />
 
       <Section title={t('settings.storage')}>
+        <PhotoUsage />
         {persist && (
           <p className="flex gap-3">
             {persist === 'persisted' ? (

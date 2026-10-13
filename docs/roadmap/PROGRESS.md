@@ -39,12 +39,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 3: memories and later months
 
-| ID  | Feature                        | Status | Commit | Notes |
-| --- | ------------------------------ | ------ | ------ | ----- |
-| F12 | Photos                         | ⬜     |        |       |
-| F13 | Journal and keepsake book      | ⬜     |        |       |
-| F14 | Solids and first foods         | ⬜     |        |       |
-| F15 | Quick text logging (and voice) | ⬜     |        |       |
+| ID  | Feature                        | Status | Commit | Notes                                             |
+| --- | ------------------------------ | ------ | ------ | ------------------------------------------------- |
+| F12 | Photos                         | ✅     |        | More → Photos; milestone sheet; run migration 006 |
+| F13 | Journal and keepsake book      | ⬜     |        |                                                   |
+| F14 | Solids and first foods         | ⬜     |        |                                                   |
+| F15 | Quick text logging (and voice) | ⬜     |        |                                                   |
 
 ## Decisions and deviations
 
@@ -149,6 +149,16 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F11 review · Done adds nothing the app already logged: no second mark when "Coming up" marked that time (random id), and a dose only for the twins (or the mother) who did not get it yet for that time (`medOccurrenceGiven` over that day's entries), so a notification still showing after a dose was logged in the app does not double it. Lookups by fixed id use the new `Repository.getAny(id)` (also finds a deleted record), not a whole-table read.
 - 2026-10-13 · F11 review · The service worker posts the action to an open window over a `MessageChannel` and waits up to 2 s for "saved"; a window that is still loading, stuck or failed does not answer "ok", and the service worker then saves it itself (fixed ids make a double write harmless). A failed store open is not cached. A snoozed reminder sent again uses the first one's tag with `renotify`, so it still sounds on the phone that did not snooze.
 - 2026-10-13 · F11 · The edge function also loads `reminderSnoozes`: redeploy `send-reminders` (once for F10 and F11 together).
+
+- 2026-10-13 · F12 · New synced collection `photos` (metadata only) in all 7 places (Dexie version 11; migration 005 already had the name), plus two local-only tables: `photoBlobs` (`{ id, full, thumb }`) and `photoPurged` (which deleted photos this phone already removed from Storage). Added an optional `mime` ('image/webp' | 'image/jpeg') to the record, since the JPEG fallback needs its own file extension in Storage and in the zip.
+- 2026-10-13 · F12 · Compression is `compress.ts` with an injectable image environment (`createImageBitmap` with `imageOrientation: 'from-image'` and a canvas in the browser; a fake in tests). Re-encoding already drops metadata; `metadata.ts` also strips APP1–APP15/COM from JPEG and EXIF/XMP chunks (and the VP8X flags) from WebP at byte level, so nothing slips through even if an encoder copies it. Tested on crafted files with a GPS tag.
+- 2026-10-13 · F12 · Sync: the engine runs a photo step after push and pull: upload the thumbnail and the full image of photos marked `uploaded: false` that have images on this phone, then set `uploaded: true` (a normal edit); remove the Storage objects of deleted photos. Failures in this step (e.g. migration 006 not run) are logged and retried next time, and never stop record sync. Undo after a delete sets `uploaded: false`, so the images go up again if they were already removed. Images of deleted photos stay on the phone that has them (for undo).
+- 2026-10-13 · F12 · "Uploaded" turning true is bookkeeping: it is not announced to the other phone. The photo's width, height, size, format and upload flag are hidden in the notification history.
+- 2026-10-13 · F12 · Migration 006 identifies the family by the first folder of the object name with its own `public.photo_family(name)` (instead of `storage.foldername`), so the policies are tested in PGlite with a small stub of `storage.buckets` and `storage.objects`: members read, add, replace and delete in their folder; a stranger can do none of that. `schema.sql` includes the same.
+- 2026-10-13 · F12 · Two buttons, **Take photo** (`capture="environment"`) and **Choose photo** (gallery, several at once), because `capture` alone hides the gallery on Android. The bump photo is offered on the Photos page before the birth (week from the due date) and linked from the countdown; after the birth the page offers the monthly photo. Journal photos come with F13.
+- 2026-10-13 · F12 review · Only a phone with the full image uploads (a phone with just a cached thumbnail never marks a photo uploaded). Creating or joining a family (sync `reset`) marks this phone's own photos for upload again and forgets the purge marks, so a new family gets the images. Each photo is uploaded or purged on its own: one refused image never blocks the others; offline still stops the step to retry.
+- 2026-10-13 · F12 review · The viewer is its own modal `<dialog>`: it sits above an open sheet, keeps and returns focus, and Escape or Android back closes only the viewer. Inside a sheet (the milestone), the undo for a deleted photo is shown in the sheet itself, since a toast would sit behind the sheet. Thumbnails load when they scroll into view. Images of photos deleted more than 7 days ago are removed from the phone (when the Photos page or Settings opens), and Settings → Storage counts only live photos. The raw owner id is hidden in the notification history.
+- 2026-10-13 · F12 · The photo zip is a download (not the share sheet: Android does not share zips, and it can be large). A photo whose full image is on neither this phone nor Storage goes in as its thumbnail; one with no image at all is counted in a message. The zip is built in memory, which is fine for a few hundred photos; streaming it is a follow-up if a family has many more.
 
 ## Phone test checklists
 
@@ -306,7 +316,20 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 7. A medicine for the mother: **Done** logs her dose (Mother page), not a twin's.
 8. On iPhone: the reminders arrive as before, without buttons.
 
+### F12 (photos) — run migration 006 first
+
+1. Supabase → SQL Editor: run `supabase/migrations/006_photos_storage.sql` (twice is fine). Storage shows a private bucket `photos`.
+2. More → **Photos** (or, before the birth, **Bump photos** on the countdown): **Take photo** opens the camera, **Choose photo** the gallery. The photo appears under this month.
+3. Open a milestone (e.g. first smile for one twin, with a date): the sheet has **Photos**; add one. It shows in the sheet and on the Photos page with that twin's badge.
+4. Tap a photo: full screen; swipe to the next; delete, then **Undo**.
+5. On the other phone (sync on): the photos appear, thumbnails first, the full image on opening. With the first phone offline, a photo from it shows "not on this phone yet" until it syncs.
+6. Filter by twin: a twin shows its own photos and those of both; **Together** only those of both.
+7. Settings → Storage shows the photos and their size; Settings → Backup → **Download photos (zip)** saves a zip with names like `2026-10-13_Ема_Важен-момент.webp`.
+8. Take a photo with location on, download the zip on a computer and check the file's properties: no GPS.
+
 ## Follow-ups
+
+- F12 · Build the photo zip in parts (or stream it) for families with many hundreds of photos.
 
 - F11 · Upload from the service worker itself on Background Sync (needs the Supabase client and sign-in in the service worker), so a Done/Snooze pressed with the app closed reaches the other phone without opening the app.
 

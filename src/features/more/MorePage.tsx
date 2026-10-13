@@ -4,6 +4,7 @@ import {
   ChevronRight,
   FileText,
   Heart,
+  Images,
   ListChecks,
   NotebookPen,
   Package,
@@ -48,6 +49,7 @@ export function MorePage() {
         items={[
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
           { to: '/milestones', label: t('milestones.pageTitle'), icon: Star },
+          { to: '/photos', label: t('photos.title'), icon: Images },
           { to: '/vaccines', label: t('vaccines.title'), icon: Syringe },
           { to: '/mother', label: t('mother.title'), icon: Heart },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },

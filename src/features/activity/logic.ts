@@ -8,7 +8,24 @@ export const KEEP_DAYS = 90;
 export const KEEP_ENTRIES = 3000;
 
 /** Bookkeeping fields that say nothing to a parent (who and when are shown separately). */
-const HIDDEN = new Set(['id', 'createdAt', 'updatedAt', 'deletedAt', 'deviceId', 'updatedBy', 'seedKey', 'order', 'groupId', 'pumpId']);
+const HIDDEN = new Set([
+  'id',
+  'createdAt',
+  'updatedAt',
+  'deletedAt',
+  'deviceId',
+  'updatedBy',
+  'seedKey',
+  'order',
+  'groupId',
+  'pumpId',
+  // A photo's technical details.
+  'width',
+  'height',
+  'bytes',
+  'uploaded',
+  'mime',
+]);
 
 export function entryAction(entry: Pick<ActivityEntry, 'record' | 'previous'>): ChangeAction {
   return changeAction({ collection: 'logs', record: entry.record, previous: entry.previous }) ?? 'changed';
@@ -53,7 +70,7 @@ export function recordFields(record: Entity | undefined): Map<string, unknown> {
   const walk = (value: unknown, path: string) => {
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
       for (const [k, v] of Object.entries(value)) walk(v, path ? `${path}.${k}` : k);
-    } else if (path && !HIDDEN.has(path.split('.')[0]) && !(privateData && path.startsWith('data.'))) {
+    } else if (path && !HIDDEN.has(path.split('.')[0]) && !(privateData && path.startsWith('data.')) && path !== 'owner.id') {
       out.set(path, value);
     }
   };

@@ -1,6 +1,7 @@
 import { isEntity } from '../merge';
 import { COLLECTIONS, type CollectionName } from '../repository';
-import type { Entity } from '../types';
+import type { Entity, Photo } from '../types';
+import { photoPath } from '../photoPaths';
 import {
   SyncError,
   type AppliedChange,
@@ -256,6 +257,8 @@ export class SyncEngine {
         await this.push(remote, membership.familyId, current);
         await this.pull(remote, membership.familyId, current);
         if (!current()) return;
+        await this.syncPhotos(remote, membership.familyId, current);
+        if (!current()) return;
         this.unlisten ??= remote.listen(membership.familyId, {
           onChange: () => {
             if (current()) this.schedule(150);
@@ -286,6 +289,48 @@ export class SyncEngine {
         }, this.retryDelay);
       }
     }
+  }
+
+  /**
+   * After the records: upload the images of photos taken on this phone (then mark them uploaded, which
+   * the next push sends), and remove the Storage objects of deleted photos. A failure here (for example
+   * the photos migration not run yet) is logged and retried next time, but never stops record sync.
+   */
+  private async syncPhotos(remote: SyncRemote, familyId: string, current: () => boolean) {
+    const photos = this.local.photos;
+    if (!photos) return;
+    // Each photo on its own: one refused image (too big, broken) never holds up the others.
+    const attempt = async (work: () => Promise<void>) => {
+      try {
+        await work();
+      } catch (err) {
+        if (err instanceof SyncError && err.code === 'offline') throw err;
+        console.warn('Photo sync failed', err);
+      }
+    };
+    for (const p of await photos.toUpload()) {
+      if (!current()) return;
+      await attempt(async () => {
+        if (p.thumb) await remote.uploadPhoto(familyId, photoPath(p, 'thumb'), p.thumb, p.mime);
+        if (p.full) await remote.uploadPhoto(familyId, photoPath(p, 'full'), p.full, p.mime);
+        await photos.markUploaded(p.id);
+        this.again = true;
+      });
+    }
+    for (const p of await photos.toPurge()) {
+      if (!current()) return;
+      await attempt(async () => {
+        await remote.deletePhotos(familyId, [photoPath(p, 'full'), photoPath(p, 'thumb')]);
+        await photos.markPurged(p.id);
+      });
+    }
+  }
+
+  /** A photo's image from the family's Storage, for a photo taken on the other phone. Null without sync or when it is not there. */
+  async downloadPhoto(photo: Pick<Photo, 'id' | 'mime'>, which: 'full' | 'thumb'): Promise<Blob | null> {
+    const membership = this.membership;
+    if (!membership) return null;
+    return (await this.remote()).downloadPhoto(membership.familyId, photoPath(photo, which));
   }
 
   private async push(remote: SyncRemote, familyId: string, current: () => boolean) {
