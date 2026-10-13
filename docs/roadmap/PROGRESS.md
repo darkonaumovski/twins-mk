@@ -44,7 +44,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006           |
 | F13 | Journal and keepsake book      | ✅     | b021ef1 | More → Journal, More → Keepsake book                        |
 | F14 | Solids and first foods         | ✅     | 7e40cd6 | More → First foods (switch on); Today → More → Solids       |
-| F15 | Quick text logging (and voice) | ✅     |         | Today → keyboard button; Settings → Voice for quick logging |
+| F15 | Quick text logging (and voice) | ✅     | 4b5f0d9 | Today → keyboard button; Settings → Voice for quick logging |
 
 ## Decisions and deviations
 
