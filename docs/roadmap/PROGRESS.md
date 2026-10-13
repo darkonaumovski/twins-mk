@@ -39,12 +39,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 3: memories and later months
 
-| ID  | Feature                        | Status | Commit | Notes                                             |
-| --- | ------------------------------ | ------ | ------ | ------------------------------------------------- |
-| F12 | Photos                         | ✅     |        | More → Photos; milestone sheet; run migration 006 |
-| F13 | Journal and keepsake book      | ⬜     |        |                                                   |
-| F14 | Solids and first foods         | ⬜     |        |                                                   |
-| F15 | Quick text logging (and voice) | ⬜     |        |                                                   |
+| ID  | Feature                        | Status | Commit  | Notes                                             |
+| --- | ------------------------------ | ------ | ------- | ------------------------------------------------- |
+| F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006 |
+| F13 | Journal and keepsake book      | ✅     |         | More → Journal, More → Keepsake book              |
+| F14 | Solids and first foods         | ⬜     |         |                                                   |
+| F15 | Quick text logging (and voice) | ⬜     |         |                                                   |
 
 ## Decisions and deviations
 
@@ -159,6 +159,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F12 review · Only a phone with the full image uploads (a phone with just a cached thumbnail never marks a photo uploaded). Creating or joining a family (sync `reset`) marks this phone's own photos for upload again and forgets the purge marks, so a new family gets the images. Each photo is uploaded or purged on its own: one refused image never blocks the others; offline still stops the step to retry.
 - 2026-10-13 · F12 review · The viewer is its own modal `<dialog>`: it sits above an open sheet, keeps and returns focus, and Escape or Android back closes only the viewer. Inside a sheet (the milestone), the undo for a deleted photo is shown in the sheet itself, since a toast would sit behind the sheet. Thumbnails load when they scroll into view. Images of photos deleted more than 7 days ago are removed from the phone (when the Photos page or Settings opens), and Settings → Storage counts only live photos. The raw owner id is hidden in the notification history.
 - 2026-10-13 · F12 · The photo zip is a download (not the share sheet: Android does not share zips, and it can be large). A photo whose full image is on neither this phone nor Storage goes in as its thumbnail; one with no image at all is counted in a message. The zip is built in memory, which is fine for a few hundred photos; streaming it is a follow-up if a family has many more.
+
+- 2026-10-13 · F13 · New synced collection `journal` (Dexie version 12, index `date`) in all 7 places; migration 005 already had the name. `inBook` is optional (absent = not in the book).
+- 2026-10-13 · F13 · "+ Add from Today's menu": Today → More → **Journal entry** opens the journal with a new entry (`/journal?new=1`). The twin picker is A / Both / B (no "none"). Photos are added once the entry is saved (its id is what they belong to), with a hint in the new-entry sheet.
+- 2026-10-13 · F13 · The book is `buildBook()` (pure, tested) plus a print page that reuses the report's A4 print rules: the cover fills the first page, each month starts a new page, milestone rows and journal entries never break across pages, and nothing relies on colour. Only dated milestones are in it, oldest first by the earlier twin's date; ages are counted at noon on that day, like the CSV. A month is in the book when it has a monthly photo (with photos on) or an entry put in the book; others are skipped. The first-foods section is wired through `useFirstFoods()` (empty until F14).
+- 2026-10-13 · F13 review · **Print** waits until every photo in the book is loaded (or known to be missing): it says "Loading 3 photos…" until then. Night appearance now prints black on white too (the print rule also covers `.dark.night`; this fixes the doctor's report as well). Deleting a journal entry deletes its photos, and undo brings both back. New photos in an entry follow the twin choice in the open sheet. "From" after "To" says so. The Macedonian title is "Спомен-книга"; names, weight, length and the week of pregnancy on the cover and birth page come from the translations.
+- 2026-10-13 · F13 · The book is not in the CSV export (it is a view of other data); journal entries are not in the CSV either, as the spec's F05 list does not include them.
 
 ## Phone test checklists
 
@@ -326,6 +332,16 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 6. Filter by twin: a twin shows its own photos and those of both; **Together** only those of both.
 7. Settings → Storage shows the photos and their size; Settings → Backup → **Download photos (zip)** saves a zip with names like `2026-10-13_Ема_Важен-момент.webp`.
 8. Take a photo with location on, download the zip on a computer and check the file's properties: no GPS.
+
+### F13 (journal and keepsake book)
+
+1. Today → **More** → **Journal entry**: the journal opens with a new entry. Write a line, keep **Both**, switch on **Put in the book**, save.
+2. More → **Journal**: the entry under this month, with both twin badges and the book mark. Open it again: add a photo.
+3. Add another entry for one twin without **Put in the book**.
+4. More → **Keepsake book**: a cover with both names and the birth date, the birth details side by side, the milestones with dates, age and corrected age, and this month's page with the monthly photo and only the first entry.
+5. Set **From** to next month: the month page goes; switch off **Include photos**: photos go.
+6. **Print / Save as PDF**: A4 pages, the cover alone on page 1, each month on its own page, readable in black and white, no milestone row cut in half.
+7. On the other phone: the entry arrives with a short message ("Journal: …").
 
 ## Follow-ups
 

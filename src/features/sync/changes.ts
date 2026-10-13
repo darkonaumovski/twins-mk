@@ -24,6 +24,7 @@ import type {
   MotherLog,
   ReminderSnooze,
   Photo,
+  JournalEntry,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -186,6 +187,8 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
     }
+    case 'journal':
+      return t(`changes.journal.${action}`, { text: short((c.record as JournalEntry).text) });
     case 'photos': {
       const p = c.record as Photo;
       const what = t(`photos.owner.${p.owner.kind}`);

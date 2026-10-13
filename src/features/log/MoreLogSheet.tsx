@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Milk, Package, Refrigerator, Timer, type LucideIcon } from 'lucide-react';
+import { Milk, NotebookText, Package, Refrigerator, Timer, type LucideIcon } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { tintFor, useBabies } from '@/features/twins/twins';
 import { LOG_ICONS } from './describe';
@@ -49,6 +49,7 @@ export function MoreLogSheet({ who: initialWho, onClose }: { who: Who; onClose: 
           {forms.map((f) => (
             <Tile key={f.type} icon={LOG_ICONS[f.type]} label={f.label} onClick={() => ui.create(f.type, who)} />
           ))}
+          <Tile icon={NotebookText} label={t('journal.entry')} onClick={() => go('/journal?new=1')} />
         </div>
         <section className="space-y-2 border-t border-line pt-4">
           <h3 className="text-sm font-semibold text-muted">{t('milk.section')}</h3>

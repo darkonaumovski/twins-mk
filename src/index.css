@@ -145,7 +145,8 @@ body {
     margin: 12mm;
   }
   :root,
-  .dark {
+  .dark,
+  .dark.night {
     --c-bg: #ffffff;
     --c-surface: #ffffff;
     --c-surface-2: #f0f0f0;

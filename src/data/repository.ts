@@ -28,6 +28,7 @@ import type {
   ReminderSnooze,
   Photo,
   PhotoBlob,
+  JournalEntry,
 } from './types';
 
 /**
@@ -104,6 +105,7 @@ export interface SyncedCollections {
   motherLogs: Repository<MotherLog>;
   reminderSnoozes: Repository<ReminderSnooze>;
   photos: Repository<Photo>;
+  journal: Repository<JournalEntry>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -129,6 +131,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'motherLogs',
   'reminderSnoozes',
   'photos',
+  'journal',
 ];
 
 /** The photos' images on this phone (local only: never synced, exported or merged). */

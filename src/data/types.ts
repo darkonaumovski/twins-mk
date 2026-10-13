@@ -139,6 +139,15 @@ export interface ReminderSnooze extends Entity {
   until: ISODateTime;
 }
 
+/** A short journal entry about one twin or both. Photos are linked through `photos.owner` (`journal`, this id). */
+export interface JournalEntry extends Entity {
+  date: ISODate;
+  babies: BabyScope;
+  text: string;
+  /** "Put in the book": the entry appears in the keepsake book. Absent means no. */
+  inBook?: boolean;
+}
+
 /** What a photo belongs to: a milestone, a journal entry, the monthly "twins together" photo or a bump photo. */
 export interface PhotoOwner {
   kind: 'milestone' | 'journal' | 'monthly' | 'bump';

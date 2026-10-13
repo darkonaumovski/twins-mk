@@ -3474,6 +3474,45 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	journal: {
+		title: "Journal",
+		add: "Add",
+		new: "New entry",
+		edit: "Edit entry",
+		entry: "Journal entry",
+		date: "Date",
+		text: "What happened",
+		inBook: "Put in the book",
+		inBookShort: "In the book",
+		photosAfterSave: "Save the entry first, then add photos to it.",
+		photos_one: "{{count}} photo",
+		photos_other: "{{count}} photos",
+		empty: "No entries yet. Write a few words about a day you want to remember.",
+		deleteConfirm: "Delete this entry?",
+		deleted: "Entry deleted"
+	},
+	book: {
+		title: "Keepsake book",
+		intro: "A printable book made from your milestones, the monthly photos and the journal entries you put in the book. Print it or save it as a PDF.",
+		from: "From",
+		to: "To",
+		includePhotos: "Include photos",
+		twins: "Our twins",
+		names: "{{a}} and {{b}}",
+		gestation: "{{weeks}}+{{days}}",
+		badRange: "“From” is after “To”.",
+		loadingPhotos_one: "Loading {{count}} photo…",
+		loadingPhotos_other: "Loading {{count}} photos…",
+		born: "Born {{date}}",
+		birth: "Birth",
+		time: "Time of birth",
+		weight: "Weight",
+		length: "Length",
+		week: "Week of pregnancy",
+		milestones: "Milestones",
+		firstFoods: "First foods",
+		empty: "Nothing for the book yet: add milestones with a date, monthly photos, or put journal entries in the book."
+	},
 	photos: {
 		title: "Photos",
 		take: "Take photo",
@@ -3979,6 +4018,11 @@ var en = {
 			undone: "No longer done: {{title}}",
 			unknown: "a routine"
 		},
+		journal: {
+			added: "Journal: {{text}}",
+			changed: "Journal entry edited: {{text}}",
+			deleted: "Journal entry deleted"
+		},
 		photos: {
 			added: "New photo: {{what}}",
 			deleted: "Photo deleted: {{what}}"
@@ -4238,6 +4282,7 @@ var en = {
 			nightHours_to: "Night hours to",
 			data_headCm: "Head circumference",
 			takenAt: "Taken",
+			inBook: "In the book",
 			owner_kind: "Kind",
 			owner_id: "Belongs to",
 			sex: "Girl or boy",
@@ -5161,6 +5206,45 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	journal: {
+		title: "Дневник",
+		add: "Додај",
+		new: "Нов запис",
+		edit: "Уреди запис",
+		entry: "Запис во дневник",
+		date: "Датум",
+		text: "Што се случи",
+		inBook: "Стави го во книгата",
+		inBookShort: "Во книгата",
+		photosAfterSave: "Прво зачувајте го записот, па додајте фотографии.",
+		photos_one: "{{count}} фотографија",
+		photos_other: "{{count}} фотографии",
+		empty: "Сè уште нема записи. Напишете неколку зборови за ден што сакате да го запамтите.",
+		deleteConfirm: "Да се избрише записот?",
+		deleted: "Записот е избришан"
+	},
+	book: {
+		title: "Спомен-книга",
+		intro: "Книга за печатење од важните моменти, месечните фотографии и записите од дневникот што ги ставивте во книгата. Испечатете ја или зачувајте ја како PDF.",
+		from: "Од",
+		to: "До",
+		includePhotos: "Со фотографии",
+		twins: "Нашите близнаци",
+		names: "{{a}} и {{b}}",
+		gestation: "{{weeks}}+{{days}}",
+		badRange: "„Од“ е по „До“.",
+		loadingPhotos_one: "Се вчитува {{count}} фотографија…",
+		loadingPhotos_other: "Се вчитуваат {{count}} фотографии…",
+		born: "Родени на {{date}}",
+		birth: "Раѓање",
+		time: "Време на раѓање",
+		weight: "Тежина",
+		length: "Должина",
+		week: "Недела на бременоста",
+		milestones: "Важни моменти",
+		firstFoods: "Прва храна",
+		empty: "Сè уште нема ништо за книгата: внесете важни моменти со датум, месечни фотографии или ставете записи од дневникот во книгата."
+	},
 	photos: {
 		title: "Фотографии",
 		take: "Фотографирај",
@@ -5666,6 +5750,11 @@ var mk = {
 			undone: "Повеќе не е означено како завршено: {{title}}",
 			unknown: "рутина"
 		},
+		journal: {
+			added: "Дневник: {{text}}",
+			changed: "Изменет запис во дневникот: {{text}}",
+			deleted: "Избришан запис од дневникот"
+		},
 		photos: {
 			added: "Нова фотографија: {{what}}",
 			deleted: "Избришана фотографија: {{what}}"
@@ -5925,6 +6014,7 @@ var mk = {
 			nightHours_to: "Ноќни часови до",
 			data_headCm: "Обем на главата",
 			takenAt: "Сликано",
+			inBook: "Во книгата",
 			owner_kind: "Вид",
 			owner_id: "Припаѓа на",
 			sex: "Девојче или момче",
