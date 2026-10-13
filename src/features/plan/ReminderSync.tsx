@@ -62,7 +62,11 @@ export function ReminderSync() {
       const title =
         item.kind === 'appointment'
           ? tr('reminders.appointmentSoon', { title: item.title, time: format(item.at!, 'HH:mm') })
-          : tr('reminders.routineDue', { title: item.title, who: who(item.babies) });
+          : tr('reminders.routineDue', {
+              title: item.title,
+              // Her medicines read like the push reminder: "Ibuprofen · for the mother".
+              who: item.med && item.babies === 'none' ? tr('reminders.forMother') : who(item.babies),
+            });
       show({ message: title });
       if (notify) void showNotification(title, item.location ?? '', item.key);
     };

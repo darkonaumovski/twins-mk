@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS: Omit<SharedSettings, Exclude<keyof Entity, 'id'>>
   nightShifts: [],
   rhythmTogetherMin: 20,
   nightHours: { from: '19:00', to: '07:00' },
+  motherCard: true,
+  announceMother: false,
 };
 
 export const DEFAULT_DEVICE_PREFS: Omit<DevicePrefs, 'deviceId'> = {

@@ -195,6 +195,7 @@ export function RoutineEditor({
             setError(null);
           }}
           allowFamily={kind === 'everyDays'}
+          kind={medOn ? 'medRoutine' : 'routine'}
         />
         <Segmented<RoutineRule['kind']>
           label={t('routine.kind')}

@@ -13,6 +13,7 @@ export function RoutinesView() {
   const { t } = useTranslation();
   const describe = useDescribeRoutine();
   const scopeLabel = useScopeLabel();
+  const medScopeLabel = useScopeLabel('medRoutine');
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
   const [appointmentTitle, setAppointmentTitle] = useState<string | null>(null);
   const routines = useLive(async (s) => (await s.routines.list()).sort((a, b) => a.title.localeCompare(b.title)), []);
@@ -40,11 +41,11 @@ export function RoutinesView() {
               >
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 font-medium">
-                    <ScopeBadges scope={r.babies} />
+                    <ScopeBadges scope={r.babies} kind={r.med ? 'medRoutine' : 'routine'} />
                     <span className="truncate">{r.title}</span>
                   </span>
                   <span className="block text-sm text-muted">
-                    {describe(r.rule)} · {scopeLabel(r.babies)}
+                    {describe(r.rule)} · {(r.med ? medScopeLabel : scopeLabel)(r.babies)}
                     {r.med?.dose && ` · ${r.med.dose}`}
                     {!r.active && ` · ${t('routine.paused')}`}
                   </span>

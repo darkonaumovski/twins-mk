@@ -5295,6 +5295,49 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	mother: {
+		title: "Mother",
+		she: "Mother",
+		intro: "Her medicines, a short daily check-in and notes. The mood is only ever shown on this page.",
+		medsToday: "Her medicines today",
+		noMeds: "No daily medicines for the mother. Add one in Plan → Routines: “This is a medicine”, then “For the mother”.",
+		lastGiven: "last given {{when}}",
+		neverGiven: "not logged yet",
+		give: "Log {{med}} for the mother",
+		given: "{{med}}: given today",
+		logged: "{{med}} logged for the mother",
+		logMed: "Medicine",
+		medTitle: "Medicine for the mother",
+		checkinShort: "Check-in",
+		checkin: "How are you today?",
+		checkinDate: "Day",
+		mood: "Mood",
+		moodN: "Mood {{n}} of 5",
+		sleepHours: "Sleep (hours, optional)",
+		invalidSleep: "Hours from 0 to 24, e.g. 5,5, or leave it empty.",
+		checkinNote: "Note (optional)",
+		checkinHint: "One per day: saving again replaces it.",
+		checkinSaved: "Check-in saved",
+		checkins: "Check-ins",
+		noCheckins: "No check-ins yet.",
+		sleepShort: "{{h}} h sleep",
+		note: "Note",
+		noteTitle: "Note for the mother",
+		notes: "Notes",
+		noNotes: "No notes yet.",
+		week: "Medicines, last 7 days",
+		pumping: "Pumping, last 7 days",
+		pumpDay_one: "{{count}} time · {{ml}} ml",
+		pumpDay_other: "{{count}} times · {{ml}} ml",
+		nothing: "nothing logged",
+		settings: "Shared by both phones",
+		cardSetting: "Show her medicines on Today",
+		announceSetting: "Tell the other phones about her entries",
+		announceHint: "Off: her medicines, check-ins and notes still sync, but the other phones get no message about them. The mood never appears in any message.",
+		deleteConfirm: "Delete this entry?",
+		deleted: "Entry deleted",
+		open: "Mother page"
+	},
 	diaper: {
 		details: "Details",
 		detailsSet: "Details noted",
@@ -5405,6 +5448,8 @@ var en = {
 		},
 		vaccines: "Vaccinations",
 		noVaccines: "No vaccinations in this period.",
+		includeMotherMeds: "Include the mother’s medicines",
+		motherMeds: "Mother’s medicines",
 		stool: "Dirty diapers · {{list}}",
 		rashDays_one: "Rash noted: {{count}} time",
 		rashDays_other: "Rash noted: {{count}} times"
@@ -5472,6 +5517,7 @@ var en = {
 		testBody: "Reminders are working.",
 		appointmentSoon: "{{title}} at {{time}}",
 		routineDue: "{{title}} · {{who}}",
+		forMother: "for the mother",
 		feedDue: "Feed due · {{who}}"
 	},
 	backup: {
@@ -5501,7 +5547,7 @@ var en = {
 	},
 	csv: {
 		export: "Export as spreadsheet (CSV)",
-		exportHint: "A zip file with one CSV spreadsheet each for the log, pumping, the milk stash, appointments, tasks, milestones, the checklist, contractions and vaccinations. If Excel puts everything in one column, open it with “Data → From Text/CSV”.",
+		exportHint: "A zip file with one CSV spreadsheet each for the log, pumping, the milk stash, appointments, tasks, milestones, the checklist, contractions, vaccinations and the mother’s entries. If Excel puts everything in one column, open it with “Data → From Text/CSV”.",
 		shareTitle: "Twins Organizer spreadsheets",
 		failed: "The spreadsheets could not be made.",
 		running: "running",
@@ -5586,6 +5632,22 @@ var en = {
 			start: "Start",
 			lengthSec: "Length (seconds)",
 			sincePreviousSec: "Since previous (seconds)"
+		},
+		mother: {
+			date: "Date",
+			time: "Time",
+			type: "Type",
+			medicine: "Medicine",
+			dose: "Dose",
+			mood: "Mood (1–5)",
+			sleepHours: "Sleep (hours)",
+			note: "Note",
+			loggedBy: "Logged by"
+		},
+		motherType: {
+			med: "Medicine",
+			checkin: "Check-in",
+			note: "Note"
 		},
 		vaccines: {
 			twin: "Twin",
@@ -5695,6 +5757,19 @@ var en = {
 			done: "Done: {{title}}",
 			undone: "No longer done: {{title}}",
 			unknown: "a routine"
+		},
+		motherLogs: {
+			med: {
+				added: "Mother: {{name}} ({{when}})",
+				changed: "Mother’s medicine edited: {{name}}"
+			},
+			checkin: "Mother’s check-in ({{when}})",
+			note: "Note for the mother ({{when}})",
+			deleted: {
+				med: "Mother’s medicine deleted",
+				checkin: "Mother’s check-in deleted",
+				note: "Note for the mother deleted"
+			}
 		},
 		vaccines: {
 			added: "Vaccination: {{name}} · {{twin}} · {{when}}",
@@ -6854,6 +6929,49 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	mother: {
+		title: "Мајка",
+		she: "Мајката",
+		intro: "Нејзините лекови, краток дневен запис и белешки. Расположението се гледа само на оваа страница.",
+		medsToday: "Нејзините лекови денес",
+		noMeds: "Нема дневни лекови за мајката. Додајте во План → Рутини: „Ова е лек“, па „За мајката“.",
+		lastGiven: "последно {{when}}",
+		neverGiven: "уште не е запишано",
+		give: "Запиши {{med}} за мајката",
+		given: "{{med}}: дадено денес",
+		logged: "Запишано за мајката: {{med}}",
+		logMed: "Лек",
+		medTitle: "Лек за мајката",
+		checkinShort: "Како си?",
+		checkin: "Како си денес?",
+		checkinDate: "Ден",
+		mood: "Расположение",
+		moodN: "Расположение {{n}} од 5",
+		sleepHours: "Сон (часови, незадолжително)",
+		invalidSleep: "Часови од 0 до 24, на пр. 5,5, или оставете празно.",
+		checkinNote: "Белешка (незадолжително)",
+		checkinHint: "Еден на ден: ако зачувате повторно, го заменува.",
+		checkinSaved: "Зачувано",
+		checkins: "Дневни записи",
+		noCheckins: "Сè уште нема.",
+		sleepShort: "{{h}} ч сон",
+		note: "Белешка",
+		noteTitle: "Белешка за мајката",
+		notes: "Белешки",
+		noNotes: "Сè уште нема белешки.",
+		week: "Лекови, последните 7 дена",
+		pumping: "Измолзување, последните 7 дена",
+		pumpDay_one: "{{count}} пат · {{ml}} ml",
+		pumpDay_other: "{{count}} пати · {{ml}} ml",
+		nothing: "ништо не е запишано",
+		settings: "Заедничко за двата телефона",
+		cardSetting: "Прикажи ги нејзините лекови на „Денес“",
+		announceSetting: "Известувај ги другите телефони за нејзините записи",
+		announceHint: "Исклучено: нејзините лекови, записи и белешки се синхронизираат, но другите телефони не добиваат порака за нив. Расположението никогаш не е во порака.",
+		deleteConfirm: "Да се избрише записот?",
+		deleted: "Записот е избришан",
+		open: "Страница за мајката"
+	},
 	diaper: {
 		details: "Детали",
 		detailsSet: "Внесени детали",
@@ -6964,6 +7082,8 @@ var mk = {
 		},
 		vaccines: "Вакцини",
 		noVaccines: "Нема вакцини во овој период.",
+		includeMotherMeds: "Вклучи ги лековите на мајката",
+		motherMeds: "Лекови на мајката",
 		stool: "Валкани пелени · {{list}}",
 		rashDays_one: "Забележан осип: {{count}} пат",
 		rashDays_other: "Забележан осип: {{count}} пати"
@@ -7031,6 +7151,7 @@ var mk = {
 		testBody: "Потсетниците работат.",
 		appointmentSoon: "{{title}} во {{time}}",
 		routineDue: "{{title}} · {{who}}",
+		forMother: "за мајката",
 		feedDue: "Време за хранење · {{who}}"
 	},
 	backup: {
@@ -7060,7 +7181,7 @@ var mk = {
 	},
 	csv: {
 		export: "Извези како табела (CSV)",
-		exportHint: "Зип-датотека со по една CSV-табела за записите, измолзувањето, залихата млеко, термините, задачите, важните моменти, листата, контракциите и вакцините. Ако Excel не ги подели колоните, отворете ја преку „Податоци → Од текст/CSV“.",
+		exportHint: "Зип-датотека со по една CSV-табела за записите, измолзувањето, залихата млеко, термините, задачите, важните моменти, листата, контракциите, вакцините и записите за мајката. Ако Excel не ги подели колоните, отворете ја преку „Податоци → Од текст/CSV“.",
 		shareTitle: "Twins Organizer – табели",
 		failed: "Табелите не можеа да се направат.",
 		running: "тече",
@@ -7145,6 +7266,22 @@ var mk = {
 			start: "Почеток",
 			lengthSec: "Траење (секунди)",
 			sincePreviousSec: "Од претходната (секунди)"
+		},
+		mother: {
+			date: "Датум",
+			time: "Време",
+			type: "Вид",
+			medicine: "Лек",
+			dose: "Доза",
+			mood: "Расположение (1–5)",
+			sleepHours: "Сон (часови)",
+			note: "Белешка",
+			loggedBy: "Запишал/а"
+		},
+		motherType: {
+			med: "Лек",
+			checkin: "Дневен запис",
+			note: "Белешка"
 		},
 		vaccines: {
 			twin: "Близнак",
@@ -7254,6 +7391,19 @@ var mk = {
 			done: "Завршено: {{title}}",
 			undone: "Повеќе не е означено како завршено: {{title}}",
 			unknown: "рутина"
+		},
+		motherLogs: {
+			med: {
+				added: "Мајката: {{name}} ({{when}})",
+				changed: "Изменет лек на мајката: {{name}}"
+			},
+			checkin: "Дневен запис на мајката ({{when}})",
+			note: "Белешка за мајката ({{when}})",
+			deleted: {
+				med: "Избришан лек на мајката",
+				checkin: "Избришан дневен запис на мајката",
+				note: "Избришана белешка за мајката"
+			}
 		},
 		vaccines: {
 			added: "Вакцина: {{name}} · {{twin}} · {{when}}",
@@ -7661,7 +7811,8 @@ function upcomingItems(input) {
 				title: r.title,
 				at,
 				babies,
-				occurrence
+				occurrence,
+				...r.med ? { med: true } : {}
 			});
 		}
 		else for (const slot of slotsFor(babies)) {
@@ -7721,12 +7872,24 @@ function reminderTime(item) {
 	if (!item.at) return null;
 	return item.kind === "appointment" ? /* @__PURE__ */ new Date(item.at.getTime() - APPOINTMENT_LEAD_MS) : item.at;
 }
-function toMedLogs(entries) {
-	return entries.flatMap((e) => e.type === "med" && e.deletedAt === null ? [{
+/** The subject id the mother's doses carry in a `MedLog` (twins use their baby ids). */
+var MOTHER_ID = "mother";
+var subjectId = (subject) => subject === "mother" ? MOTHER_ID : BABY_IDS[subject];
+/** The twins' medicine entries, plus the mother's doses when given. */
+function toMedLogs(entries, motherLogs = []) {
+	return [...entries.flatMap((e) => e.type === "med" && e.deletedAt === null ? [{
 		babyId: e.babyId,
 		name: e.data.name,
 		start: e.start
-	}] : []);
+	}] : []), ...motherLogs.flatMap((m) => m.type === "med" && m.deletedAt === null ? [{
+		babyId: MOTHER_ID,
+		name: m.data.name,
+		start: m.start
+	}] : [])];
+}
+/** Whom a medicine routine is for: its twins, or the mother for `babies: 'none'`. */
+function medSubjects(babies) {
+	return babies === "none" ? ["mother"] : slotsFor(babies);
 }
 /** Medicine names match ignoring case and surrounding spaces ("Vitamin D" = "vitamin d "). */
 function sameMed(a, b) {
@@ -7749,9 +7912,7 @@ function medOccurrenceGiven(routine, at, logs) {
 	const dayEnd = addDays(dayStart, 1);
 	const index = [...routine.rule.times].sort().indexOf(`${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`);
 	const needed = Math.max(0, index) + 1;
-	const slots = slotsFor(routine.babies);
-	if (slots.length === 0) return false;
-	return slots.every((slot) => dosesBetween(logs, BABY_IDS[slot], routine.med.name, dayStart, dayEnd).length >= needed);
+	return medSubjects(routine.babies).every((s) => dosesBetween(logs, subjectId(s), routine.med.name, dayStart, dayEnd).length >= needed);
 }
 //#endregion
 //#region src/features/family/logic.ts
@@ -7853,7 +8014,10 @@ function dueReminders(data, now, windowMs = DUE_WINDOW_MS) {
 		pastMs: windowMs,
 		aheadMs: 6e4,
 		appointmentAheadMs: 366e4,
-		medLogs: toMedLogs(logs),
+		medLogs: toMedLogs(logs, (data.motherLogs ?? []).filter((m) => m.deletedAt === null).map((m) => ({
+			...m,
+			start: move(m.start, shift)
+		}))),
 		awaySlots
 	});
 	const result = [];
@@ -7923,7 +8087,8 @@ function reminderMessage(reminder, lang, data) {
 	const strings = LOCALES[lang] ?? LOCALES.mk;
 	const t = (key, vars = {}) => fill(lookup(strings, key), vars);
 	const twin = (slot) => data.babies.find((b) => b.id === BABY_IDS[slot] && b.deletedAt === null)?.name || t(slot === "A" ? "twins.twinA" : "twins.twinB");
-	const who = reminder.babies === "both" ? t("twins.both") : reminder.babies === "none" ? "" : twin(reminder.babies);
+	const none = reminder.kind === "medicines" ? t("reminders.forMother") : "";
+	const who = reminder.babies === "both" ? t("twins.both") : reminder.babies === "none" ? none : twin(reminder.babies);
 	let title;
 	let body = "";
 	if (reminder.kind === "appointments" && reminder.start) {

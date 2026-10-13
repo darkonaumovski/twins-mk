@@ -80,7 +80,7 @@ export function BackupSettings() {
     if (csvBusy) return;
     setCsvBusy(true);
     try {
-      const [logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, babies] =
+      const [logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, motherLogs, babies] =
         await Promise.all([
           store.logs.listAll(),
           store.pumps.listAll(),
@@ -92,6 +92,7 @@ export function BackupSettings() {
           store.categories.listAll(),
           store.contractions.listAll(),
           store.vaccines.listAll(),
+          store.motherLogs.listAll(),
           store.babies.listAll(),
         ]);
       const tx: CsvText = {
@@ -105,7 +106,7 @@ export function BackupSettings() {
         },
       };
       const files = buildCsvFiles(
-        { logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, babies },
+        { logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, motherLogs, babies },
         tx,
       );
       const now = new Date();

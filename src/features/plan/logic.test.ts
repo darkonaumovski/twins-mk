@@ -5,6 +5,8 @@ import {
   dailyCareStatus,
   effectiveScope,
   medCheck,
+  motherCareStatus,
+  MOTHER_ID,
   reminderTime,
   sameMed,
   scheduledOccurrences,
@@ -265,5 +267,89 @@ describe('scope labels', () => {
     expect(scopeLabelKey('none', 'routine')).toBe('plan.family');
     expect(scopeLabelKey('both', 'appointment')).toBe('twins.both');
     expect(scopeLabelKey('A', 'note')).toBeNull();
+  });
+});
+
+describe('medicines for the mother', () => {
+  const ibu: Routine = {
+    ...vitD,
+    id: 'ibu',
+    title: 'Ibuprofen',
+    babies: 'none',
+    rule: { kind: 'everyDays', days: 1, times: ['08:00', '20:00'], startDate: '2026-10-01' },
+    med: { name: 'Ibuprofen', dose: '400 mg', minIntervalHours: 6 },
+  };
+  const motherDose = (at: Date, name = 'ibuprofen'): MedLog => ({ babyId: MOTHER_ID, name, start: at.toISOString() });
+
+  it('labels the no-twin option of a medicine routine "For the mother"', () => {
+    expect(scopeLabelKey('none', 'medRoutine')).toBe('notes.forMother');
+    expect(scopeLabelKey('A', 'medRoutine')).toBeNull();
+  });
+
+  it('turns the mother’s logged doses into medicine logs of her own', () => {
+    const logs = toMedLogs(
+      [],
+      [
+        { ...meta, id: 'm1', type: 'med', start: local(11, 8).toISOString(), data: { name: 'Ibuprofen', dose: '' }, loggedBy: 'p1' },
+        { ...meta, id: 'm2', type: 'note', start: local(11, 9).toISOString(), data: { text: 'x' }, loggedBy: 'p1' },
+        {
+          ...meta,
+          id: 'm3',
+          type: 'med',
+          start: local(11, 10).toISOString(),
+          data: { name: 'Ibuprofen', dose: '' },
+          loggedBy: 'p1',
+          deletedAt: 'x',
+        },
+      ],
+    );
+    expect(logs).toEqual([{ babyId: MOTHER_ID, name: 'Ibuprofen', start: local(11, 8).toISOString() }]);
+  });
+
+  it('is due and done from her own doses, the second time of the day needing a second dose', () => {
+    const input = (medLogs: MedLog[]) => base({ routines: [ibu], medLogs, now: local(11, 21), pastMs: 14 * 3600_000, aheadMs: 60_000 });
+    expect(upcomingItems(input([])).map((i) => i.occurrence)).toEqual([local(11, 8).toISOString(), local(11, 20).toISOString()]);
+    expect(upcomingItems(input([motherDose(local(11, 8, 5))])).map((i) => i.occurrence)).toEqual([local(11, 20).toISOString()]);
+    expect(upcomingItems(input([motherDose(local(11, 8, 5)), motherDose(local(11, 20, 1))]))).toEqual([]);
+    // A twin's entry with the same name is not her dose.
+    expect(upcomingItems(input([dose('baby-A', local(11, 8, 5), 'ibuprofen')]))).toHaveLength(2);
+    expect(upcomingItems(input([]))[0]).toMatchObject({ babies: 'none', med: true });
+  });
+
+  it('checks her interval against her own routines only', () => {
+    const logs = [motherDose(local(11, 8)), dose('baby-A', local(11, 9), 'ibuprofen')];
+    expect(medCheck(logs, 'mother', 'Ibuprofen', [ibu], local(11, 12))).toEqual({
+      lastAt: local(11, 8).toISOString(),
+      minIntervalHours: 6,
+      warn: true,
+    });
+    expect(medCheck(logs, 'mother', 'Ibuprofen', [ibu], local(11, 14, 1))).toMatchObject({ warn: false });
+    // The twin's dose of the same name has no interval from the mother's routine.
+    expect(medCheck(logs, 'A', 'Ibuprofen', [ibu], local(11, 9, 30))).toMatchObject({ minIntervalHours: null, warn: false });
+  });
+
+  it('shows her daily medicines on her own card, with today’s doses and when last given', () => {
+    const logs = [motherDose(local(10, 20)), motherDose(local(11, 8))];
+    expect(motherCareStatus([ibu, vitD, { ...ibu, id: 'off', active: false }], logs, local(11, 0), local(12, 0), local(11, 12))).toEqual([
+      { routine: ibu, given: 1, planned: 2, lastAt: local(11, 8).toISOString() },
+    ]);
+  });
+
+  it('leaves the twins’ daily care exactly as before (and no empty row for her routine)', () => {
+    const logs = [dose('baby-A', local(11, 9)), motherDose(local(11, 8))];
+    const rows = dailyCareStatus([vitD, ibu], logs, local(11, 0), local(12, 0));
+    expect(rows.map((r) => [r.routine.id, r.cells])).toEqual([
+      [
+        'vitd',
+        [
+          { slot: 'A', given: 1, planned: 1 },
+          { slot: 'B', given: 0, planned: 1 },
+        ],
+      ],
+    ]);
+    // A "both" twins' medicine is still only done when each twin had it.
+    const both = base({ routines: [vitD], medLogs: logs, now: local(11, 10), pastMs: 2 * 3600_000 });
+    expect(upcomingItems(both)).toHaveLength(1);
+    expect(upcomingItems({ ...both, medLogs: [...logs, dose('baby-B', local(11, 9, 30))] })).toEqual([]);
   });
 });

@@ -13,6 +13,7 @@ import { BABY_IDS, type Who } from '@/features/log/logic';
 import { colorOf, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
 import { useAgeText } from '@/features/twins/useAge';
 import { vaccinesInPeriod } from '@/features/vaccines/logic';
+import { motherMedsBetween } from '@/features/mother/logic';
 import { openNotesFor, reportDiapers, reportRows, reportTotals, type ReportDiapers } from './logic';
 
 const PERIODS = [7, 14, 30] as const;
@@ -33,18 +34,21 @@ export function ReportPage() {
   const [who, setWho] = useState<Who>('both');
   const [period, setPeriod] = useState<Period>('7');
   const [includeMother, setIncludeMother] = useState(false);
+  // The mother's medicines are left out unless the parents add them (never her check-ins or mood).
+  const [includeMotherMeds, setIncludeMotherMeds] = useState(false);
   const lastDay = todayISO();
   const days = daysEnding(lastDay, Number(period));
   const data = useLive(
     async (s) => {
       const from = addDays(parseISO(days[0]), -1).toISOString();
-      const [entries, measures, notes, vaccines] = await Promise.all([
+      const [entries, measures, notes, vaccines, motherLogs] = await Promise.all([
         s.logs.listBetween(from, localDay(lastDay).to.toISOString()),
         s.logs.list(),
         s.doctorNotes.list(),
         s.vaccines.list(),
+        s.motherLogs.list(),
       ]);
-      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes, vaccines };
+      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes, vaccines, motherLogs };
     },
     [period, lastDay],
   );
@@ -76,6 +80,10 @@ export function ReportPage() {
   ];
   const notes = openNotesFor(data.notes, slots, includeMother);
   const vaccines = vaccinesInPeriod(data.vaccines, slots, days[0], lastDay);
+  const motherMeds = motherMedsBetween(data.motherLogs, localDay(days[0]).from, localDay(lastDay).to);
+  const showMotherMeds = includeMotherMeds && motherMeds.length > 0;
+  const motherMedText = (m: (typeof motherMeds)[number]) =>
+    [format(new Date(m.start), 'EEE d MMM HH:mm', { locale }), m.data.name, m.data.dose].filter(Boolean).join(' · ');
   const doseText = (v: Vaccine) => (v.dose === null ? '' : t('vaccines.doseShort', { dose: v.dose }));
   const vaccineText = (v: Vaccine) => [dayLabel(v.date), name(v.babyId), v.name, doseText(v), v.place].filter(Boolean).join(' · ');
   // In a report about the twins, a question for the mother says so.
@@ -105,6 +113,7 @@ export function ReportPage() {
       }),
       ...diaperLines(diapers),
     ]),
+    ...(showMotherMeds ? ['', t('report.motherMeds'), ...motherMeds.map((m) => `• ${motherMedText(m)}`)] : []),
     ...(vaccines.length ? ['', t('report.vaccines'), ...vaccines.map((v) => `• ${vaccineText(v)}`)] : []),
     ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${noteText(n)}`)] : []),
     '',
@@ -144,6 +153,9 @@ export function ReportPage() {
           onChange={setPeriod}
         />
         {hasMotherNotes && <Toggle label={t('report.includeMother')} checked={includeMother} onChange={setIncludeMother} />}
+        {motherMeds.length > 0 && (
+          <Toggle label={t('report.includeMotherMeds')} checked={includeMotherMeds} onChange={setIncludeMotherMeds} />
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Button onClick={() => window.print()}>
             <Printer aria-hidden size={20} />
@@ -254,6 +266,17 @@ export function ReportPage() {
             </tbody>
           </table>
         </section>
+
+        {showMotherMeds && (
+          <section className="space-y-2 break-inside-avoid-page">
+            <h3 className="text-base font-semibold">{t('report.motherMeds')}</h3>
+            <ul className="list-disc space-y-1 pl-5">
+              {motherMeds.map((m) => (
+                <li key={m.id}>{motherMedText(m)}</li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="space-y-2 break-inside-avoid-page">
           <h3 className="text-base font-semibold">{t('report.vaccines')}</h3>

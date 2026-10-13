@@ -1,5 +1,6 @@
 import { isKnownLog } from '@/data/logTypes';
 import { formatSeconds, isFirstAfterGap } from '@/features/contractions/logic';
+import { checkinDate, dayOf } from '@/features/mother/logic';
 import type { AppliedChange } from '@/data/sync/types';
 import type {
   Appointment,
@@ -20,6 +21,7 @@ import type {
   RoutineDone,
   Supply,
   Vaccine,
+  MotherLog,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -172,6 +174,13 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       if (ct.end)
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
+    }
+    case 'motherLogs': {
+      // Never the mood, sleep or note text: those stay on the Mother page.
+      const m = c.record as MotherLog;
+      if (action === 'deleted') return t(`changes.motherLogs.deleted.${m.type}`);
+      if (m.type === 'med') return t(`changes.motherLogs.med.${action}`, { name: m.data.name, when: h.when(m.start) });
+      return t(`changes.motherLogs.${m.type}`, { when: h.day(m.type === 'checkin' ? checkinDate(m) : dayOf(m.start)) });
     }
     case 'vaccines': {
       const v = c.record as Vaccine;

@@ -58,6 +58,10 @@ export interface SharedSettings extends Entity {
   rhythmTogetherMin: number;
   /** The family's night hours (`HH:mm`): shaded on the rhythm chart, and the day/night split of the weekly insights. */
   nightHours: { from: string; to: string };
+  /** Today shows the mother's medicines while she has an active daily medicine routine. */
+  motherCard: boolean;
+  /** Tell the other phones about the mother's own entries (her medicines, check-ins, notes). Off by default. */
+  announceMother: boolean;
 }
 
 /** One night shift, e.g. 22:00–02:00. `to` earlier than `from` means it runs past midnight. */
@@ -104,6 +108,26 @@ export interface Vaccine extends Entity {
   notes: string;
   groupId: string | null;
 }
+
+/** A mood on a scale of five faces, without words; only shown on the Mother page. */
+export type Mood = 1 | 2 | 3 | 4 | 5;
+export type MotherMedData = { name: string; dose: string };
+export type CheckinData = { mood: Mood; sleepHours: number | null; note: string };
+export type MotherNoteData = { text: string };
+
+interface MotherLogBase extends Entity {
+  start: ISODateTime;
+  loggedBy: CaregiverId;
+}
+
+/**
+ * The mother's own entries: a medicine dose, the daily check-in (fixed id `checkin-YYYY-MM-DD`,
+ * so two phones never make two for one day) or a note. Kept apart from the twins' log.
+ */
+export type MotherLog =
+  | (MotherLogBase & { type: 'med'; data: MotherMedData })
+  | (MotherLogBase & { type: 'checkin'; data: CheckinData })
+  | (MotherLogBase & { type: 'note'; data: MotherNoteData });
 
 /** What a phone wants push reminders for. */
 export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';

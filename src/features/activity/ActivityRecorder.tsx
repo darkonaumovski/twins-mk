@@ -35,6 +35,12 @@ export function ActivityRecorder() {
             if (news[i].collection === 'contractions' && !announced.has(news[i])) e.seen = 1;
           });
         }
+        // The mother's entries stay in the history, but do not count as unread unless they are announced.
+        if (news.some((c) => c.collection === 'motherLogs') && !(await store.settings.get()).announceMother) {
+          entries.forEach((e) => {
+            if (e.collection === 'motherLogs') e.seen = 1;
+          });
+        }
         await store.activity.add(entries);
       }),
     [engine, store],

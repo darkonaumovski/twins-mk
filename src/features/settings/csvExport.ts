@@ -14,11 +14,13 @@ import type {
   PrepItem,
   Pump,
   Vaccine,
+  MotherLog,
 } from '@/data/types';
 import type { CsvCell } from '@/lib/csv';
 import { ageInfo } from '@/features/twins/age';
 import { finishedPumps } from '@/features/milk/logic';
 import { contractionRows } from '@/features/contractions/logic';
+import { checkinDate } from '@/features/mother/logic';
 import type { ScopeKind } from '@/features/plan/logic';
 
 /** Everything the spreadsheet export reads (live and deleted records; deleted ones are left out here). */
@@ -33,6 +35,7 @@ export interface CsvData {
   categories: readonly Category[];
   contractions: readonly Contraction[];
   vaccines: readonly Vaccine[];
+  motherLogs: readonly MotherLog[];
   babies: readonly Baby[];
 }
 
@@ -281,6 +284,22 @@ function vaccinesCsv(list: readonly Vaccine[], tx: CsvText): CsvFile {
   return { fileName: 'vaccines.csv', rows: [header, ...rows] };
 }
 
+function motherCsv(list: readonly MotherLog[], tx: CsvText): CsvFile {
+  const header = ['date', 'time', 'type', 'medicine', 'dose', 'mood', 'sleepHours', 'note', 'loggedBy'].map((k) => tx.t(`csv.mother.${k}`));
+  const rows = live(list)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .map((m) => {
+      // A check-in is for its day (its fixed id), not for the moment it was saved.
+      const date = m.type === 'checkin' ? checkinDate(m) : day(m.start);
+      const base = [date, m.type === 'checkin' ? '' : time(m.start), tx.t(`csv.motherType.${m.type}`)];
+      const by = tx.person(m.loggedBy);
+      if (m.type === 'med') return [...base, text(m.data.name), text(m.data.dose), null, null, '', by];
+      if (m.type === 'checkin') return [...base, '', '', m.data.mood, m.data.sleepHours, text(m.data.note), by];
+      return [...base, '', '', null, null, text(m.data.text), by];
+    });
+  return { fileName: 'mother.csv', rows: [header, ...rows] };
+}
+
 /** One spreadsheet per area. Every file has its header row, even when there is nothing in it yet. */
 export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
   // Names are typed by the parents too, so they get the same formula guard as notes.
@@ -300,6 +319,7 @@ export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
     checklistCsv(data.prepItems, data.categories, tx),
     contractionsCsv(data.contractions, tx),
     vaccinesCsv(data.vaccines, tx),
+    motherCsv(data.motherLogs, tx),
   ];
 }
 

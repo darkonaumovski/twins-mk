@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { withoutMotherLogs } from '@/features/mother/logic';
 import { format, parseISO } from 'date-fns';
 import { useToast } from '@/components/Toast';
 import { useDevicePrefs, useStore } from '@/data/StoreContext';
@@ -44,6 +45,8 @@ export function ChangeNotifier() {
         if (!p || catchUp || p.changeAlerts === false) return;
         let news = fromOtherPhone(changes, p.deviceId);
         if (news.some((c) => c.collection === 'contractions')) news = withoutRoutineContractions(news, await store.contractions.listAll());
+        // The mother's own entries are only announced when the family chose so.
+        if (news.some((c) => c.collection === 'motherLogs')) news = withoutMotherLogs(news, (await store.settings.get()).announceMother);
         if (!news.length) return;
         // "Only when I'm on duty": stay quiet while someone else has the night shift.
         if (!alertsAllowed(p.changeAlertsMode, (await store.settings.get()).nightShifts, p.parent, new Date())) return;

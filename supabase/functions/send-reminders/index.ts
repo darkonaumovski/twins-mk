@@ -77,15 +77,17 @@ const store = {
       const rows = check<{ data: any }[]>(await query.range(0, 9999));
       return rows.map((r) => r.data).filter((d) => d.deletedAt === null);
     };
-    const [settings, babies, routines, done, appointments, logs] = await Promise.all([
+    const [settings, babies, routines, done, appointments, logs, motherLogs] = await Promise.all([
       all('settings'),
       all('babies'),
       all('routines'),
       all('routineDone', (q) => q.gte('data->>occurrence', logsSince)),
       all('appointments', (q) => q.gte('data->>start', logsSince)),
       all('logs', (q) => q.gte('data->>start', logsSince)),
+      // The mother's medicine doses, for medicine routines "for the mother".
+      all('motherLogs', (q) => q.gte('data->>start', logsSince)),
     ]);
-    return { settings: settings[0], babies, routines, done, appointments, logs };
+    return { settings: settings[0], babies, routines, done, appointments, logs, motherLogs };
   },
 
   async claim(familyId: string, keys: string[]) {

@@ -48,10 +48,12 @@ export function asChange(entry: ActivityEntry): AppliedChange {
 /** Every leaf field of a record by its path (`data.ml`, `rule.times`), bookkeeping left out. Lists count as one value. */
 export function recordFields(record: Entity | undefined): Map<string, unknown> {
   const out = new Map<string, unknown>();
+  // The mother's check-in (mood, sleep, note) is only shown on the Mother page.
+  const privateData = (record as { type?: unknown } | undefined)?.type === 'checkin';
   const walk = (value: unknown, path: string) => {
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
       for (const [k, v] of Object.entries(value)) walk(v, path ? `${path}.${k}` : k);
-    } else if (path && !HIDDEN.has(path.split('.')[0])) {
+    } else if (path && !HIDDEN.has(path.split('.')[0]) && !(privateData && path.startsWith('data.'))) {
       out.set(path, value);
     }
   };

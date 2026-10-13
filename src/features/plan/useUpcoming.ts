@@ -33,8 +33,14 @@ export function useUpcomingData(): Raw | undefined {
     let medLogs: Raw['medLogs'] = [];
     if (routines.some((r) => r.med && r.active)) {
       const now = Date.now();
-      const entries = await s.logs.listBetween(new Date(now - 2 * 24 * 3600_000).toISOString(), new Date(now + 60_000).toISOString());
-      medLogs = toMedLogs(entries);
+      const since = new Date(now - 2 * 24 * 3600_000).toISOString();
+      const entries = await s.logs.listBetween(since, new Date(now + 60_000).toISOString());
+      // The mother's doses, for medicine routines "for the mother".
+      const mother = routines.some((r) => r.med && r.active && r.babies === 'none') ? await s.motherLogs.list() : [];
+      medLogs = toMedLogs(
+        entries,
+        mother.filter((m) => m.start >= since),
+      );
     }
     return { routines, done, appointments, tasks, latest, medLogs, awaySlots };
   }, []);

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
   FileText,
+  Heart,
   ListChecks,
   NotebookPen,
   Package,
@@ -48,6 +49,7 @@ export function MorePage() {
           { to: '/growth', label: t('growth.title'), icon: TrendingUp },
           { to: '/milestones', label: t('milestones.pageTitle'), icon: Star },
           { to: '/vaccines', label: t('vaccines.title'), icon: Syringe },
+          { to: '/mother', label: t('mother.title'), icon: Heart },
           { to: '/notes', label: t('notes.title'), icon: NotebookPen },
           { to: '/report', label: t('report.title'), icon: FileText },
           { to: '/stash', label: t('stash.title'), icon: Refrigerator },

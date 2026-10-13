@@ -1,5 +1,16 @@
 import { addDays, differenceInCalendarDays, parseISO, startOfDay } from 'date-fns';
-import type { Appointment, BabyScope, ISODate, ISODateTime, LogEntry, ParentTask, Routine, RoutineDone, TwinSlot } from '@/data/types';
+import type {
+  Appointment,
+  BabyScope,
+  ISODate,
+  ISODateTime,
+  LogEntry,
+  MotherLog,
+  ParentTask,
+  Routine,
+  RoutineDone,
+  TwinSlot,
+} from '@/data/types';
 import { todayISO } from '@/lib/format';
 import { BABY_IDS } from '@/features/log/logic';
 
@@ -17,6 +28,8 @@ export interface UpcomingItem {
   occurrence?: string;
   /** "Every N hours after the last entry": completed by logging, not by a done mark. */
   auto?: boolean;
+  /** A medicine routine (its `none` scope is the mother). */
+  med?: boolean;
   location?: string;
   /** Due date for tasks. */
   due?: ISODate;
@@ -48,7 +61,8 @@ export function scheduledOccurrences(routine: Routine, from: Date, to: Date): Da
 }
 
 /** What a planner record is, for how its `babies: 'none'` scope is named. */
-export type ScopeKind = 'appointment' | 'note' | 'routine';
+/** `medRoutine`: a medicine routine, whose `none` is the mother's. */
+export type ScopeKind = 'appointment' | 'note' | 'routine' | 'medRoutine';
 
 /**
  * The translation key that names a scope, or null when it is one twin (named by the twin's name).
@@ -61,7 +75,8 @@ export function scopeLabelKey(
 ): 'twins.both' | 'plan.pregnancyMother' | 'notes.forMother' | 'plan.family' | null {
   if (scope === 'both') return 'twins.both';
   if (scope !== 'none') return null;
-  return kind === 'appointment' ? 'plan.pregnancyMother' : kind === 'note' ? 'notes.forMother' : 'plan.family';
+  if (kind === 'appointment') return 'plan.pregnancyMother';
+  return kind === 'note' || kind === 'medRoutine' ? 'notes.forMother' : 'plan.family';
 }
 
 /** Twins a scope refers to. */
@@ -119,7 +134,16 @@ export function upcomingItems(input: UpcomingInput): UpcomingItem[] {
         const occurrence = at.toISOString();
         if (doneKeys.has(`${r.id}@${occurrence}`)) continue;
         if (r.med && input.medLogs && medOccurrenceGiven({ ...r, babies }, at, input.medLogs)) continue;
-        items.push({ key: `routine:${r.id}:${occurrence}`, kind: 'routine', id: r.id, title: r.title, at, babies, occurrence });
+        items.push({
+          key: `routine:${r.id}:${occurrence}`,
+          kind: 'routine',
+          id: r.id,
+          title: r.title,
+          at,
+          babies,
+          occurrence,
+          ...(r.med ? { med: true } : {}),
+        });
       }
     } else {
       // One reminder per twin, counted from that twin's own latest entry.
@@ -192,17 +216,34 @@ export function sortTasks(tasks: readonly ParentTask[]): ParentTask[] {
 
 // ---------- Medicines ----------
 
+/** Who a medicine is for: one twin, or the mother (routines with `babies: 'none'` and `med` set). */
+export type MedSubject = TwinSlot | 'mother';
+/** The subject id the mother's doses carry in a `MedLog` (twins use their baby ids). */
+export const MOTHER_ID = 'mother';
+
+export const subjectId = (subject: MedSubject) => (subject === 'mother' ? MOTHER_ID : BABY_IDS[subject]);
+
 /** A logged medicine dose, reduced to what the medicine helpers need. */
 export interface MedLog {
+  /** A twin's baby id, or `MOTHER_ID`. */
   babyId: string;
   name: string;
   start: ISODateTime;
 }
 
-export function toMedLogs(entries: readonly LogEntry[]): MedLog[] {
-  return entries.flatMap((e) =>
-    e.type === 'med' && e.deletedAt === null ? [{ babyId: e.babyId, name: e.data.name, start: e.start }] : [],
-  );
+/** The twins' medicine entries, plus the mother's doses when given. */
+export function toMedLogs(entries: readonly LogEntry[], motherLogs: readonly MotherLog[] = []): MedLog[] {
+  return [
+    ...entries.flatMap((e) => (e.type === 'med' && e.deletedAt === null ? [{ babyId: e.babyId, name: e.data.name, start: e.start }] : [])),
+    ...motherLogs.flatMap((m) =>
+      m.type === 'med' && m.deletedAt === null ? [{ babyId: MOTHER_ID, name: m.data.name, start: m.start }] : [],
+    ),
+  ];
+}
+
+/** Whom a medicine routine is for: its twins, or the mother for `babies: 'none'`. */
+export function medSubjects(babies: BabyScope): MedSubject[] {
+  return babies === 'none' ? ['mother'] : slotsFor(babies);
 }
 
 /** Medicine names match ignoring case and surrounding spaces ("Vitamin D" = "vitamin d "). */
@@ -230,9 +271,9 @@ function medOccurrenceGiven(routine: Routine, at: Date, logs: readonly MedLog[])
     .sort()
     .indexOf(`${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`);
   const needed = Math.max(0, index) + 1;
-  const slots = slotsFor(routine.babies);
-  if (slots.length === 0) return false;
-  return slots.every((slot) => dosesBetween(logs, BABY_IDS[slot], routine.med!.name, dayStart, dayEnd).length >= needed);
+  // A medicine routine "for the mother" (`none`) counts the mother's own doses.
+  const subjects = medSubjects(routine.babies);
+  return subjects.every((s) => dosesBetween(logs, subjectId(s), routine.med!.name, dayStart, dayEnd).length >= needed);
 }
 
 /** Active medicine routines given every day: the ones shown in Today's "Daily care". */
@@ -269,7 +310,8 @@ export function dailyCareStatus(
 ): CareRow[] {
   return routines
     .flatMap((routine) => {
-      if (!isDailyMed(routine)) return [];
+      // The mother's medicines have their own card (`motherCareStatus`).
+      if (!isDailyMed(routine) || routine.babies === 'none') return [];
       const babies = effectiveScope(routine, awaySlots);
       return babies === null ? [] : [{ routine, babies }];
     })
@@ -297,18 +339,40 @@ export interface MedCheck {
  * the minimum interval the parents set on a medicine routine? Without an interval
  * there is never a warning.
  */
-export function medCheck(logs: readonly MedLog[], slot: TwinSlot, name: string, routines: readonly Routine[], now: Date): MedCheck {
+export function medCheck(logs: readonly MedLog[], subject: MedSubject, name: string, routines: readonly Routine[], now: Date): MedCheck {
   if (!name.trim()) return { lastAt: null, minIntervalHours: null, warn: false };
+  const id = subjectId(subject);
   let lastAt: ISODateTime | null = null;
   for (const l of logs) {
-    if (l.babyId === BABY_IDS[slot] && sameMed(l.name, name) && l.start <= now.toISOString() && (!lastAt || l.start > lastAt))
-      lastAt = l.start;
+    if (l.babyId === id && sameMed(l.name, name) && l.start <= now.toISOString() && (!lastAt || l.start > lastAt)) lastAt = l.start;
   }
   const intervals = routines
-    .filter((r) => r.deletedAt === null && r.med && sameMed(r.med.name, name) && slotsFor(r.babies).includes(slot))
+    .filter((r) => r.deletedAt === null && r.med && sameMed(r.med.name, name) && medSubjects(r.babies).includes(subject))
     .map((r) => r.med!.minIntervalHours)
     .filter((h): h is number => typeof h === 'number' && h > 0);
   const minIntervalHours = intervals.length ? Math.max(...intervals) : null;
   const warn = lastAt !== null && minIntervalHours !== null && now.getTime() - new Date(lastAt).getTime() < minIntervalHours * 3600_000;
   return { lastAt, minIntervalHours, warn };
+}
+
+export interface MotherCareRow {
+  routine: Routine;
+  /** Doses logged today. */
+  given: number;
+  /** Doses planned per day (the routine's number of times). */
+  planned: number;
+  /** The mother's latest dose of this medicine up to now, if any (in the logs given). */
+  lastAt: ISODateTime | null;
+}
+
+/** Today's card for the mother: every active daily medicine routine "for the mother" and her doses in [from, to). */
+export function motherCareStatus(routines: readonly Routine[], logs: readonly MedLog[], from: Date, to: Date, now: Date): MotherCareRow[] {
+  return routines
+    .filter((r) => isDailyMed(r) && r.babies === 'none')
+    .map((routine) => ({
+      routine,
+      given: dosesBetween(logs, MOTHER_ID, routine.med!.name, from, to).length,
+      planned: routine.rule.kind === 'everyDays' ? Math.max(1, routine.rule.times.length) : 1,
+      lastAt: medCheck(logs, 'mother', routine.med!.name, routines, now).lastAt,
+    }));
 }

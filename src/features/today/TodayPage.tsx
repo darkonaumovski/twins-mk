@@ -19,6 +19,7 @@ import { colorOf, twinStyle, TwinBadge, useBabies, useTwinName, type Babies } fr
 import { DaySummaryView, Timeline, useDayEntries } from '@/features/history/DayViews';
 import { UpcomingSection } from '@/features/plan/UpcomingSection';
 import { DailyCareSection } from '@/features/plan/DailyCareSection';
+import { MotherCard } from '@/features/mother/MotherCard';
 import { SuppliesBanner } from '@/features/supplies/SuppliesBanner';
 import { DutyLine, HandoverCard } from '@/features/family/Handover';
 import { HospitalStrip } from '@/features/twins/HospitalStrip';
@@ -277,6 +278,8 @@ export function TodayPage() {
       </div>
 
       <DailyCareSection now={now} />
+
+      <MotherCard now={now} />
 
       <UpcomingSection now={now} />
 

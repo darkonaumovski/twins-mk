@@ -3,7 +3,18 @@
  * them, and the text. Pure, so it runs the same in the Edge Function and in tests, and
  * it reuses the app's own scheduling code, so phones and server agree on what is due.
  */
-import type { Appointment, Baby, BabyScope, LogEntry, ReminderKind, Routine, RoutineDone, SharedSettings, TwinSlot } from '../data/types';
+import type {
+  Appointment,
+  Baby,
+  BabyScope,
+  LogEntry,
+  MotherLog,
+  ReminderKind,
+  Routine,
+  RoutineDone,
+  SharedSettings,
+  TwinSlot,
+} from '../data/types';
 import { isKnownLog } from '../data/logTypes';
 import { BABY_IDS, nextFeedDue, SLOTS } from '../features/log/logic';
 import { reminderTime, toMedLogs, upcomingItems } from '../features/plan/logic';
@@ -20,6 +31,8 @@ export interface FamilyData {
   appointments: Appointment[];
   /** Log entries of the last few days. */
   logs: LogEntry[];
+  /** The mother's entries of the last few days (her medicine doses); absent from an older function. */
+  motherLogs?: MotherLog[];
 }
 
 export interface DueReminder {
@@ -99,7 +112,10 @@ export function dueReminders(data: FamilyData, now: Date, windowMs = DUE_WINDOW_
     pastMs: windowMs,
     aheadMs: 60_000,
     appointmentAheadMs: 61 * 60_000,
-    medLogs: toMedLogs(logs),
+    medLogs: toMedLogs(
+      logs,
+      (data.motherLogs ?? []).filter((m) => m.deletedAt === null).map((m) => ({ ...m, start: move(m.start, shift) })),
+    ),
     awaySlots,
   });
 
@@ -190,7 +206,9 @@ export function reminderMessage(reminder: DueReminder, lang: 'mk' | 'en', data: 
   const t = (key: string, vars: Record<string, string> = {}) => fill(lookup(strings, key), vars);
   const twin = (slot: TwinSlot) =>
     data.babies.find((b) => b.id === BABY_IDS[slot] && b.deletedAt === null)?.name || t(slot === 'A' ? 'twins.twinA' : 'twins.twinB');
-  const who = reminder.babies === 'both' ? t('twins.both') : reminder.babies === 'none' ? '' : twin(reminder.babies);
+  // A medicine "for the mother" says so ("Ibuprofen · for the mother"); other family routines name nobody.
+  const none = reminder.kind === 'medicines' ? t('reminders.forMother') : '';
+  const who = reminder.babies === 'both' ? t('twins.both') : reminder.babies === 'none' ? none : twin(reminder.babies);
   let title: string;
   let body = '';
   if (reminder.kind === 'appointments' && reminder.start) {

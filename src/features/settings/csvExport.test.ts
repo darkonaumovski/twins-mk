@@ -42,6 +42,7 @@ const empty: CsvData = {
   categories: [],
   contractions: [],
   vaccines: [],
+  motherLogs: [],
   babies: [],
 };
 const file = (data: Partial<CsvData>, name: string) => buildCsvFiles({ ...empty, ...data }, tx).find((f) => f.fileName === name)!;
@@ -59,6 +60,7 @@ describe('spreadsheet export', () => {
       'checklist.csv',
       'contractions.csv',
       'vaccines.csv',
+      'mother.csv',
     ]);
     for (const f of files) expect(f.rows).toHaveLength(1);
     expect(files[0].rows[0].slice(0, 4)).toEqual(['Date', 'Time', 'Twin', 'Type']);
@@ -357,6 +359,32 @@ describe('spreadsheet export', () => {
       ['Ема', '2026-08-01', 'BCG', null, '', '', ''],
       ['Ема', '2026-10-01', 'Hexa', 2, 'Health centre, room 3', 'AB12', "'-fever in the evening"],
       ['Ана', '2026-10-01', 'Hexa', 2, 'Health centre, room 3', 'AB12', ''],
+    ]);
+  });
+
+  it('writes the mother’s medicines, check-ins (by their day) and notes, oldest first', () => {
+    const rows = file(
+      {
+        motherLogs: [
+          { ...meta('n'), type: 'note', start: local(13, 9), data: { text: '-tired' }, loggedBy: 'p1' },
+          { ...meta('m'), type: 'med', start: local(12, 20, 5), data: { name: 'Ibuprofen', dose: '400 mg' }, loggedBy: 'p2' },
+          {
+            ...meta('checkin-2026-10-13'),
+            type: 'checkin',
+            start: new Date(2026, 9, 13, 12).toISOString(),
+            data: { mood: 4, sleepHours: 5.5, note: '' },
+            loggedBy: 'p1',
+          },
+          { ...meta('x', 'deleted'), type: 'note', start: local(13, 10), data: { text: 'gone' }, loggedBy: 'p1' },
+        ],
+      },
+      'mother.csv',
+    ).rows;
+    expect(rows[0]).toEqual(['Date', 'Time', 'Type', 'Medicine', 'Dose', 'Mood (1–5)', 'Sleep (hours)', 'Note', 'Logged by']);
+    expect(rows.slice(1)).toEqual([
+      ['2026-10-12', '20:05', 'Medicine', 'Ibuprofen', '400 mg', null, null, '', 'Дарко'],
+      ['2026-10-13', '09:00', 'Note', '', '', null, null, "'-tired", 'Марија'],
+      ['2026-10-13', '', 'Check-in', '', '', 4, 5.5, '', 'Марија'],
     ]);
   });
 

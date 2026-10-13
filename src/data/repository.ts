@@ -24,6 +24,7 @@ import type {
   SharedSettings,
   Supply,
   Vaccine,
+  MotherLog,
 } from './types';
 
 /**
@@ -95,6 +96,7 @@ export interface SyncedCollections {
   milestones: Repository<Milestone>;
   contractions: Repository<Contraction>;
   vaccines: Repository<Vaccine>;
+  motherLogs: Repository<MotherLog>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -117,6 +119,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'milestones',
   'contractions',
   'vaccines',
+  'motherLogs',
 ];
 
 /** This phone's notification history (local only). */

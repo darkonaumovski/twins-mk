@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Appointment, Baby, LogEntry, Routine, RoutineDone, SharedSettings } from '@/data/types';
+import type { Appointment, Baby, LogEntry, MotherLog, Routine, RoutineDone, SharedSettings } from '@/data/types';
 import { DEFAULT_SETTINGS } from '@/data/defaults';
 import { dueReminders, recipientsFor, reminderMessage, zoneShift, type FamilyData } from './reminders';
 
@@ -137,6 +137,69 @@ describe('due reminders', () => {
     const due = dueReminders(data({ routines: [homeBath], babies }), at('2026-10-11T17:03:00Z'));
     expect(due.map((d) => d.babies)).toEqual(['B']);
     expect(reminderMessage(due[0], 'mk', { babies, settings: settings() }).title).toBe('Капење · Ana');
+  });
+});
+
+describe('medicines for the mother', () => {
+  const ibuprofen: Routine = {
+    ...vitD,
+    id: 'ibu',
+    title: 'Ibuprofen',
+    babies: 'none',
+    rule: { kind: 'everyDays', days: 1, times: ['08:00', '20:00'], startDate: '2026-10-01' },
+    med: { name: 'Ibuprofen', dose: '400 mg', minIntervalHours: 6 },
+  };
+  const dose = (start: string): MotherLog => ({
+    ...meta,
+    id: `m-${start}`,
+    type: 'med',
+    start,
+    data: { name: 'ibuprofen', dose: '400 mg' },
+    loggedBy: 'p1',
+  });
+
+  it('are due like the twins’ medicines, sent as medicines', () => {
+    const due = dueReminders(data({ routines: [ibuprofen] }), at('2026-10-11T06:03:00Z'));
+    expect(due.map((d) => [d.kind, d.title, d.babies])).toEqual([['medicines', 'Ibuprofen', 'none']]);
+  });
+
+  it('count as done once the mother’s own dose is logged (not a twin’s entry with the same name)', () => {
+    const given = data({ routines: [ibuprofen], motherLogs: [dose('2026-10-11T06:01:00Z')] });
+    expect(dueReminders(given, at('2026-10-11T06:03:00Z'))).toEqual([]);
+    const twinEntry = log({ type: 'med', data: { name: 'Ibuprofen', dose: '' }, start: '2026-10-11T06:01:00Z' });
+    expect(dueReminders(data({ routines: [ibuprofen], logs: [twinEntry] }), at('2026-10-11T06:03:00Z'))).toHaveLength(1);
+    // A deleted dose does not count; an older function without motherLogs still sends the reminder.
+    const deleted = { ...dose('2026-10-11T06:01:00Z'), deletedAt: '2026-10-11T06:02:00Z' };
+    expect(dueReminders(data({ routines: [ibuprofen], motherLogs: [deleted] }), at('2026-10-11T06:03:00Z'))).toHaveLength(1);
+  });
+
+  it('the second time of the day needs a second dose', () => {
+    const one = data({ routines: [ibuprofen], motherLogs: [dose('2026-10-11T06:01:00Z')] });
+    expect(dueReminders(one, at('2026-10-11T18:02:00Z')).map((d) => d.title)).toEqual(['Ibuprofen']);
+  });
+
+  it('read “Ibuprofen · for the mother” in both languages', () => {
+    const [due] = dueReminders(data({ routines: [ibuprofen] }), at('2026-10-11T06:03:00Z'));
+    expect(reminderMessage(due, 'en', data()).title).toBe('Ibuprofen · for the mother');
+    expect(reminderMessage(due, 'mk', data()).title).toBe('Ibuprofen · за мајката');
+  });
+
+  it('leave a family routine that is not a medicine without a name', () => {
+    const family: Routine = { ...bath, id: 'family', babies: 'none', title: 'Перење' };
+    const [due] = dueReminders(data({ routines: [family] }), at('2026-10-11T17:02:00Z'));
+    expect(reminderMessage(due, 'en', data()).title).toBe('Перење');
+  });
+
+  it('go to the phones that want medicines, and at night to whoever is on duty', () => {
+    const [due] = dueReminders(data({ routines: [ibuprofen] }), at('2026-10-11T06:03:00Z'));
+    const subs = [
+      { endpoint: 'mom', caregiverId: 'p1', kinds: ['medicines' as const], lang: 'mk' as const },
+      { endpoint: 'dad', caregiverId: 'p2', kinds: ['routines' as const], lang: 'en' as const },
+    ];
+    expect(recipientsFor(subs, due.kind, settings(), due.at).map((s) => s.endpoint)).toEqual(['mom']);
+    const night = settings({ nightShifts: [{ caregiverId: 'p2', from: '22:00', to: '09:00' }] });
+    // Dad is on duty but has no phone for medicines: Mom still gets it, so it is never lost.
+    expect(recipientsFor(subs, due.kind, night, due.at).map((s) => s.endpoint)).toEqual(['mom']);
   });
 });
 

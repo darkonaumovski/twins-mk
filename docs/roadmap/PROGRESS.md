@@ -33,8 +33,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | --- | --------------------------------- | ------ | ------- | ------------------------------------------------------ |
 | F07 | Vaccination record                | ✅     | 2274b16 | More → Vaccinations; report section; vaccines.csv      |
 | F08 | Diaper details                    | ✅     | 44ec3ca | Entry editor → Details; report rash column and colours |
-| F09 | Head circumference and WHO curves | ✅     |         | Growth → head chart; "Show WHO reference curves"       |
-| F10 | Mother's recovery                 | ⬜     |         |                                                        |
+| F09 | Head circumference and WHO curves | ✅     | 827dd2b | Growth → head chart; "Show WHO reference curves"       |
+| F10 | Mother's recovery                 | ✅     |         | More → Mother; Today card; redeploy the push function  |
 | F11 | Action buttons on push reminders  | ⬜     |         |                                                        |
 
 ## Phase 3: memories and later months
@@ -132,6 +132,14 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F09 · `LineChart` got optional `reference`, `domain`, `day` and `formatTick`; existing charts pass none of them and render as before.
 - 2026-10-13 · F09 · "Girl or boy" is a three-way choice in the twin setup (girl, boy, not set). Head size is optional in the measurement editor; an empty one is left out of the entry, as on older entries. The birth measurement from the setup has no head size.
 - 2026-10-13 · F09 · The per-phone switch lives on the Growth page (next to the charts), not in Settings → Appearance.
+
+- 2026-10-13 · F10 · New synced collection `motherLogs` (Dexie version 9, indexes `start`, `type`) in all 7 places; migration 005 already had the name. Check-ins have the fixed id `checkin-YYYY-MM-DD` and the time noon of that day; saving again replaces (and revives a deleted one).
+- 2026-10-13 · F10 · `medCheck` takes a subject (`TwinSlot | 'mother'`); the mother's doses are `MedLog`s with the id `mother`. `medOccurrenceGiven` counts her doses for routines with `babies: 'none'` and `med` set, so "Coming up" and push reminders treat them like the twins' medicines. Before this, such a routine never counted as given and showed an empty row in the twins' Daily care; it is now left out there (twins' behaviour otherwise unchanged, with regression tests).
+- 2026-10-13 · F10 · `motherCard` (default on) and `announceMother` (default off) are shared settings with defaults in `defaults.ts`. The card shows while `motherCard` is on and she has an active daily medicine routine ("default on once she has one"). Both switches are on the Mother page. The card, like the twins' Daily care, lists her **daily** medicines; a routine every 2+ days for her still appears in Coming up and gets push reminders. A check-in's day cannot be changed after saving (the day is its id); a new check-in for a day that already has one opens with that day's values.
+- 2026-10-13 · F10 · Privacy: changes to `motherLogs` from another phone are not announced (in-app or notification) unless `announceMother`; they are still in the notification history, marked seen. A check-in's fields (mood, sleep, note) are never shown in the history details, and change lines never include them ("Mother's check-in (13 Oct)"). The CSV includes her mood and sleep, since the parents export it for themselves.
+- 2026-10-13 · F10 · The report's "Mother's medicines" section is off by default; its switch only appears when she has doses in the period. It lists time, medicine and dose only.
+- 2026-10-13 · F10 · Push: `FamilyData.motherLogs` is optional; the edge function (`supabase/functions/send-reminders/index.ts`) now also loads `motherLogs`, so it must be **redeployed**. An older deployed function still sends her reminders but cannot see her doses, so it reminds even after a dose (until the routine occurrence is marked done).
+- 2026-10-13 · F10 · The mood is five lucide faces (angry to laughing) with only "Mood 3 of 5" as their accessible names, no words such as "bad". The interval check names her "Mother" ("Мајката веќе доби …").
 
 ## Phone test checklists
 
@@ -252,6 +260,17 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 6. For a twin born before 37 weeks (e.g. 35 + 4), the chart says the axis is the corrected age, and the birth point sits left of 0.
 7. On the other phone the curves stay off (per phone). Turn them off again: the usual date charts for both twins come back.
 8. More → Report: the growth table has a head column.
+
+### F10 (mother's recovery) — run migration 005 first; redeploy the push function
+
+1. Plan → Routines → **Add routine**: name "Ibuprofen", turn on **This is a medicine**: the **For** choice now reads **For the mother**. Pick it, times 08:00 and 20:00, save.
+2. Today: a **Mother** card with Ibuprofen "not logged yet" and –. "Coming up" shows it labelled "For the mother". Tap the card row: a message "Logged for the mother", the row shows "last given just now", and the 08:00 item leaves Coming up.
+3. Tap it again within 6 hours (if you set a minimum time): "Mother already had Ibuprofen …". The twins' Daily care is unchanged.
+4. More → **Mother**: **How are you today?** — pick a face, 5,5 hours, save. Save again with another face: still one check-in for today.
+5. On the other phone: no message about her dose or check-in (and no unread badge). Turn on **Tell the other phones about her entries**, log another dose: now "Mother: Ibuprofen (…)" arrives, without any mood.
+6. With push reminders: at 20:00 "Ibuprofen · for the mother"; after logging the dose, no reminder.
+7. More → Report: **Include the mother's medicines** appears; switched on, her doses are listed (no check-ins). Export as spreadsheet: `mother.csv`.
+8. Mother page settings: turn off **Show her medicines on Today**: the card disappears on both phones.
 
 ## Follow-ups
 

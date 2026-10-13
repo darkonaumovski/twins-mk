@@ -68,7 +68,10 @@ export function UpcomingSection({ now }: { now: Date }) {
               <Icon aria-hidden size={20} className={cx('shrink-0', w.overdue ? 'text-danger' : 'text-accent')} />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 font-medium">
-                  <ScopeBadges scope={item.babies} kind={item.kind === 'appointment' ? 'appointment' : 'routine'} />
+                  <ScopeBadges
+                    scope={item.babies}
+                    kind={item.kind === 'appointment' ? 'appointment' : item.med ? 'medRoutine' : 'routine'}
+                  />
                   <span className="truncate">{item.title}</span>
                 </span>
                 <span className={cx('block text-sm', w.overdue ? 'font-semibold text-danger' : 'text-muted')}>
