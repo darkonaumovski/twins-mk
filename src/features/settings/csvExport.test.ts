@@ -124,7 +124,7 @@ describe('spreadsheet export', () => {
     const rows = file(
       {
         logs: [
-          log('d', { type: 'diaper', data: { kind: 'dirty', rash: true } as LogEntry['data'] as never }),
+          log('d', { type: 'diaper', data: { kind: 'dirty', rash: true, color: 'green', texture: 'soft' } }),
           log('m', { type: 'measure', data: { weightG: null, lengthCm: null, headCm: 35.2 } as never }),
         ],
       },
@@ -132,6 +132,8 @@ describe('spreadsheet export', () => {
     ).rows;
     const head = rows[0];
     expect(rows[1][head.indexOf('Rash')]).toBe('Yes');
+    expect(rows[1][head.indexOf('Stool colour')]).toBe('Green');
+    expect(rows[1][head.indexOf('Stool texture')]).toBe('Soft');
     expect(rows[2][head.indexOf('Head (cm)')]).toBe(35.2);
   });
 

@@ -89,6 +89,7 @@ function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
     'diaper',
     'rash',
     'stoolColor',
+    'stoolTexture',
     'sleepMinutes',
     'medicine',
     'dose',
@@ -123,10 +124,10 @@ function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
           break;
         case 'diaper': {
           c.diaper = t(`activity.value.diaper.${e.data.kind}`);
-          const rash = extra(e.data, 'rash');
-          if (typeof rash === 'boolean') c.rash = rash ? t('activity.yes') : t('activity.no');
-          const color = extra(e.data, 'color');
-          if (typeof color === 'string') c.stoolColor = t(`csv.stoolColor.${color}`, { defaultValue: color });
+          if (typeof e.data.rash === 'boolean') c.rash = e.data.rash ? t('activity.yes') : t('activity.no');
+          // A value from a newer version that this one has no word for is written as it is.
+          if (e.data.color) c.stoolColor = t(`diaper.colors.${e.data.color}`, { defaultValue: e.data.color });
+          if (e.data.texture) c.stoolTexture = t(`diaper.textures.${e.data.texture}`, { defaultValue: e.data.texture });
           break;
         }
         case 'sleep':
@@ -171,6 +172,7 @@ function logsCsv(entries: readonly LogEntry[], tx: CsvText): CsvFile {
         c.diaper,
         c.rash,
         c.stoolColor,
+        c.stoolTexture,
         c.sleepMinutes,
         c.medicine,
         c.dose,

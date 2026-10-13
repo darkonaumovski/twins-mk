@@ -5,6 +5,7 @@ import { useFormatMinutes } from '@/lib/useNow';
 import { formatNumber } from '@/lib/format';
 import type { LogEntry, LogType } from '@/data/types';
 import { minutesBetween } from './logic';
+import { detailMarks } from './diaperDetails';
 
 export const LOG_ICONS: Record<LogType, LucideIcon> = {
   feed: Milk,
@@ -50,11 +51,11 @@ export function useDescribeEntry(): (entry: LogEntry, now?: Date) => EntryText {
               : base,
           };
         }
-        case 'diaper':
-          return {
-            title: t('log.diaper'),
-            detail: { wet: t('log.wet'), dirty: t('log.dirty'), both: t('log.wetDirty') }[entry.data.kind],
-          };
+        case 'diaper': {
+          // The optional details as small markers: "Dirty · rash · green · soft".
+          const kind = { wet: t('log.wet'), dirty: t('log.dirty'), both: t('log.wetDirty') }[entry.data.kind];
+          return { title: t('log.diaper'), detail: [kind, ...detailMarks(entry.data, (key) => t(key))].join(' · ') };
+        }
         case 'sleep':
           return {
             title: t('log.sleep'),

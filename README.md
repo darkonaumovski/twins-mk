@@ -25,6 +25,7 @@ A calm, phone-first app for parents expecting twins.
 
 ### More to log, pumping, milk stash and supplies
 
+- **Diaper details (optional):** a diaper entry has **Details**, folded away so logging stays one tap: **Rash** (yes, or not noted) and, for a dirty diaper, the **colour** (yellow, green, brown, black, red, pale, other) and **texture** (watery, soft, formed, hard). Tap a chosen chip again to clear it. Add them by tapping **Adjust** after a quick diaper, or by tapping the entry in the timeline. The timeline shows them as small words ("Dirty · rash · green · soft"). The report for the doctor adds a rash column per day (when a rash was noted) and the colours and textures of the period. No colour or texture is marked or explained as good or bad.
 - **More:** the Quick Log panel keeps its main buttons; a "More" button opens temperature (°C), spit-up (small/large), bath and tummy time (minutes), plus pumping, the milk stash and supplies.
 - **Pumping** belongs to the mother, not a twin: ml per side (or a total) and minutes. One tap can add the milk to the **milk stash** (fridge or freezer). Pumping shows in the timeline and as "Pumped ml per day" in History.
 - **Pumping timer:** **Start pumping** (in More, or on the pumping sheet) starts a timer for the left side, the right side or both, with a big elapsed time; the screen stays on while it runs. Today shows it like the other timers. **Stop** saves the end time at once and opens the pumping sheet with the minutes filled in (rounded up), so you only enter the ml and, if you like, add the milk to the stash. One timer runs per family: the other phone sees it and can stop it too. If both phones stop and save the same session, the stash still gets one container. A running timer does not count in totals, the History chart or the stash.
@@ -269,7 +270,7 @@ The starter checklist is versioned (`SEED_VERSION` in `src/features/checklist/se
 
 **Newer and older phones together.** A phone skips synced collections and log entry types it does not know (they come from a newer version on the other phone): they stay stored and synced, but are not shown. If a screen still crashes, its **Reload** button switches to a waiting app update first.
 
-Newer versions also add optional fields to existing records; an older phone may drop them when it edits such a record. A running pumping timer looks like a 0 ml session on an older phone: stop it on a newer phone before editing it on the older one, or it may keep counting as running. Appointments and notes for the doctor that are not about a twin read "Pregnancy / mother" and "For the mother" on newer phones, but "Family" on older ones, where such notes also always go into the report.
+Newer versions also add optional fields to existing records; an older phone may drop them when it edits such a record (for example a diaper's rash, colour and texture: edit diaper details on an updated phone). A running pumping timer looks like a 0 ml session on an older phone: stop it on a newer phone before editing it on the older one, or it may keep counting as running. Appointments and notes for the doctor that are not about a twin read "Pregnancy / mother" and "For the mother" on newer phones, but "Family" on older ones, where such notes also always go into the report.
 
 ### Tests
 
@@ -288,6 +289,7 @@ Newer versions also add optional fields to existing records; an older phone may 
 - budget and shopping totals
 - logging helpers and log queries (tandem entries, last side, top-up ml, next feed, the "feed the other twin" check)
 - daily summaries (including sleep across midnight, spit-ups, baths and tummy time)
+- diaper details (nothing extra stored without details, colour and texture only for a dirty diaper, older entries and unknown values, both twins, editing one twin's entry, the report's rash per day and colour/texture counts with midnight belonging to the new day, the CSV columns)
 - the weekly insights (a sleep across midnight counted toward its night, the day/night split, feed gaps per twin with gaps across a day without feeds left out, tandem feeds once per twin, days without entries left out of averages, a running sleep, the change from the week before)
 - the twin rhythm (sleep split at midnight, a running sleep up to now, overlapping sleeps counted once, feeds started together matched one to one, daylight-saving days, night hours)
 - pumping totals and the milk stash (oldest first, partly used containers, age against the parents' own limit)

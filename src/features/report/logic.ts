@@ -1,6 +1,7 @@
 import type { DoctorNote, ISODate, LogEntry, TwinSlot } from '@/data/types';
 import { EMPTY_SUMMARY, localDay, summarize, type DaySummary } from '@/features/history/summary';
 import { slotsFor } from '@/features/plan/logic';
+import { diaperBreakdown, type DiaperBreakdown } from '@/features/log/diaperDetails';
 
 export interface ReportDay {
   date: ISODate;
@@ -22,6 +23,23 @@ export function reportTotals(rows: readonly ReportDay[]): DaySummary {
     for (const key of Object.keys(total) as (keyof DaySummary)[]) total[key] += summary[key];
   }
   return total;
+}
+
+export interface ReportDiapers {
+  /** Diapers with a rash noted, per day (same order as the days). */
+  rashByDay: number[];
+  /** Rash, colour and texture counts over the whole period. */
+  period: DiaperBreakdown;
+}
+
+/** The optional diaper details for one twin: rash per day, and colour and texture over the period. */
+export function reportDiapers(entries: readonly LogEntry[], babyId: string, days: readonly ISODate[]): ReportDiapers {
+  const rashByDay = days.map((date) => {
+    const { from, to } = localDay(date);
+    return diaperBreakdown(entries, babyId, from, to).rash;
+  });
+  const period = diaperBreakdown(entries, babyId, localDay(days[0]).from, localDay(days[days.length - 1]).to);
+  return { rashByDay, period };
 }
 
 /**

@@ -5271,6 +5271,31 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	diaper: {
+		details: "Details",
+		detailsSet: "Details noted",
+		rash: "Rash",
+		rashYes: "Yes",
+		rashMark: "rash",
+		color: "Colour",
+		texture: "Texture",
+		dirtyOnly: "Colour and texture are for a dirty diaper.",
+		colors: {
+			yellow: "Yellow",
+			green: "Green",
+			brown: "Brown",
+			black: "Black",
+			red: "Red",
+			pale: "Pale",
+			other: "Other"
+		},
+		textures: {
+			watery: "Watery",
+			soft: "Soft",
+			formed: "Formed",
+			hard: "Hard"
+		}
+	},
 	vaccines: {
 		title: "Vaccinations",
 		intro: "All the vaccinations the twins were given, as on the vaccination card. The app has no schedule of its own: ask your paediatrician.",
@@ -5349,12 +5374,16 @@ var en = {
 			dirty: "Dirty",
 			sleep: "Sleep h",
 			meds: "Meds",
+			rash: "Rash",
 			vaccine: "Vaccine",
 			dose: "Dose",
 			place: "Where"
 		},
 		vaccines: "Vaccinations",
-		noVaccines: "No vaccinations in this period."
+		noVaccines: "No vaccinations in this period.",
+		stool: "Dirty diapers · {{list}}",
+		rashDays_one: "Rash noted: {{count}} time",
+		rashDays_other: "Rash noted: {{count}} times"
 	},
 	task: {
 		add: "Add task",
@@ -5465,6 +5494,7 @@ var en = {
 			diaper: "Diaper",
 			rash: "Rash",
 			stoolColor: "Stool colour",
+			stoolTexture: "Stool texture",
 			sleepMinutes: "Sleep (min)",
 			medicine: "Medicine",
 			dose: "Dose",
@@ -5878,6 +5908,9 @@ var en = {
 			rhythmTogetherMin: "Feeds count as together within",
 			nightHours_from: "Night hours from",
 			nightHours_to: "Night hours to",
+			data_rash: "Rash",
+			data_color: "Stool colour",
+			data_texture: "Stool texture",
 			dose: "Dose",
 			place: "Where",
 			lot: "Batch / lot"
@@ -6771,6 +6804,31 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	diaper: {
+		details: "Детали",
+		detailsSet: "Внесени детали",
+		rash: "Осип",
+		rashYes: "Да",
+		rashMark: "осип",
+		color: "Боја",
+		texture: "Конзистенција",
+		dirtyOnly: "Бојата и конзистенцијата се внесуваат за валкана пелена.",
+		colors: {
+			yellow: "Жолта",
+			green: "Зелена",
+			brown: "Кафеава",
+			black: "Црна",
+			red: "Црвена",
+			pale: "Бледа",
+			other: "Друга"
+		},
+		textures: {
+			watery: "Воденеста",
+			soft: "Мека",
+			formed: "Оформена",
+			hard: "Тврда"
+		}
+	},
 	vaccines: {
 		title: "Вакцини",
 		intro: "Сите вакцини што ги примиле бебињата, како во картонот за вакцинација. Апликацијата нема свој распоред: прашајте го педијатарот.",
@@ -6849,12 +6907,16 @@ var mk = {
 			dirty: "Валкани",
 			sleep: "Спиење ч",
 			meds: "Лекови",
+			rash: "Осип",
 			vaccine: "Вакцина",
 			dose: "Доза",
 			place: "Каде"
 		},
 		vaccines: "Вакцини",
-		noVaccines: "Нема вакцини во овој период."
+		noVaccines: "Нема вакцини во овој период.",
+		stool: "Валкани пелени · {{list}}",
+		rashDays_one: "Забележан осип: {{count}} пат",
+		rashDays_other: "Забележан осип: {{count}} пати"
 	},
 	task: {
 		add: "Додај задача",
@@ -6965,6 +7027,7 @@ var mk = {
 			diaper: "Пелена",
 			rash: "Осип",
 			stoolColor: "Боја на столицата",
+			stoolTexture: "Конзистенција на столицата",
 			sleepMinutes: "Сон (мин)",
 			medicine: "Лек",
 			dose: "Доза",
@@ -7378,6 +7441,9 @@ var mk = {
 			rhythmTogetherMin: "Хранења „заедно“ во рок од",
 			nightHours_from: "Ноќни часови од",
 			nightHours_to: "Ноќни часови до",
+			data_rash: "Осип",
+			data_color: "Боја на столицата",
+			data_texture: "Конзистенција на столицата",
 			dose: "Доза",
 			place: "Каде",
 			lot: "Серија / лот"

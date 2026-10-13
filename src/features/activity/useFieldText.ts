@@ -97,6 +97,8 @@ export function useFieldText() {
       if (path === 'color') return t(`twins.colors.${text}`, { defaultValue: text });
       if (path === 'slot') return text === 'A' ? t('twins.letterA') : t('twins.letterB');
       if (path === 'kind' && collection === 'prepItems') return t(`activity.value.prepKind.${text}`, { defaultValue: text });
+      if (path === 'data.color') return t(`diaper.colors.${text}`, { defaultValue: text });
+      if (path === 'data.texture') return t(`diaper.textures.${text}`, { defaultValue: text });
       if (path === 'data.kind') return t(`activity.value.diaper.${text}`, { defaultValue: text });
       if (path === 'location' && collection !== 'appointments') {
         return t(`activity.value.location.${text}`, { defaultValue: text });

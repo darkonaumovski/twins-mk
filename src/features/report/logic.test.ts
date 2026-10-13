@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DoctorNote, LogEntry } from '@/data/types';
 import { daysEnding } from '@/features/history/summary';
-import { openNotesFor, reportRows, reportTotals } from './logic';
+import { openNotesFor, reportDiapers, reportRows, reportTotals } from './logic';
 
 let n = 0;
 const at = (d: number, h: number) => new Date(2026, 9, d, h).toISOString();
@@ -27,6 +27,20 @@ describe('doctor report', () => {
     entry({ type: 'diaper', data: { kind: 'dirty' }, start: at(11, 9) }),
     entry({ type: 'feed', data: { method: 'bottle', ml: 50, milk: 'formula' }, start: at(11, 9), babyId: 'baby-B' }),
   ];
+
+  it('counts rashes per day and colours and textures over the period, for one twin', () => {
+    const list = [
+      ...entries,
+      entry({ type: 'diaper', data: { kind: 'dirty', rash: true, color: 'green', texture: 'watery' }, start: at(10, 7) }),
+      entry({ type: 'diaper', data: { kind: 'wet', rash: true }, start: at(11, 7) }),
+      entry({ type: 'diaper', data: { kind: 'dirty', color: 'green' }, start: at(11, 10), babyId: 'baby-B' }),
+      entry({ type: 'diaper', data: { kind: 'dirty', color: 'yellow' }, start: at(8, 7) }),
+    ];
+    const d = reportDiapers(list, 'baby-A', daysEnding('2026-10-11', 3));
+    expect(d.rashByDay).toEqual([0, 1, 1]);
+    expect(d.period).toEqual({ rash: 2, colors: [['green', 1]], textures: [['watery', 1]] });
+    expect(reportDiapers(entries, 'baby-A', daysEnding('2026-10-11', 3)).period).toEqual({ rash: 0, colors: [], textures: [] });
+  });
 
   it('has one row per day for the chosen twin, and totals', () => {
     const rows = reportRows(entries, 'baby-A', daysEnding('2026-10-11', 3), new Date(2026, 9, 12));

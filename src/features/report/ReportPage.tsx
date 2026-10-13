@@ -7,13 +7,13 @@ import { Page, Segmented, Toggle } from '@/components/ui';
 import { useLive } from '@/data/StoreContext';
 import { dateLocale } from '@/i18n';
 import { formatNumber, todayISO } from '@/lib/format';
-import type { Baby, TwinSlot, DoctorNote, Vaccine } from '@/data/types';
+import type { Baby, TwinSlot, DoctorNote, StoolColor, StoolTexture, Vaccine } from '@/data/types';
 import { daysEnding, growthPoints, localDay, type DaySummary } from '@/features/history/summary';
 import { BABY_IDS, type Who } from '@/features/log/logic';
 import { colorOf, TwinBadge, useBabies, useTwinName } from '@/features/twins/twins';
 import { useAgeText } from '@/features/twins/useAge';
 import { vaccinesInPeriod } from '@/features/vaccines/logic';
-import { openNotesFor, reportRows, reportTotals } from './logic';
+import { openNotesFor, reportDiapers, reportRows, reportTotals, type ReportDiapers } from './logic';
 
 const PERIODS = [7, 14, 30] as const;
 type Period = `${(typeof PERIODS)[number]}`;
@@ -57,8 +57,23 @@ export function ReportPage() {
   const hours = (min: number) => formatNumber(min / 60, i18n.language);
   const perTwin = slots.map((slot) => {
     const rows = reportRows(data.entries, BABY_IDS[slot], days, now);
-    return { slot, rows, total: reportTotals(rows) };
+    const diapers = reportDiapers(data.entries, BABY_IDS[slot], days);
+    return { slot, rows, total: reportTotals(rows), diapers, showRash: diapers.period.rash > 0 };
   });
+  // "Colour: yellow 5, green 2 · Texture: soft 6": the period's dirty-diaper details, if any were noted.
+  const counts = (pairs: [string, number][], label: (key: string) => string) =>
+    pairs.map(([key, n]) => `${label(key).toLocaleLowerCase()} ${n}`).join(', ');
+  const stoolText = ({ period }: ReportDiapers) =>
+    [
+      ...(period.colors.length ? [`${t('diaper.color')}: ${counts(period.colors, (c) => t(`diaper.colors.${c as StoolColor}`))}`] : []),
+      ...(period.textures.length
+        ? [`${t('diaper.texture')}: ${counts(period.textures, (x) => t(`diaper.textures.${x as StoolTexture}`))}`]
+        : []),
+    ].join(' · ');
+  const diaperLines = (d: ReportDiapers) => [
+    ...(d.period.rash > 0 ? [t('report.rashDays', { count: d.period.rash })] : []),
+    ...(stoolText(d) ? [t('report.stool', { list: stoolText(d) })] : []),
+  ];
   const notes = openNotesFor(data.notes, slots, includeMother);
   const vaccines = vaccinesInPeriod(data.vaccines, slots, days[0], lastDay);
   const doseText = (v: Vaccine) => (v.dose === null ? '' : t('vaccines.doseShort', { dose: v.dose }));
@@ -80,7 +95,16 @@ export function ReportPage() {
     });
   const shareText = [
     `${t('report.title')} · ${range}`,
-    ...perTwin.flatMap(({ slot, rows }) => ['', name(slot), ...rows.map((r) => `${dayLabel(r.date)}: ${line(r.summary)}`)]),
+    ...perTwin.flatMap(({ slot, rows, diapers }) => [
+      '',
+      name(slot),
+      // A day with a rash noted says so, like the table's rash column.
+      ...rows.map((r, i) => {
+        const rash = diapers.rashByDay[i];
+        return `${dayLabel(r.date)}: ${line(r.summary)}${rash > 0 ? ` · ${t('report.col.rash')} ${rash}` : ''}`;
+      }),
+      ...diaperLines(diapers),
+    ]),
     ...(vaccines.length ? ['', t('report.vaccines'), ...vaccines.map((v) => `• ${vaccineText(v)}`)] : []),
     ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${noteText(n)}`)] : []),
     '',
@@ -143,7 +167,7 @@ export function ReportPage() {
           <p className="text-muted">{t('report.made', { date: format(now, 'd MMM yyyy HH:mm', { locale }) })}</p>
         </header>
 
-        {perTwin.map(({ slot, rows, total }) => (
+        {perTwin.map(({ slot, rows, total, diapers, showRash }) => (
           <section key={slot} className="space-y-2 break-inside-avoid-page">
             <h3 className="flex items-center gap-2 text-base font-semibold">
               <TwinBadge slot={slot} color={colorOf(babies, slot)} size="sm" />
@@ -162,10 +186,11 @@ export function ReportPage() {
                     <th className={head}>{t('report.col.dirty')}</th>
                     <th className={head}>{t('report.col.sleep')}</th>
                     <th className={head}>{t('report.col.meds')}</th>
+                    {showRash && <th className={head}>{t('report.col.rash')}</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map(({ date, summary: s }) => (
+                  {rows.map(({ date, summary: s }, i) => (
                     <tr key={date}>
                       <td className={`${cell} text-left`}>{dayLabel(date)}</td>
                       <td className={cell}>{s.feeds}</td>
@@ -175,6 +200,7 @@ export function ReportPage() {
                       <td className={cell}>{s.dirty}</td>
                       <td className={cell}>{hours(s.sleepMinutes)}</td>
                       <td className={cell}>{s.meds}</td>
+                      {showRash && <td className={cell}>{diapers.rashByDay[i]}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -188,10 +214,12 @@ export function ReportPage() {
                     <td className={cell}>{formatNumber(total.dirty / rows.length, i18n.language)}</td>
                     <td className={cell}>{hours(total.sleepMinutes / rows.length)}</td>
                     <td className={cell}>{formatNumber(total.meds / rows.length, i18n.language)}</td>
+                    {showRash && <td className={cell}>{formatNumber(diapers.period.rash / rows.length, i18n.language)}</td>}
                   </tr>
                 </tfoot>
               </table>
             </div>
+            {stoolText(diapers) && <p>{t('report.stool', { list: stoolText(diapers) })}</p>}
             <p className="text-xs text-muted">{t('report.units')}</p>
           </section>
         ))}

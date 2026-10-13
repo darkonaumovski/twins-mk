@@ -18,6 +18,8 @@ import { useMedData, useMedGuard } from '@/features/plan/useMeds';
 import type { DiaperData, FeedData, LogEntry, LogType, Milk, SpitupData } from '@/data/types';
 import { BABY_IDS, fromLocalInput, slotOf, toLocalInput, type LogDraft, type Who } from './logic';
 import { useLogActions } from './useLogActions';
+import { detailsOf, diaperData, NO_DETAILS, type DiaperDetails } from './diaperDetails';
+import { DiaperDetailsFields } from './DiaperDetailsFields';
 import { WhoPicker } from './WhoPicker';
 import type { FormType } from './LogUIContext';
 
@@ -37,6 +39,7 @@ interface Draft {
   topUpMl: number;
   topUpMilk: Milk;
   diaper: DiaperData['kind'];
+  diaperDetails: DiaperDetails;
   medName: string;
   dose: string;
   weight: string;
@@ -69,6 +72,7 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
     topUpMl: 30,
     topUpMilk: 'formula',
     diaper: 'wet',
+    diaperDetails: NO_DETAILS,
     medName: '',
     dose: '',
     weight: '',
@@ -89,6 +93,7 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
       break;
     case 'diaper':
       d.diaper = entry.data.kind;
+      d.diaperDetails = detailsOf(entry.data);
       break;
     case 'med':
       Object.assign(d, { medName: entry.data.name, dose: entry.data.dose });
@@ -183,7 +188,7 @@ export function EntryEditor(props: Props) {
             }
           : { type: 'feed', data: { method: 'bottle', ml: draft.ml, milk: draft.milk }, start, end: null };
       case 'diaper':
-        return { type: 'diaper', data: { kind: draft.diaper }, start, end: null };
+        return { type: 'diaper', data: diaperData(draft.diaper, draft.diaperDetails), start, end: null };
       case 'sleep':
         return { type: 'sleep', data: {}, start, end };
       case 'med':
@@ -345,16 +350,19 @@ export function EntryEditor(props: Props) {
         )}
 
         {draft.type === 'diaper' && (
-          <Segmented<DiaperData['kind']>
-            label={t('log.diaper')}
-            value={draft.diaper}
-            options={[
-              { value: 'wet', label: t('log.wet') },
-              { value: 'dirty', label: t('log.dirty') },
-              { value: 'both', label: t('log.wetDirty') },
-            ]}
-            onChange={(k) => set('diaper', k)}
-          />
+          <>
+            <Segmented<DiaperData['kind']>
+              label={t('log.diaper')}
+              value={draft.diaper}
+              options={[
+                { value: 'wet', label: t('log.wet') },
+                { value: 'dirty', label: t('log.dirty') },
+                { value: 'both', label: t('log.wetDirty') },
+              ]}
+              onChange={(k) => set('diaper', k)}
+            />
+            <DiaperDetailsFields kind={draft.diaper} value={draft.diaperDetails} onChange={(v) => set('diaperDetails', v)} />
+          </>
         )}
 
         {draft.type === 'med' && (

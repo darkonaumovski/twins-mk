@@ -29,13 +29,13 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 2: health records and the mother
 
-| ID  | Feature                           | Status | Commit | Notes                                             |
-| --- | --------------------------------- | ------ | ------ | ------------------------------------------------- |
-| F07 | Vaccination record                | ✅     |        | More → Vaccinations; report section; vaccines.csv |
-| F08 | Diaper details                    | ⬜     |        |                                                   |
-| F09 | Head circumference and WHO curves | ⬜     |        |                                                   |
-| F10 | Mother's recovery                 | ⬜     |        |                                                   |
-| F11 | Action buttons on push reminders  | ⬜     |        |                                                   |
+| ID  | Feature                           | Status | Commit  | Notes                                                  |
+| --- | --------------------------------- | ------ | ------- | ------------------------------------------------------ |
+| F07 | Vaccination record                | ✅     | 2274b16 | More → Vaccinations; report section; vaccines.csv      |
+| F08 | Diaper details                    | ✅     |         | Entry editor → Details; report rash column and colours |
+| F09 | Head circumference and WHO curves | ⬜     |         |                                                        |
+| F10 | Mother's recovery                 | ⬜     |         |                                                        |
+| F11 | Action buttons on push reminders  | ⬜     |         |                                                        |
 
 ## Phase 3: memories and later months
 
@@ -117,6 +117,13 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F07 · The report lists date, twin, vaccine, dose and place for the period (both ends included); lot and notes are in the CSV only, to keep the printed table narrow. The shared text has one line per vaccination.
 - 2026-10-13 · F07 · Deleting a vaccination deletes only that twin's record (with undo), like editing. Names and places are suggested from earlier entries, most recent first, once each ignoring case.
 - 2026-10-13 · F07 · Change alerts: "Vaccination: Hexa · Ema · 14 Oct", one line per twin (like log entries).
+
+- 2026-10-13 · F08 · `rash` is stored only as `true` (absent = not noted), as the spec's "yes or not set". Colour and texture are kept only for a dirty or wet + dirty diaper; switching the entry to wet drops them. No details stores exactly what a quick tap stores.
+- 2026-10-13 · F08 · Quick log stays one tap; details are added through **Adjust** on the toast or by tapping the entry. A "both twins" entry gets the same details for both, and each twin's entry can be edited alone afterwards.
+- 2026-10-13 · F08 · The chips are buttons (`aria-pressed`) where a second tap clears the choice, since every detail is optional; the shared `Choice` (radios) cannot be unset. The section opens by itself when the entry already has details.
+- 2026-10-13 · F08 · Timeline and change messages show the details as plain lower-case words after the kind ("Dirty · rash · green · soft").
+- 2026-10-13 · F08 · Report: the rash column appears only for a twin with a rash in the period (keeps the table narrow otherwise); colours and textures are one line under the twin's table, in a fixed order with counts. The shared text adds "Rash N" to a day with a rash, and the same colour/texture line. Counted by the day the diaper was logged, as the other columns.
+- 2026-10-13 · F08 · CSV: a "Stool texture" column after "Stool colour" (F05 already had rash and colour). A value from a newer version without a word here is written as stored.
 
 ## Phone test checklists
 
@@ -215,6 +222,17 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 6. Type 2,5 as the dose: the form asks for a whole number.
 7. More → **Report**: the "Vaccinations" section lists them for the period; Settings → Backup → Export as spreadsheet has `vaccines.csv`.
 8. On the other phone: "Vaccination: Hexa · <twin> · <date>" arrives and both cards show up.
+
+### F08 (diaper details)
+
+1. On Today, tap **Dirty** once: it logs at once, as before.
+2. Tap **Adjust** on the message (or the entry in the timeline): under the diaper kind there is a folded **Details** row.
+3. Open it: **Rash – Yes**, colours and textures as chips. Pick green and soft, tap green again: it clears. Pick it again and save.
+4. The timeline shows "Dirty · rash · green · soft" (or the Macedonian words).
+5. Edit the entry, switch it to **Wet**: colour and texture disappear from the form and from the saved entry; the rash stays.
+6. More → **Report**: a **Rash** column for that twin and a line "Dirty diapers · Colour: green 1 · Texture: soft 1". The other twin has no rash column.
+7. Export as spreadsheet: `logs.csv` has the rash, stool colour and stool texture columns filled.
+8. An older entry (logged before the update) opens with Details folded and empty.
 
 ## Follow-ups
 

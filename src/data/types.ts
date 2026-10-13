@@ -246,7 +246,14 @@ export type Milk = 'breast' | 'formula';
 export type TopUp = { ml: number; milk: Milk };
 export type FeedData =
   { method: 'breast'; side: 'left' | 'right' | 'both'; topUp?: TopUp | null } | { method: 'bottle'; ml: number; milk: Milk };
-export type DiaperData = { kind: 'wet' | 'dirty' | 'both' };
+/** Colour and texture of a dirty diaper, as the parents saw it. Neutral words only: the app never rates them. */
+export type StoolColor = 'yellow' | 'green' | 'brown' | 'black' | 'red' | 'pale' | 'other';
+export type StoolTexture = 'watery' | 'soft' | 'formed' | 'hard';
+/**
+ * The optional details are absent on older entries and on quick one-tap entries. `rash` is
+ * true or absent ("not noted"); colour and texture only for a dirty (or wet + dirty) diaper.
+ */
+export type DiaperData = { kind: 'wet' | 'dirty' | 'both'; rash?: boolean; color?: StoolColor; texture?: StoolTexture };
 export type SleepData = Record<string, never>;
 export type MedData = { name: string; dose: string };
 export type MeasureData = { weightG: number | null; lengthCm: number | null };
