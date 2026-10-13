@@ -129,6 +129,16 @@ export type MotherLog =
   | (MotherLogBase & { type: 'checkin'; data: CheckinData })
   | (MotherLogBase & { type: 'note'; data: MotherNoteData });
 
+/**
+ * "Snooze 15 min" on a push reminder: the server sends that reminder again at `until`, once.
+ * Fixed id `snooze-<reminderKey>`, so snoozing again moves the time instead of adding a record.
+ */
+export interface ReminderSnooze extends Entity {
+  /** The reminder's key as the server made it (`routine:<id>:<babies>:<occurrence>`). */
+  reminderKey: string;
+  until: ISODateTime;
+}
+
 /** What a phone wants push reminders for. */
 export type ReminderKind = 'routines' | 'medicines' | 'appointments' | 'feedDue';
 

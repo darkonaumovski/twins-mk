@@ -77,7 +77,7 @@ const store = {
       const rows = check<{ data: any }[]>(await query.range(0, 9999));
       return rows.map((r) => r.data).filter((d) => d.deletedAt === null);
     };
-    const [settings, babies, routines, done, appointments, logs, motherLogs] = await Promise.all([
+    const [settings, babies, routines, done, appointments, logs, motherLogs, snoozes] = await Promise.all([
       all('settings'),
       all('babies'),
       all('routines'),
@@ -86,8 +86,10 @@ const store = {
       all('logs', (q) => q.gte('data->>start', logsSince)),
       // The mother's medicine doses, for medicine routines "for the mother".
       all('motherLogs', (q) => q.gte('data->>start', logsSince)),
+      // "Snooze 15 min" from the phones' notifications.
+      all('reminderSnoozes', (q) => q.gte('data->>until', logsSince)),
     ]);
-    return { settings: settings[0], babies, routines, done, appointments, logs, motherLogs };
+    return { settings: settings[0], babies, routines, done, appointments, logs, motherLogs, snoozes };
   },
 
   async claim(familyId: string, keys: string[]) {

@@ -9,6 +9,7 @@ import { useSettings } from '@/data/StoreContext';
 import { ChecklistPage } from '@/features/checklist/ChecklistPage';
 import { LogUIProvider } from '@/features/log/LogUIProvider';
 import { ReminderSync } from '@/features/plan/ReminderSync';
+import { ReminderActionListener } from '@/features/plan/ReminderActionListener';
 import { PushSync } from '@/features/plan/PushSettings';
 import { ChangeNotifier } from '@/features/sync/ChangeNotifier';
 import { ActivityRecorder } from '@/features/activity/ActivityRecorder';
@@ -54,6 +55,7 @@ export function App() {
         <ConfirmProvider>
           <LogUIProvider>
             <ReminderSync />
+            <ReminderActionListener />
             <PushSync />
             <ChangeNotifier />
             <ActivityRecorder />

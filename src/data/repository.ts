@@ -25,6 +25,7 @@ import type {
   Supply,
   Vaccine,
   MotherLog,
+  ReminderSnooze,
 } from './types';
 
 /**
@@ -34,6 +35,8 @@ import type {
  */
 export interface Repository<T extends Entity> {
   get(id: string): Promise<T | undefined>;
+  /** One record by id, also when it is deleted (a tombstone); for "create or bring back" with fixed ids. */
+  getAny(id: string): Promise<T | undefined>;
   /** Live (not deleted) records. */
   list(): Promise<T[]>;
   /** All records including tombstones; used for export and sync. */
@@ -97,6 +100,7 @@ export interface SyncedCollections {
   contractions: Repository<Contraction>;
   vaccines: Repository<Vaccine>;
   motherLogs: Repository<MotherLog>;
+  reminderSnoozes: Repository<ReminderSnooze>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -120,6 +124,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'contractions',
   'vaccines',
   'motherLogs',
+  'reminderSnoozes',
 ];
 
 /** This phone's notification history (local only). */

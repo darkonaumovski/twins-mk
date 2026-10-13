@@ -2,9 +2,7 @@ import { format, parseISO } from 'date-fns';
 import { dateLocale } from '@/i18n';
 import type { ISODate } from '@/data/types';
 
-export function todayISO(now = new Date()): ISODate {
-  return format(now, 'yyyy-MM-dd');
-}
+export { todayISO } from './dates';
 
 /** Short date such as "23 Dec" / "23 дек.". */
 export function formatShortDate(date: ISODate, language: string): string {

@@ -944,6 +944,10 @@ const en = {
     appointmentSoon: '{{title}} at {{time}}',
     routineDue: '{{title}} · {{who}}',
     forMother: 'for the mother',
+    done: 'Done',
+    snooze: 'Snooze 15 min',
+    doneToast: 'Done: {{title}}',
+    snoozedToast: 'Snoozed for 15 minutes: {{title}}',
     feedDue: 'Feed due · {{who}}',
   },
   backup: {
@@ -1166,6 +1170,7 @@ const en = {
       undone: 'No longer done: {{title}}',
       unknown: 'a routine',
     },
+    reminderSnoozes: { snoozed: 'Reminder snoozed until {{when}}', deleted: 'Snooze cancelled' },
     motherLogs: {
       med: { added: 'Mother: {{name}} ({{when}})', changed: 'Mother’s medicine edited: {{name}}' },
       checkin: 'Mother’s check-in ({{when}})',

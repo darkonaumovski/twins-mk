@@ -11,7 +11,7 @@ import type {
   RoutineDone,
   TwinSlot,
 } from '@/data/types';
-import { todayISO } from '@/lib/format';
+import { todayISO } from '@/lib/dates';
 import { BABY_IDS } from '@/features/log/logic';
 
 export interface UpcomingItem {
@@ -263,7 +263,7 @@ function dosesBetween(logs: readonly MedLog[], babyId: string, name: string, fro
  * has at least as many doses that day as there are times up to this one
  * (the second time of the day needs two doses, and so on).
  */
-function medOccurrenceGiven(routine: Routine, at: Date, logs: readonly MedLog[]): boolean {
+export function medOccurrenceGiven(routine: Routine, at: Date, logs: readonly MedLog[]): boolean {
   if (!routine.med || routine.rule.kind !== 'everyDays') return false;
   const dayStart = startOfDay(at);
   const dayEnd = addDays(dayStart, 1);

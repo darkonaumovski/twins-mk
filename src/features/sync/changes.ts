@@ -22,6 +22,7 @@ import type {
   Supply,
   Vaccine,
   MotherLog,
+  ReminderSnooze,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -174,6 +175,10 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       if (ct.end)
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
+    }
+    case 'reminderSnoozes': {
+      const s = c.record as ReminderSnooze;
+      return action === 'deleted' ? t('changes.reminderSnoozes.deleted') : t('changes.reminderSnoozes.snoozed', { when: h.when(s.until) });
     }
     case 'motherLogs': {
       // Never the mood, sleep or note text: those stay on the Mother page.

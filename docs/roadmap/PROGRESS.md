@@ -34,8 +34,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 | F07 | Vaccination record                | ✅     | 2274b16 | More → Vaccinations; report section; vaccines.csv      |
 | F08 | Diaper details                    | ✅     | 44ec3ca | Entry editor → Details; report rash column and colours |
 | F09 | Head circumference and WHO curves | ✅     | 827dd2b | Growth → head chart; "Show WHO reference curves"       |
-| F10 | Mother's recovery                 | ✅     |         | More → Mother; Today card; redeploy the push function  |
-| F11 | Action buttons on push reminders  | ⬜     |         |                                                        |
+| F10 | Mother's recovery                 | ✅     | 3c747ab | More → Mother; Today card; redeploy the push function  |
+| F11 | Action buttons on push reminders  | ✅     |         | Done + Snooze 15 min (Android); redeploy the function  |
 
 ## Phase 3: memories and later months
 
@@ -141,9 +141,32 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F10 · Push: `FamilyData.motherLogs` is optional; the edge function (`supabase/functions/send-reminders/index.ts`) now also loads `motherLogs`, so it must be **redeployed**. An older deployed function still sends her reminders but cannot see her doses, so it reminds even after a dose (until the routine occurrence is marked done).
 - 2026-10-13 · F10 · The mood is five lucide faces (angry to laughing) with only "Mood 3 of 5" as their accessible names, no words such as "bad". The interval check names her "Mother" ("Мајката веќе доби …").
 
+- 2026-10-13 · F11 · Snooze shipped with Done (D6): the server side was small. New synced collection `reminderSnoozes` (Dexie version 10, index `until`) in all 7 places; the fixed id `snooze-<reminderKey>` means a second snooze moves the time. The server parses the key (`routine:<id>:<babies>:<occurrence>`), sends the reminder again once at `until` (claim key `snooze:<key>:<until>`, same notification tag as the first), and skips it when that occurrence has a `RoutineDone`, the dose was given meanwhile, or the routine is gone or paused.
+- 2026-10-13 · F11 · Buttons only on reminders with a set time (routines and medicines "every N days at …"). "Every few hours after the last one" routines, appointments and "feed due" have no single occurrence to mark, so they come without buttons.
+- 2026-10-13 · F11 · Done = the `RoutineDone` that "Coming up" writes (fixed id `done-<routineId>-<occurrence>` instead of a random one) plus, for a medicine, the dose records Daily care's one tap writes (a `med` entry per twin in the reminder's scope, linked by one groupId when both; a `motherLogs` dose for the mother), with fixed ids `dose-<routine>-<occurrence>-<subject>`, so it is idempotent across presses and phones. "Coming up" in the app itself still only marks done (unchanged).
+- 2026-10-13 · F11 · With an app window open, the service worker posts the action and the page writes it (`ReminderActionListener`, with a short message). Otherwise the service worker opens the same Dexie store and writes through it, so the outbox entry exists and the next sync uploads it. Background Sync is registered where available; when it fires, the service worker can only ask open windows to `syncNow` (uploading from the service worker itself would need the Supabase client and sign-in there), so without an open window the upload waits for the next app open. Noted as a follow-up.
+- 2026-10-13 · F11 · Service worker size: 19,933 bytes before, 129,200 bytes after (about 42 KB gzipped), almost all of it Dexie and the store code. `todayISO` moved to `src/lib/dates.ts` (re-exported from `format.ts`) so the service worker does not pull in i18n. `tsconfig.sw.json` got the `@/` path alias.
+- 2026-10-13 · F11 review · Done adds nothing the app already logged: no second mark when "Coming up" marked that time (random id), and a dose only for the twins (or the mother) who did not get it yet for that time (`medOccurrenceGiven` over that day's entries), so a notification still showing after a dose was logged in the app does not double it. Lookups by fixed id use the new `Repository.getAny(id)` (also finds a deleted record), not a whole-table read.
+- 2026-10-13 · F11 review · The service worker posts the action to an open window over a `MessageChannel` and waits up to 2 s for "saved"; a window that is still loading, stuck or failed does not answer "ok", and the service worker then saves it itself (fixed ids make a double write harmless). A failed store open is not cached. A snoozed reminder sent again uses the first one's tag with `renotify`, so it still sounds on the phone that did not snooze.
+- 2026-10-13 · F11 · The edge function also loads `reminderSnoozes`: redeploy `send-reminders` (once for F10 and F11 together).
+
 ## Phone test checklists
 
 <!-- Per feature: 3–8 steps Darko can follow on his phone. -->
+
+### Phase 2, combined (one session, both phones)
+
+Before: migration 005 must have run (it did for Phase 1). Redeploy the push function once (`npx supabase functions deploy send-reminders --no-verify-jwt --use-api --project-ref ikswfxyhpyuqwcpslovx`). Install the `roadmap` build on both phones.
+
+1. **Vaccinations** (More → Vaccinations): **+ Add**, "Hexa", dose 1, for **both**: one card per twin. Edit one twin's card: the other is unchanged. **Plan next dose** opens an appointment "Hexa – 2. доза" for both twins (Cancel adds nothing). Phone B shows the cards and a short message.
+2. **Diaper details:** tap **Dirty** on Today (one tap, as before), then **Adjust** → **Details**: rash, green, soft. The timeline says "Dirty · rash · green · soft". Switch the entry to wet: colour and texture go.
+3. **Report** (More → Report): vaccinations of the period, a rash column for that twin and the colour/texture line; growth with the head column; **Include the mother's medicines** (after step 6).
+4. **Head circumference:** Growth → Add measurement with a head size: a third chart. Twin setup: **Girl or boy**.
+5. **WHO curves:** Growth → **Show WHO reference curves** (this phone only): pick a twin; with girl/boy set, three charts against age (corrected for a twin born before 37 weeks) with thin grey lines and the caption. Turn it off: the date charts are back.
+6. **Mother:** Plan → Routines → a medicine **For the mother** (e.g. Ibuprofen 08:00 and 20:00). Today shows the **Mother** card; one tap logs her dose ("last given just now"). More → Mother: **How are you today?** (a face, sleep hours), saving again replaces it. Phone B gets no message about her entries until **Tell the other phones about her entries** is on, and never sees her mood outside the Mother page.
+7. **Push buttons (Android):** with push reminders on and the app closed, a medicine reminder has **Done** and **Snooze 15 min**. Done logs the dose (both twins, or the mother) without opening the app; open the app once so it syncs. Snooze: the reminder comes back once 15 minutes later, unless the dose was logged meanwhile. iPhone: reminders without buttons, as before.
+8. **Spreadsheets:** Settings → Backup → Export as spreadsheet: 10 files, now with `vaccines.csv` and `mother.csv`, and the stool texture and head columns in `logs.csv`.
+9. **Night appearance** and a narrow phone: the vaccination columns, the Details chips, the Mother page and the curves stay readable.
 
 ### Phase 1, combined (one session, both phones)
 
@@ -272,6 +295,19 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 7. More → Report: **Include the mother's medicines** appears; switched on, her doses are listed (no check-ins). Export as spreadsheet: `mother.csv`.
 8. Mother page settings: turn off **Show her medicines on Today**: the card disappears on both phones.
 
+### F11 (Done and Snooze on push reminders, Android) — redeploy the push function
+
+1. Make a test routine for both twins at a time 2–3 minutes ahead (a medicine, e.g. Vitamin D), with push reminders on (Settings → Reminders).
+2. Close the app completely. When the reminder arrives, it has **Done** and **Snooze 15 min**.
+3. Tap **Done**: the notification goes away and the app does not open. Open the app: the routine is gone from Coming up, and both twins have a Vitamin D entry (linked); the other phone gets them after this phone syncs.
+4. Next day (or another test routine): tap **Snooze 15 min** with the app closed, then open the app once so it syncs. 15 minutes later the reminder comes again, once.
+5. Snooze again, then log the dose in the app before the 15 minutes are up: the snoozed reminder does not come.
+6. With the app open in the background, tap **Done** on a reminder: a short "Done: …" message appears in the app.
+7. A medicine for the mother: **Done** logs her dose (Mother page), not a twin's.
+8. On iPhone: the reminders arrive as before, without buttons.
+
 ## Follow-ups
+
+- F11 · Upload from the service worker itself on Background Sync (needs the Supabase client and sign-in in the service worker), so a Done/Snooze pressed with the app closed reaches the other phone without opening the app.
 
 <!-- Things noticed along the way that are out of scope. -->

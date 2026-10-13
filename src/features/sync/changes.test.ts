@@ -122,6 +122,16 @@ describe('change notifications', () => {
     expect(summarizeChanges([{ collection: 'pumps', record: pump, previous: undefined }], 'p2', h)?.title).toBe('Update from Marija');
   });
 
+  it('describes a snoozed reminder', () => {
+    const snooze = { ...meta({ id: 's' }), reminderKey: 'routine:r:A:2026-10-11T07:00:00.000Z', until: '2026-10-11T07:20:00.000Z' };
+    expect(changeLine({ collection: 'reminderSnoozes', record: snooze, previous: undefined }, h)).toBe(
+      'Reminder snoozed until 14 Oct 10:30',
+    );
+    expect(changeLine({ collection: 'reminderSnoozes', record: { ...snooze, deletedAt: 'x' }, previous: snooze }, h)).toBe(
+      'Snooze cancelled',
+    );
+  });
+
   it('describes vaccinations, one line per twin like log entries', () => {
     const vac = (babyId: string) =>
       ({

@@ -946,6 +946,10 @@ const mk: Translation = {
     appointmentSoon: '{{title}} во {{time}}',
     routineDue: '{{title}} · {{who}}',
     forMother: 'за мајката',
+    done: 'Готово',
+    snooze: 'Одложи 15 мин',
+    doneToast: 'Готово: {{title}}',
+    snoozedToast: 'Одложено 15 минути: {{title}}',
     feedDue: 'Време за хранење · {{who}}',
   },
   backup: {
@@ -1171,6 +1175,7 @@ const mk: Translation = {
       undone: 'Повеќе не е означено како завршено: {{title}}',
       unknown: 'рутина',
     },
+    reminderSnoozes: { snoozed: 'Потсетникот е одложен до {{when}}', deleted: 'Одложувањето е откажано' },
     motherLogs: {
       med: { added: 'Мајката: {{name}} ({{when}})', changed: 'Изменет лек на мајката: {{name}}' },
       checkin: 'Дневен запис на мајката ({{when}})',

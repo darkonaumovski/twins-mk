@@ -1,5 +1,8 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { openDexieStore } from '@/data/dexieStore';
+import type { ReminderActionData } from '@/features/plan/reminderActions';
+import { handleReminderAction, handleSync, SYNC_TAG, type SwLike } from './reminderAction';
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<{ url: string; revision: string | null }> };
 
@@ -15,7 +18,15 @@ self.addEventListener('message', (event) => {
 
 // A push reminder from the sync server (also while the app is closed).
 self.addEventListener('push', (event) => {
-  let message: { title?: string; body?: string; tag?: string; url?: string } = {};
+  let message: {
+    title?: string;
+    body?: string;
+    tag?: string;
+    url?: string;
+    actions?: { action: string; title: string }[];
+    data?: ReminderActionData;
+    renotify?: boolean;
+  } = {};
   try {
     message = event.data?.json() ?? {};
   } catch {
@@ -28,15 +39,37 @@ self.addEventListener('push', (event) => {
       tag: message.tag,
       icon: new URL('pwa-192x192.png', self.registration.scope).href,
       badge: new URL('pwa-64x64.png', self.registration.scope).href,
-      data: { url: message.url },
-    }),
+      data: { url: message.url, reminder: message.data },
+      // "Done" and "Snooze 15 min" (Android; iPhone shows the notification without them).
+      ...(message.actions?.length ? { actions: message.actions } : {}),
+      // A snoozed reminder replaces the first one (same tag), but still sounds.
+      ...(message.renotify && message.tag ? { renotify: true } : {}),
+    } as NotificationOptions),
   );
 });
+
+/** Background Sync is not in TypeScript's worker types yet. */
+const sw = self as unknown as SwLike;
+
+// One store for the notification buttons, opened only when a button is pressed with the app closed.
+let store: ReturnType<typeof openDexieStore> | null = null;
+// A failed open (blocked, out of space) is not kept: the next button press tries again.
+const openStore = () =>
+  (store ??= openDexieStore().catch((error: unknown) => {
+    store = null;
+    throw error;
+  }));
 
 // Tapping a reminder brings the app to the front (or opens it), on Today for push reminders.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const path = (event.notification.data as { url?: string } | undefined)?.url;
+  const data = event.notification.data as { url?: string; reminder?: unknown } | undefined;
+  if (event.action) {
+    // A button: do it without opening the app.
+    event.waitUntil(handleReminderAction(sw, event.action, data?.reminder, { openStore, now: () => new Date() }).catch(() => undefined));
+    return;
+  }
+  const path = data?.url;
   const url = path ? new URL(path, self.registration.scope).href : self.registration.scope;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (windows) => {
@@ -46,4 +79,10 @@ self.addEventListener('notificationclick', (event) => {
       return open.focus();
     }),
   );
+});
+
+// Background Sync (where available) after a button was pressed with the app closed.
+self.addEventListener('sync', (event) => {
+  const sync = event as Event & { tag?: string; waitUntil(promise: Promise<unknown>): void };
+  if (sync.tag === SYNC_TAG) sync.waitUntil(handleSync(sw));
 });

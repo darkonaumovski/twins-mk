@@ -39,6 +39,7 @@ import type {
   Supply,
   Vaccine,
   MotherLog,
+  ReminderSnooze,
 } from './types';
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
@@ -66,6 +67,7 @@ class TwinsDb extends Dexie {
   contractions!: Table<Contraction, string>;
   vaccines!: Table<Vaccine, string>;
   motherLogs!: Table<MotherLog, string>;
+  reminderSnoozes!: Table<ReminderSnooze, string>;
   /** Records changed on this phone that the sync server has not confirmed yet. */
   outbox!: OutboxTable;
   /** Sync bookkeeping, such as the last server change this phone has seen. */
@@ -123,6 +125,10 @@ class TwinsDb extends Dexie {
     // The mother's medicines, check-ins and notes. A new, empty table.
     this.version(9)
       .stores({ motherLogs: 'id, start, type' })
+      .upgrade(() => {});
+    // "Snooze 15 min" on push reminders. A new, empty table.
+    this.version(10)
+      .stores({ reminderSnoozes: 'id, until' })
       .upgrade(() => {});
   }
 }
@@ -182,6 +188,10 @@ class DexieRepository<T extends Entity> implements Repository<T> {
   async get(id: string) {
     const record = await this.table.get(id);
     return record && record.deletedAt === null ? record : undefined;
+  }
+
+  getAny(id: string) {
+    return this.table.get(id);
   }
 
   list() {
@@ -433,6 +443,7 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     contractions: repo(db.contractions),
     vaccines: repo(db.vaccines),
     motherLogs: repo(db.motherLogs),
+    reminderSnoozes: repo(db.reminderSnoozes),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 
