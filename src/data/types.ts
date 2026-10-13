@@ -62,6 +62,8 @@ export interface SharedSettings extends Entity {
   motherCard: boolean;
   /** Tell the other phones about the mother's own entries (her medicines, check-ins, notes). Off by default. */
   announceMother: boolean;
+  /** First foods (solids): off until the parents turn it on. */
+  solidsEnabled: boolean;
 }
 
 /** One night shift, e.g. 22:00–02:00. `to` earlier than `from` means it runs past midnight. */
@@ -137,6 +139,29 @@ export interface ReminderSnooze extends Entity {
   /** The reminder's key as the server made it (`routine:<id>:<babies>:<occurrence>`). */
   reminderKey: string;
   until: ISODateTime;
+}
+
+/**
+ * A food on the parents' list. Example foods have the fixed id `food-<key>` and a `seedKey` (their name
+ * follows the language until it is renamed), so two phones never add them twice.
+ */
+export interface Food extends Entity {
+  name: string;
+  seedKey: string | null;
+  order: number;
+}
+
+/** How a twin took a food, in neutral words. */
+export type FoodReaction = 'liked' | 'neutral' | 'refused';
+
+/** One twin trying one food on one day. "Both twins" makes two tries linked by `groupId`. */
+export interface FoodTry extends Entity {
+  foodId: string;
+  babyId: string;
+  date: ISODate;
+  reaction: FoodReaction;
+  note: string;
+  groupId: string | null;
 }
 
 /** A short journal entry about one twin or both. Photos are linked through `photos.owner` (`journal`, this id). */

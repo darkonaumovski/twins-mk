@@ -3474,6 +3474,60 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	foods: {
+		title: "First foods",
+		solids: "Solids",
+		intro: "Each twin’s latest reaction to each food (– means not tried yet). Tap a cell to note a try, or a food to rename or delete it.",
+		offIntro: "Keep track of the first foods each twin tries, with the reaction you saw. It is off until you turn it on.",
+		enable: "First foods",
+		offHint: "Shared by both phones. Turning it off hides this page and the Solids button; nothing is deleted.",
+		add: "Add",
+		addFood: "Add food",
+		editFood: "Food",
+		name: "Name",
+		food: "Food",
+		logTry: "Log a try",
+		reactionLabel: "Reaction",
+		reaction: {
+			liked: "Liked",
+			neutral: "Neutral",
+			refused: "Refused"
+		},
+		notTried: "Not tried",
+		date: "Date",
+		note: "Note",
+		noteHint: "Anything you noticed, in your own words.",
+		history: "Earlier tries",
+		historyFor: "Earlier tries · {{name}}",
+		tryDeleted: "Try deleted",
+		deleteConfirm: "Delete {{name}}?",
+		deleteBody: "Its tries stay in the report and the spreadsheet.",
+		deleted: "Food deleted",
+		empty: "No foods yet. Add your own, or add the example foods.",
+		addExamples: "Add example foods",
+		examples: {
+			rice: "Rice",
+			oats: "Oats",
+			carrot: "Carrot",
+			potato: "Potato",
+			sweetPotato: "Sweet potato",
+			pumpkin: "Pumpkin",
+			zucchini: "Courgette",
+			peas: "Peas",
+			broccoli: "Broccoli",
+			apple: "Apple",
+			pear: "Pear",
+			banana: "Banana",
+			peach: "Peach",
+			plum: "Plum",
+			avocado: "Avocado",
+			yogurt: "Yogurt",
+			egg: "Egg",
+			chicken: "Chicken",
+			fish: "Fish",
+			lentils: "Lentils"
+		}
+	},
 	journal: {
 		title: "Journal",
 		add: "Add",
@@ -3700,11 +3754,13 @@ var en = {
 			rash: "Rash",
 			vaccine: "Vaccine",
 			dose: "Dose",
-			place: "Where"
+			place: "Where",
+			food: "Food"
 		},
 		vaccines: "Vaccinations",
 		noVaccines: "No vaccinations in this period.",
 		includeMotherMeds: "Include the mother’s medicines",
+		foods: "First foods",
 		motherMeds: "Mother’s medicines",
 		stool: "Dirty diapers · {{list}}",
 		rashDays_one: "Rash noted: {{count}} time",
@@ -3909,6 +3965,13 @@ var en = {
 			checkin: "Check-in",
 			note: "Note"
 		},
+		foods: {
+			date: "Date",
+			twin: "Twin",
+			food: "Food",
+			reaction: "Reaction",
+			note: "Note"
+		},
 		vaccines: {
 			twin: "Twin",
 			date: "Date",
@@ -4017,6 +4080,17 @@ var en = {
 			done: "Done: {{title}}",
 			undone: "No longer done: {{title}}",
 			unknown: "a routine"
+		},
+		foods: {
+			added: "Food added: {{name}}",
+			changed: "Food renamed: {{name}}",
+			deleted: "Food deleted: {{name}}"
+		},
+		foodTries: {
+			added: "{{food}} · {{twin}} · {{reaction}}",
+			changed: "Try edited: {{food}} · {{twin}} · {{reaction}}",
+			deleted: "Try deleted: {{food}} · {{twin}}",
+			food: "a food"
 		},
 		journal: {
 			added: "Journal: {{text}}",
@@ -4283,6 +4357,8 @@ var en = {
 			data_headCm: "Head circumference",
 			takenAt: "Taken",
 			inBook: "In the book",
+			reaction: "Reaction",
+			foodId: "Food",
 			owner_kind: "Kind",
 			owner_id: "Belongs to",
 			sex: "Girl or boy",
@@ -5206,6 +5282,60 @@ var mk = {
 			firstWord: "Прв збор"
 		}
 	},
+	foods: {
+		title: "Прва храна",
+		solids: "Цврста храна",
+		intro: "Последната реакција на секое бебе на секоја храна (– значи дека уште не е пробано). Допрете поле за да запишете пробување, или храна за да ја преименувате или избришете.",
+		offIntro: "Следете ја првата храна што ја пробува секое бебе, со реакцијата што ја видовте. Исклучено е додека не ја вклучите оваа можност.",
+		enable: "Прва храна",
+		offHint: "Заедничко за двата телефона. Ако го исклучите, страницата и копчето „Цврста храна“ се кријат; ништо не се брише.",
+		add: "Додај",
+		addFood: "Додај храна",
+		editFood: "Храна",
+		name: "Име",
+		food: "Храна",
+		logTry: "Запиши пробување",
+		reactionLabel: "Реакција",
+		reaction: {
+			liked: "Се допадна",
+			neutral: "Неутрално",
+			refused: "Одби"
+		},
+		notTried: "Не е пробано",
+		date: "Датум",
+		note: "Белешка",
+		noteHint: "Што забележавте, со ваши зборови.",
+		history: "Претходни пробувања",
+		historyFor: "Претходни пробувања · {{name}}",
+		tryDeleted: "Пробувањето е избришано",
+		deleteConfirm: "Да се избрише {{name}}?",
+		deleteBody: "Пробувањата остануваат во извештајот и табелата.",
+		deleted: "Храната е избришана",
+		empty: "Сè уште нема храна. Додајте своја или додајте ги примерите.",
+		addExamples: "Додај примери за храна",
+		examples: {
+			rice: "Ориз",
+			oats: "Овес",
+			carrot: "Морков",
+			potato: "Компир",
+			sweetPotato: "Сладок компир",
+			pumpkin: "Тиква",
+			zucchini: "Тиквичка",
+			peas: "Грашок",
+			broccoli: "Брокула",
+			apple: "Јаболко",
+			pear: "Круша",
+			banana: "Банана",
+			peach: "Праска",
+			plum: "Слива",
+			avocado: "Авокадо",
+			yogurt: "Јогурт",
+			egg: "Јајце",
+			chicken: "Пилешко",
+			fish: "Риба",
+			lentils: "Леќа"
+		}
+	},
 	journal: {
 		title: "Дневник",
 		add: "Додај",
@@ -5432,11 +5562,13 @@ var mk = {
 			rash: "Осип",
 			vaccine: "Вакцина",
 			dose: "Доза",
-			place: "Каде"
+			place: "Каде",
+			food: "Храна"
 		},
 		vaccines: "Вакцини",
 		noVaccines: "Нема вакцини во овој период.",
 		includeMotherMeds: "Вклучи ги лековите на мајката",
+		foods: "Прва храна",
 		motherMeds: "Лекови на мајката",
 		stool: "Валкани пелени · {{list}}",
 		rashDays_one: "Забележан осип: {{count}} пат",
@@ -5641,6 +5773,13 @@ var mk = {
 			checkin: "Дневен запис",
 			note: "Белешка"
 		},
+		foods: {
+			date: "Датум",
+			twin: "Близнак",
+			food: "Храна",
+			reaction: "Реакција",
+			note: "Белешка"
+		},
 		vaccines: {
 			twin: "Близнак",
 			date: "Датум",
@@ -5749,6 +5888,17 @@ var mk = {
 			done: "Завршено: {{title}}",
 			undone: "Повеќе не е означено како завршено: {{title}}",
 			unknown: "рутина"
+		},
+		foods: {
+			added: "Додадена храна: {{name}}",
+			changed: "Преименувана храна: {{name}}",
+			deleted: "Избришана храна: {{name}}"
+		},
+		foodTries: {
+			added: "{{food}} · {{twin}} · {{reaction}}",
+			changed: "Изменето пробување: {{food}} · {{twin}} · {{reaction}}",
+			deleted: "Избришано пробување: {{food}} · {{twin}}",
+			food: "храна"
 		},
 		journal: {
 			added: "Дневник: {{text}}",
@@ -6015,6 +6165,8 @@ var mk = {
 			data_headCm: "Обем на главата",
 			takenAt: "Сликано",
 			inBook: "Во книгата",
+			reaction: "Реакција",
+			foodId: "Храна",
 			owner_kind: "Вид",
 			owner_id: "Припаѓа на",
 			sex: "Девојче или момче",

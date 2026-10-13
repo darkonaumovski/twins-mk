@@ -45,6 +45,8 @@ import type {
   PhotoBlob,
   PhotoMime,
   JournalEntry,
+  Food,
+  FoodTry,
 } from './types';
 import { DEFAULT_DEVICE_PREFS, DEFAULT_SETTINGS } from './defaults';
 import { newId } from '@/lib/ids';
@@ -75,6 +77,8 @@ class TwinsDb extends Dexie {
   reminderSnoozes!: Table<ReminderSnooze, string>;
   photos!: Table<Photo, string>;
   journal!: Table<JournalEntry, string>;
+  foods!: Table<Food, string>;
+  foodTries!: Table<FoodTry, string>;
   /** The photos' images, on this phone only. */
   photoBlobs!: Table<PhotoBlob, string>;
   /** Deleted photos whose Storage objects this phone removed, with the deletion it handled. */
@@ -148,6 +152,10 @@ class TwinsDb extends Dexie {
     // The journal. A new, empty table.
     this.version(12)
       .stores({ journal: 'id, date' })
+      .upgrade(() => {});
+    // First foods: the food list and each try. New, empty tables.
+    this.version(13)
+      .stores({ foods: 'id, order', foodTries: 'id, foodId, babyId, date' })
       .upgrade(() => {});
   }
 }
@@ -465,6 +473,8 @@ export async function openDexieStore(options: OpenOptions = {}): Promise<DexieSt
     reminderSnoozes: repo(db.reminderSnoozes),
     photos: repo(db.photos),
     journal: repo(db.journal),
+    foods: repo(db.foods),
+    foodTries: repo(db.foodTries),
   };
   const raw = { ...collections, settings: settings.repo } as unknown as Record<CollectionName, DexieRepository<Entity>>;
 

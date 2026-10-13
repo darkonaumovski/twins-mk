@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: Omit<SharedSettings, Exclude<keyof Entity, 'id'>>
   nightHours: { from: '19:00', to: '07:00' },
   motherCard: true,
   announceMother: false,
+  solidsEnabled: false,
 };
 
 export const DEFAULT_DEVICE_PREFS: Omit<DevicePrefs, 'deviceId'> = {

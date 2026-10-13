@@ -64,6 +64,7 @@ export function useFieldText() {
     async (s) => ({
       categories: await s.categories.listAll(),
       routines: await s.routines.listAll(),
+      foods: await s.foods.listAll(),
       currency: (await s.settings.get()).currency,
     }),
     [],
@@ -91,6 +92,11 @@ export function useFieldText() {
         const category = lookups?.categories.find((c) => c.id === text);
         return category ? label(category) : '—';
       }
+      if (path === 'foodId') {
+        const food = lookups?.foods.find((f) => f.id === text);
+        return food ? label(food) : '—';
+      }
+      if (path === 'reaction') return t(`foods.reaction.${text}`, { defaultValue: text });
       if (path === 'routineId') return lookups?.routines.find((r) => r.id === text)?.title ?? '—';
       if (path === 'status') return t(`status.${text}`, { defaultValue: text });
       if (path === 'type' || path === 'rule.logType') return t(`log.${text}`, { defaultValue: text });

@@ -15,6 +15,8 @@ import type {
   Pump,
   Vaccine,
   MotherLog,
+  Food,
+  FoodTry,
 } from '@/data/types';
 import type { CsvCell } from '@/lib/csv';
 import { ageInfo } from '@/features/twins/age';
@@ -36,6 +38,8 @@ export interface CsvData {
   contractions: readonly Contraction[];
   vaccines: readonly Vaccine[];
   motherLogs: readonly MotherLog[];
+  foods: readonly Food[];
+  foodTries: readonly FoodTry[];
   babies: readonly Baby[];
 }
 
@@ -300,6 +304,16 @@ function motherCsv(list: readonly MotherLog[], tx: CsvText): CsvFile {
   return { fileName: 'mother.csv', rows: [header, ...rows] };
 }
 
+function foodsCsv(foods: readonly Food[], tries: readonly FoodTry[], tx: CsvText): CsvFile {
+  const header = ['date', 'twin', 'food', 'reaction', 'note'].map((k) => tx.t(`csv.foods.${k}`));
+  // A try of a food deleted later still says what it was.
+  const names = new Map(foods.map((f) => [f.id, text(tx.label(f))]));
+  const rows = live(tries)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.babyId.localeCompare(b.babyId) || a.createdAt.localeCompare(b.createdAt))
+    .map((tr) => [tr.date, tx.twin(tr.babyId), names.get(tr.foodId) ?? '', tx.t(`foods.reaction.${tr.reaction}`), text(tr.note)]);
+  return { fileName: 'foods.csv', rows: [header, ...rows] };
+}
+
 /** One spreadsheet per area. Every file has its header row, even when there is nothing in it yet. */
 export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
   // Names are typed by the parents too, so they get the same formula guard as notes.
@@ -320,6 +334,7 @@ export function buildCsvFiles(data: CsvData, raw: CsvText): CsvFile[] {
     contractionsCsv(data.contractions, tx),
     vaccinesCsv(data.vaccines, tx),
     motherCsv(data.motherLogs, tx),
+    foodsCsv(data.foods, data.foodTries, tx),
   ];
 }
 

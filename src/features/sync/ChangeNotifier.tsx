@@ -52,6 +52,7 @@ export function ChangeNotifier() {
         if (!alertsAllowed(p.changeAlertsMode, (await store.settings.get()).nightShifts, p.parent, new Date())) return;
 
         const routines = new Map((await store.routines.listAll()).map((r) => [r.id, r.title]));
+        const foods = new Map((await store.foods.listAll()).map((f) => [f.id, f]));
         const locale = dateLocale(ctx.i18n.language);
         const helpers: ChangeTextHelpers = {
           t: ctx.t as unknown as ChangeTextHelpers['t'],
@@ -59,6 +60,10 @@ export function ChangeNotifier() {
           twin: ctx.twin,
           label: ctx.label,
           routineTitle: (id) => routines.get(id),
+          foodName: (id) => {
+            const food = foods.get(id);
+            return food ? ctx.label(food) : undefined;
+          },
           when: (iso) => format(new Date(iso), 'd MMM HH:mm', { locale }),
           day: (date) => format(parseISO(date), 'd MMM', { locale }),
           parentName: ctx.parentName,

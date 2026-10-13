@@ -43,6 +43,8 @@ const empty: CsvData = {
   contractions: [],
   vaccines: [],
   motherLogs: [],
+  foods: [],
+  foodTries: [],
   babies: [],
 };
 const file = (data: Partial<CsvData>, name: string) => buildCsvFiles({ ...empty, ...data }, tx).find((f) => f.fileName === name)!;
@@ -61,6 +63,7 @@ describe('spreadsheet export', () => {
       'contractions.csv',
       'vaccines.csv',
       'mother.csv',
+      'foods.csv',
     ]);
     for (const f of files) expect(f.rows).toHaveLength(1);
     expect(files[0].rows[0].slice(0, 4)).toEqual(['Date', 'Time', 'Twin', 'Type']);
@@ -385,6 +388,33 @@ describe('spreadsheet export', () => {
       ['2026-10-12', '20:05', 'Medicine', 'Ibuprofen', '400 mg', null, null, '', 'Дарко'],
       ['2026-10-13', '09:00', 'Note', '', '', null, null, "'-tired", 'Марија'],
       ['2026-10-13', '', 'Check-in', '', '', 4, 5.5, '', 'Марија'],
+    ]);
+  });
+
+  it('lists the food tries oldest first, with the food name in words', () => {
+    const rows = file(
+      {
+        foods: [{ ...meta('food-pear'), name: 'Pear', seedKey: null, order: 1 }],
+        foodTries: [
+          {
+            ...meta('t2'),
+            foodId: 'food-pear',
+            babyId: 'baby-B',
+            date: '2026-12-02',
+            reaction: 'refused',
+            note: 'made a face',
+            groupId: null,
+          },
+          { ...meta('t1'), foodId: 'food-pear', babyId: 'baby-A', date: '2026-12-01', reaction: 'liked', note: '', groupId: null },
+          { ...meta('t0', 'gone'), foodId: 'food-pear', babyId: 'baby-A', date: '2026-11-01', reaction: 'liked', note: '', groupId: null },
+        ],
+      },
+      'foods.csv',
+    ).rows;
+    expect(rows).toEqual([
+      ['Date', 'Twin', 'Food', 'Reaction', 'Note'],
+      ['2026-12-01', 'Ема', 'Pear', 'Liked', ''],
+      ['2026-12-02', 'Ана', 'Pear', 'Refused', 'made a face'],
     ]);
   });
 

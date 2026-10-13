@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Milk, NotebookText, Package, Refrigerator, Timer, type LucideIcon } from 'lucide-react';
+import { Carrot, Milk, NotebookText, Package, Refrigerator, Timer, type LucideIcon } from 'lucide-react';
+import { useSettings } from '@/data/StoreContext';
 import { Sheet } from '@/components/Sheet';
 import { tintFor, useBabies } from '@/features/twins/twins';
 import { LOG_ICONS } from './describe';
@@ -28,6 +29,7 @@ export function MoreLogSheet({ who: initialWho, onClose }: { who: Who; onClose: 
   const babies = useBabies();
   const ui = useLogUI();
   const navigate = useNavigate();
+  const solids = useSettings()?.solidsEnabled === true;
   const [who, setWho] = useState<Who>(initialWho);
 
   const forms: { type: FormType; label: string }[] = [
@@ -50,6 +52,7 @@ export function MoreLogSheet({ who: initialWho, onClose }: { who: Who; onClose: 
             <Tile key={f.type} icon={LOG_ICONS[f.type]} label={f.label} onClick={() => ui.create(f.type, who)} />
           ))}
           <Tile icon={NotebookText} label={t('journal.entry')} onClick={() => go('/journal?new=1')} />
+          {solids && <Tile icon={Carrot} label={t('foods.solids')} onClick={() => go('/foods?log=1')} />}
         </div>
         <section className="space-y-2 border-t border-line pt-4">
           <h3 className="text-sm font-semibold text-muted">{t('milk.section')}</h3>

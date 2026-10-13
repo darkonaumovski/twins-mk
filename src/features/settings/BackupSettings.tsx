@@ -81,21 +81,37 @@ export function BackupSettings() {
     if (csvBusy) return;
     setCsvBusy(true);
     try {
-      const [logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, motherLogs, babies] =
-        await Promise.all([
-          store.logs.listAll(),
-          store.pumps.listAll(),
-          store.milkStash.listAll(),
-          store.appointments.listAll(),
-          store.tasks.listAll(),
-          store.milestones.listAll(),
-          store.prepItems.listAll(),
-          store.categories.listAll(),
-          store.contractions.listAll(),
-          store.vaccines.listAll(),
-          store.motherLogs.listAll(),
-          store.babies.listAll(),
-        ]);
+      const [
+        logs,
+        pumps,
+        milkStash,
+        appointments,
+        tasks,
+        milestones,
+        prepItems,
+        categories,
+        contractions,
+        vaccines,
+        motherLogs,
+        foods,
+        foodTries,
+        babies,
+      ] = await Promise.all([
+        store.logs.listAll(),
+        store.pumps.listAll(),
+        store.milkStash.listAll(),
+        store.appointments.listAll(),
+        store.tasks.listAll(),
+        store.milestones.listAll(),
+        store.prepItems.listAll(),
+        store.categories.listAll(),
+        store.contractions.listAll(),
+        store.vaccines.listAll(),
+        store.motherLogs.listAll(),
+        store.foods.listAll(),
+        store.foodTries.listAll(),
+        store.babies.listAll(),
+      ]);
       const tx: CsvText = {
         t: t as unknown as CsvText['t'],
         twin,
@@ -107,7 +123,22 @@ export function BackupSettings() {
         },
       };
       const files = buildCsvFiles(
-        { logs, pumps, milkStash, appointments, tasks, milestones, prepItems, categories, contractions, vaccines, motherLogs, babies },
+        {
+          logs,
+          pumps,
+          milkStash,
+          appointments,
+          tasks,
+          milestones,
+          prepItems,
+          categories,
+          contractions,
+          vaccines,
+          motherLogs,
+          foods,
+          foodTries,
+          babies,
+        },
         tx,
       );
       const now = new Date();

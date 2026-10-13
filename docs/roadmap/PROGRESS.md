@@ -39,12 +39,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 3: memories and later months
 
-| ID  | Feature                        | Status | Commit  | Notes                                             |
-| --- | ------------------------------ | ------ | ------- | ------------------------------------------------- |
-| F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006 |
-| F13 | Journal and keepsake book      | ✅     |         | More → Journal, More → Keepsake book              |
-| F14 | Solids and first foods         | ⬜     |         |                                                   |
-| F15 | Quick text logging (and voice) | ⬜     |         |                                                   |
+| ID  | Feature                        | Status | Commit  | Notes                                                 |
+| --- | ------------------------------ | ------ | ------- | ----------------------------------------------------- |
+| F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006     |
+| F13 | Journal and keepsake book      | ✅     | b021ef1 | More → Journal, More → Keepsake book                  |
+| F14 | Solids and first foods         | ✅     |         | More → First foods (switch on); Today → More → Solids |
+| F15 | Quick text logging (and voice) | ⬜     |         |                                                       |
 
 ## Decisions and deviations
 
@@ -165,6 +165,11 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F13 · The book is `buildBook()` (pure, tested) plus a print page that reuses the report's A4 print rules: the cover fills the first page, each month starts a new page, milestone rows and journal entries never break across pages, and nothing relies on colour. Only dated milestones are in it, oldest first by the earlier twin's date; ages are counted at noon on that day, like the CSV. A month is in the book when it has a monthly photo (with photos on) or an entry put in the book; others are skipped. The first-foods section is wired through `useFirstFoods()` (empty until F14).
 - 2026-10-13 · F13 review · **Print** waits until every photo in the book is loaded (or known to be missing): it says "Loading 3 photos…" until then. Night appearance now prints black on white too (the print rule also covers `.dark.night`; this fixes the doctor's report as well). Deleting a journal entry deletes its photos, and undo brings both back. New photos in an entry follow the twin choice in the open sheet. "From" after "To" says so. The Macedonian title is "Спомен-книга"; names, weight, length and the week of pregnancy on the cover and birth page come from the translations.
 - 2026-10-13 · F13 · The book is not in the CSV export (it is a view of other data); journal entries are not in the CSV either, as the spec's F05 list does not include them.
+
+- 2026-10-13 · F14 · New synced collections `foods` and `foodTries` (Dexie version 13) in all 7 places; migration 005 already had both names. Shared setting `solidsEnabled` (default off) in `defaults.ts`, switched on the First foods page itself (there is no age prompt).
+- 2026-10-13 · F14 · Example foods are merged like the starter checklist: fixed ids `food-<key>`, names through `seedKey` (`foods.examples.<key>`), and a fixed old timestamp (2000-01-03) with device `seed`. Pressing the button again, or on the other phone, changes nothing, and a rename or delete always wins (a rename clears `seedKey`). Seed records are never announced to the other phone. The button shows while any example id has never been added (a deleted example counts as added, since pressing it again would not bring it back). A try starts with no reaction chosen (Save waits for one), so nothing is recorded by default; "both twins" is preselected even from one twin's cell, as the spec asks. With first foods off, the keepsake book leaves the first-foods page out.
+- 2026-10-13 · F14 · The grid shows each twin's latest try (by date, then by when it was entered); a dash means not tried. A cell opens the try sheet for that food with both twins preselected and the history of the tapped twin; Today → More → **Solids** opens the same sheet with a food picker. Reactions are words only (no colours that judge); the cells take the twin colour once tried.
+- 2026-10-13 · F14 · Deleting a food keeps its tries: they stay in the report and the CSV under the food's name, and the book only lists live foods. Change alerts name the food ("Морков · Ема · Се допадна").
 
 ## Phone test checklists
 
@@ -342,6 +347,17 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 5. Set **From** to next month: the month page goes; switch off **Include photos**: photos go.
 6. **Print / Save as PDF**: A4 pages, the cover alone on page 1, each month on its own page, readable in black and white, no milestone row cut in half.
 7. On the other phone: the entry arrives with a short message ("Journal: …").
+
+### F14 (first foods)
+
+1. More → **First foods**: it explains and is off. Switch it on: the page shows **Add example foods**. On the other phone it is on too.
+2. **Add example foods**: about 20 foods in Macedonian. Press it on the other phone too: still one of each.
+3. Tap the carrot cell of one twin: **Both** is preselected; choose **Liked**, add a note, save. Both twins' carrot cells say "Се допадна".
+4. Tap the other twin's carrot cell, log **Refused** for that twin only: only that cell changes; the sheet shows that twin's earlier tries.
+5. Rename a food (tap its name) and delete another (undo works). Add your own food: it goes to the end.
+6. Today → **More** → **Solids**: the try sheet with a food list.
+7. More → **Report**: "First foods" lists the tries of the period with notes; the spreadsheet zip has `foods.csv`; the keepsake book has the first-foods page.
+8. Switch it off: the page and the Solids button go; switch on again: everything is still there.
 
 ## Follow-ups
 

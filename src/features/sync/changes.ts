@@ -25,6 +25,8 @@ import type {
   ReminderSnooze,
   Photo,
   JournalEntry,
+  Food,
+  FoodTry,
 } from '@/data/types';
 
 export type ChangeAction = 'added' | 'changed' | 'deleted';
@@ -81,6 +83,8 @@ export interface ChangeTextHelpers {
   /** Name of a checklist record, translated while it is still the starter text. */
   label: (record: { name: string; seedKey: string | null }) => string;
   routineTitle: (routineId: string) => string | undefined;
+  /** A food's name (translated while it is still an example food), if known. */
+  foodName?: (foodId: string) => string | undefined;
   /** Short date and time, e.g. "14 Oct 10:30". */
   when: (iso: string) => string;
   /** A calendar day, e.g. "14 Oct". */
@@ -186,6 +190,16 @@ export function changeLine(c: AppliedChange, h: ChangeTextHelpers): string {
       if (ct.end)
         return t('changes.contractions.finished', { duration: formatSeconds((Date.parse(ct.end) - Date.parse(ct.start)) / 1000) });
       return t('changes.contractions.changed');
+    }
+    case 'foods': {
+      const food = c.record as Food;
+      return t(`changes.foods.${action}`, { name: h.label(food) });
+    }
+    case 'foodTries': {
+      const tr = c.record as FoodTry;
+      const food = h.foodName?.(tr.foodId) ?? t('changes.foodTries.food');
+      if (action === 'deleted') return t('changes.foodTries.deleted', { food, twin: h.twin(tr.babyId) });
+      return t(`changes.foodTries.${action}`, { food, twin: h.twin(tr.babyId), reaction: t(`foods.reaction.${tr.reaction}`) });
     }
     case 'journal':
       return t(`changes.journal.${action}`, { text: short((c.record as JournalEntry).text) });

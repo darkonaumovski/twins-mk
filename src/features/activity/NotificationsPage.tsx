@@ -27,6 +27,7 @@ function useChangeLine() {
   const parentName = useCaregiverName();
   const caregiverIds = useCaregivers()?.map((c) => c.id) ?? ['p1', 'p2'];
   const routines = useLive(async (s) => new Map((await s.routines.listAll()).map((r) => [r.id, r.title])), []);
+  const foods = useLive(async (s) => new Map((await s.foods.listAll()).map((f) => [f.id, f])), []);
   const locale = dateLocale(i18n.language);
   const helpers: ChangeTextHelpers = {
     t: t as unknown as ChangeTextHelpers['t'],
@@ -34,6 +35,10 @@ function useChangeLine() {
     twin,
     label,
     routineTitle: (id) => routines?.get(id),
+    foodName: (id) => {
+      const food = foods?.get(id);
+      return food ? label(food) : undefined;
+    },
     when: (iso) => format(new Date(iso), 'd MMM HH:mm', { locale }),
     day: (date) => format(parseISO(date), 'd MMM', { locale }),
     parentName,

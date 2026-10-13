@@ -29,6 +29,8 @@ import type {
   Photo,
   PhotoBlob,
   JournalEntry,
+  Food,
+  FoodTry,
 } from './types';
 
 /**
@@ -106,6 +108,8 @@ export interface SyncedCollections {
   reminderSnoozes: Repository<ReminderSnooze>;
   photos: Repository<Photo>;
   journal: Repository<JournalEntry>;
+  foods: Repository<Food>;
+  foodTries: Repository<FoodTry>;
 }
 
 export type CollectionName = keyof SyncedCollections;
@@ -132,6 +136,8 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'reminderSnoozes',
   'photos',
   'journal',
+  'foods',
+  'foodTries',
 ];
 
 /** The photos' images on this phone (local only: never synced, exported or merged). */

@@ -14,6 +14,8 @@ import { colorOf, TwinBadge, useBabies, useTwinName } from '@/features/twins/twi
 import { useAgeText } from '@/features/twins/useAge';
 import { vaccinesInPeriod } from '@/features/vaccines/logic';
 import { motherMedsBetween } from '@/features/mother/logic';
+import { triesInPeriod } from '@/features/foods/logic';
+import { useLabel } from '@/lib/labels';
 import { openNotesFor, reportDiapers, reportRows, reportTotals, type ReportDiapers } from './logic';
 
 const PERIODS = [7, 14, 30] as const;
@@ -31,6 +33,7 @@ export function ReportPage() {
   const babies = useBabies();
   const name = useTwinName(babies);
   const ageText = useAgeText();
+  const label = useLabel();
   const [who, setWho] = useState<Who>('both');
   const [period, setPeriod] = useState<Period>('7');
   const [includeMother, setIncludeMother] = useState(false);
@@ -41,14 +44,16 @@ export function ReportPage() {
   const data = useLive(
     async (s) => {
       const from = addDays(parseISO(days[0]), -1).toISOString();
-      const [entries, measures, notes, vaccines, motherLogs] = await Promise.all([
+      const [entries, measures, notes, vaccines, motherLogs, foods, foodTries] = await Promise.all([
         s.logs.listBetween(from, localDay(lastDay).to.toISOString()),
         s.logs.list(),
         s.doctorNotes.list(),
         s.vaccines.list(),
         s.motherLogs.list(),
+        s.foods.listAll(),
+        s.foodTries.list(),
       ]);
-      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes, vaccines, motherLogs };
+      return { entries, measures: measures.filter((e) => e.type === 'measure'), notes, vaccines, motherLogs, foods, foodTries };
     },
     [period, lastDay],
   );
@@ -80,6 +85,12 @@ export function ReportPage() {
   ];
   const notes = openNotesFor(data.notes, slots, includeMother);
   const vaccines = vaccinesInPeriod(data.vaccines, slots, days[0], lastDay);
+  const foodNames = new Map(data.foods.map((f) => [f.id, label(f)]));
+  const tries = triesInPeriod(data.foodTries, slots, days[0], lastDay);
+  const tryText = (tr: (typeof tries)[number]) =>
+    [dayLabel(tr.date), name(tr.babyId), foodNames.get(tr.foodId) ?? '?', t(`foods.reaction.${tr.reaction}`), tr.note]
+      .filter(Boolean)
+      .join(' · ');
   const motherMeds = motherMedsBetween(data.motherLogs, localDay(days[0]).from, localDay(lastDay).to);
   const showMotherMeds = includeMotherMeds && motherMeds.length > 0;
   const motherMedText = (m: (typeof motherMeds)[number]) =>
@@ -113,6 +124,7 @@ export function ReportPage() {
       }),
       ...diaperLines(diapers),
     ]),
+    ...(tries.length ? ['', t('report.foods'), ...tries.map((tr) => `• ${tryText(tr)}`)] : []),
     ...(showMotherMeds ? ['', t('report.motherMeds'), ...motherMeds.map((m) => `• ${motherMedText(m)}`)] : []),
     ...(vaccines.length ? ['', t('report.vaccines'), ...vaccines.map((v) => `• ${vaccineText(v)}`)] : []),
     ...(notes.length ? ['', t('report.notes'), ...notes.map((n) => `• ${noteText(n)}`)] : []),
@@ -266,6 +278,34 @@ export function ReportPage() {
             </tbody>
           </table>
         </section>
+
+        {tries.length > 0 && (
+          <section className="space-y-2 break-inside-avoid-page">
+            <h3 className="text-base font-semibold">{t('report.foods')}</h3>
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr>
+                  <th className={head}>{t('report.col.date')}</th>
+                  <th className={head}>{t('report.col.twin')}</th>
+                  <th className={head}>{t('report.col.food')}</th>
+                  <th className={head}>{t('foods.reactionLabel')}</th>
+                  <th className={head}>{t('foods.note')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tries.map((tr) => (
+                  <tr key={tr.id}>
+                    <td className={`${cell} text-left`}>{dayLabel(tr.date)}</td>
+                    <td className={`${cell} text-left`}>{name(tr.babyId)}</td>
+                    <td className={`${cell} text-left`}>{foodNames.get(tr.foodId) ?? '–'}</td>
+                    <td className={`${cell} text-left`}>{t(`foods.reaction.${tr.reaction}`)}</td>
+                    <td className={`${cell} text-left`}>{tr.note || '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
 
         {showMotherMeds && (
           <section className="space-y-2 break-inside-avoid-page">
