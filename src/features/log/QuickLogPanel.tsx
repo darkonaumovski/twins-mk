@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Ellipsis, History, Moon, Sun, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Ellipsis, History, Keyboard, Moon, Sun, type LucideIcon } from 'lucide-react';
+import { IconButton } from '@/components/Button';
+import { QuickTextSheet } from './QuickTextSheet';
 import { cx } from '@/components/ui';
 import { useBabies } from '@/features/twins/twins';
 import type { DiaperData } from '@/data/types';
@@ -49,6 +52,7 @@ export function QuickLogPanel({ onLogged }: { onLogged?: () => void }) {
   const [who, setWho] = useWho();
   const ui = useLogUI();
   const { log, toggleSleep } = useLogActions();
+  const [typing, setTyping] = useState(false);
 
   const diaper = async (kind: DiaperData['kind'], label: string) => {
     await log(who, { type: 'diaper', data: { kind }, start: new Date().toISOString(), end: null }, `${t('log.diaper')}: ${label}`);
@@ -65,7 +69,15 @@ export function QuickLogPanel({ onLogged }: { onLogged?: () => void }) {
 
   return (
     <div className="space-y-4">
-      <WhoPicker babies={babies} value={who} onChange={setWho} />
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <WhoPicker babies={babies} value={who} onChange={setWho} />
+        </div>
+        <IconButton label={t('quick.open')} onClick={() => setTyping(true)} className="mt-2 bg-surface-2">
+          <Keyboard aria-hidden size={22} />
+        </IconButton>
+      </div>
+      {typing && <QuickTextSheet who={who} onClose={() => setTyping(false)} onSaved={onLogged} />}
 
       <div className="grid grid-cols-2 gap-2">
         <BigButton icon={LOG_ICONS.feed} label={t('log.feed')} tone="accent" onClick={() => ui.feed(who)} />

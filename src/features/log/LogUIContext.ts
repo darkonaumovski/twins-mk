@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
-import type { LogEntry, Pump } from '@/data/types';
-import type { Who } from './logic';
+import type { LogEntry, LogType, Pump } from '@/data/types';
+import type { LogDraft, Who } from './logic';
 
 /** Entry types logged through a form rather than a one-tap button. */
 export type FormType = 'med' | 'measure' | 'note' | 'sleep' | 'temp' | 'spitup' | 'bath' | 'tummy';
@@ -8,7 +8,7 @@ export type FormType = 'med' | 'measure' | 'note' | 'sleep' | 'temp' | 'spitup' 
 export type LogSheetState =
   | { kind: 'quick' }
   | { kind: 'feed'; who: Who }
-  | { kind: 'create'; type: FormType; who: Who }
+  | { kind: 'create'; type: FormType | LogType; who: Who; initial?: LogDraft }
   | { kind: 'edit'; entry: LogEntry }
   | { kind: 'more'; who: Who }
   | { kind: 'pump'; pump: Pump | null }
@@ -19,6 +19,8 @@ export interface LogUI {
   quick(): void;
   feed(who: Who): void;
   create(type: FormType, who: Who): void;
+  /** The normal editor for a new entry, filled in (e.g. from quick text logging). */
+  prefill(draft: LogDraft, who: Who): void;
   edit(entry: LogEntry): void;
   /** Rarer log types, pumping, milk stash and supplies. */
   more(who: Who): void;

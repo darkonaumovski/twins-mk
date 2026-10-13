@@ -248,6 +248,8 @@ export interface DevicePrefs {
   changeAlertsMode?: 'always' | 'onDuty';
   /** Draw the WHO reference curves behind the growth charts (absent means off). */
   whoCurves?: boolean;
+  /** A microphone button for quick text logging (absent means off; the phone's speech service hears the audio). */
+  voiceInput?: boolean;
 }
 
 /**

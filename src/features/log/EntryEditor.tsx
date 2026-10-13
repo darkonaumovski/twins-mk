@@ -121,7 +121,23 @@ function draftFrom(entry: LogEntry | null, type: LogType): Draft {
   return d;
 }
 
-type Props = { onClose: () => void } & ({ mode: 'create'; type: FormType; who: Who } | { mode: 'edit'; entry: LogEntry });
+type Props = { onClose: () => void } & (
+  { mode: 'create'; type: FormType | LogType; who: Who; initial?: LogDraft } | { mode: 'edit'; entry: LogEntry }
+);
+
+/** A filled-in new entry reads like an existing one to the form (it is still saved as new). */
+const asEntry = (draft: LogDraft): LogEntry =>
+  ({
+    ...draft,
+    id: '',
+    createdAt: '',
+    updatedAt: '',
+    deletedAt: null,
+    deviceId: '',
+    babyId: BABY_IDS.A,
+    groupId: null,
+    loggedBy: '',
+  }) as LogEntry;
 
 export function EntryEditor(props: Props) {
   const { t } = useTranslation();
@@ -136,7 +152,9 @@ export function EntryEditor(props: Props) {
   const medGuard = useMedGuard();
   const ago = useFormatAgo();
   const entry = props.mode === 'edit' ? props.entry : null;
-  const [draft, setDraft] = useState<Draft>(() => draftFrom(entry, props.mode === 'edit' ? props.entry.type : props.type));
+  const [draft, setDraft] = useState<Draft>(() =>
+    props.mode === 'edit' ? draftFrom(entry, props.entry.type) : draftFrom(props.initial ? asEntry(props.initial) : null, props.type),
+  );
   const [who, setWho] = useState<Who>(props.mode === 'create' ? props.who : 'A');
   const [error, setError] = useState<string | null>(null);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {

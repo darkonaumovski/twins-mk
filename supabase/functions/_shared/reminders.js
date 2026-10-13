@@ -3474,6 +3474,32 @@ var en = {
 			firstWord: "First word"
 		}
 	},
+	quick: {
+		open: "Write an entry",
+		title: "Write it",
+		label: "What happened?",
+		placeholder: "e.g. Ema 90 ml formula",
+		examples: "Like “A 90 B 70 formula”, “both wet”, “Ana left breast 15 min”, “sleep”, “awake” or “Ema 37.8 at 14:30”.",
+		save_one: "Save {{count}} entry",
+		save_other: "Save {{count}} entries",
+		saved_one: "Saved {{count}} entry",
+		saved_other: "Saved {{count}} entries",
+		edit: "Edit",
+		wake: "Awake (the sleep ends)",
+		unknown: "Not understood: {{words}}",
+		hint: {
+			milk: "Say which milk: formula or breast milk.",
+			side: "Say which side: left, right or both sides.",
+			who: "Say which twin, or both.",
+			duration: "Say how long, e.g. “slept 2h”.",
+			alreadyAsleep: "Already asleep: the sleep timer is running.",
+			notAsleep: "No sleep timer is running."
+		},
+		nothing: "Nothing to save yet.",
+		speak: "Speak",
+		stopListening: "Stop listening",
+		voiceNote: "What you say goes into the field first: check it before saving. Macedonian recognition depends on the phone."
+	},
 	foods: {
 		title: "First foods",
 		solids: "Solids",
@@ -4423,6 +4449,8 @@ var en = {
 		themeNightHint: "Night is very dim and warm, for feeds in the dark. Auto night uses it from 22:00 to 06:00.",
 		haptics: "Vibrate after logging",
 		hapticsHint: "A short vibration confirms an entry was saved (on phones that support it).",
+		voiceInput: "Voice for quick logging",
+		voiceInputHint: "A microphone next to “Write an entry”. Your phone’s speech service may process the audio (on many Android phones this is Google). Off by default.",
 		family: "Family",
 		thisPhone: "This phone is used by",
 		thisPhoneHint: "New entries from this phone are marked with this person.",
@@ -5281,6 +5309,32 @@ var mk = {
 			firstSteps: "Први чекори",
 			firstWord: "Прв збор"
 		}
+	},
+	quick: {
+		open: "Запиши со текст",
+		title: "Запиши со текст",
+		label: "Што се случи?",
+		placeholder: "на пр. Ема 90 мл адаптирано",
+		examples: "На пр. „Ема 90 мл адаптирано“, „двете мокра“, „Ана лева дојка 15 мин“, „спие“, „буден“ или „Ема 37,8 во 14:30“.",
+		save_one: "Зачувај {{count}} запис",
+		save_other: "Зачувај {{count}} записи",
+		saved_one: "Зачуван е {{count}} запис",
+		saved_other: "Зачувани се {{count}} записи",
+		edit: "Измени",
+		wake: "Се разбуди (спиењето завршува)",
+		unknown: "Не е разбрано: {{words}}",
+		hint: {
+			milk: "Кажете кое млеко: адаптирано или мајчино.",
+			side: "Кажете која страна: лева, десна или двете страни.",
+			who: "Кажете за кое бебе, или двете.",
+			duration: "Кажете колку долго, на пр. „спиеше 2ч“.",
+			alreadyAsleep: "Веќе спие: тајмерот за спиење работи.",
+			notAsleep: "Не работи тајмер за спиење."
+		},
+		nothing: "Сè уште нема ништо за зачувување.",
+		speak: "Вклучи микрофон",
+		stopListening: "Исклучи микрофон",
+		voiceNote: "Она што ќе го кажете прво оди во полето: проверете пред да зачувате. Препознавањето на македонски зависи од телефонот."
 	},
 	foods: {
 		title: "Прва храна",
@@ -6231,6 +6285,8 @@ var mk = {
 		themeNightHint: "Ноќниот изглед е многу пригушен и топол, за хранења во темно. Автоматскиот го користи од 22:00 до 06:00.",
 		haptics: "Вибрација по запишување",
 		hapticsHint: "Кратка вибрација потврдува дека записот е зачуван (на телефони што го поддржуваат).",
+		voiceInput: "Глас за брзо запишување",
+		voiceInputHint: "Микрофон до „Запиши со текст“. Говорната услуга на телефонот може да го обработи звукот (на многу телефони со Android тоа е Google). Стандардно е исклучено.",
 		family: "Семејство",
 		thisPhone: "Овој телефон го користи",
 		thisPhoneHint: "Новите записи од овој телефон се означуваат со името на ова лице.",

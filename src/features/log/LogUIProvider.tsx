@@ -20,6 +20,7 @@ export function LogUIProvider({ children }: { children: ReactNode }) {
       quick: () => setState({ kind: 'quick' }),
       feed: (who) => setState({ kind: 'feed', who }),
       create: (type, who) => setState({ kind: 'create', type, who }),
+      prefill: (draft, who) => setState({ kind: 'create', type: draft.type, who, initial: draft }),
       edit: (entry) => setState({ kind: 'edit', entry }),
       more: (who) => setState({ kind: 'more', who }),
       // A running session opens the timer, not the amounts.
@@ -39,7 +40,9 @@ export function LogUIProvider({ children }: { children: ReactNode }) {
         </Sheet>
       )}
       {state?.kind === 'feed' && <FeedSheet who={state.who} onClose={ui.close} />}
-      {state?.kind === 'create' && <EntryEditor mode="create" type={state.type} who={state.who} onClose={ui.close} />}
+      {state?.kind === 'create' && (
+        <EntryEditor mode="create" type={state.type} who={state.who} initial={state.initial} onClose={ui.close} />
+      )}
       {state?.kind === 'edit' && <EntryEditor key={state.entry.id} mode="edit" entry={state.entry} onClose={ui.close} />}
       {state?.kind === 'more' && <MoreLogSheet who={state.who} onClose={ui.close} />}
       {state?.kind === 'pump' && <PumpSheet key={state.pump?.id ?? 'new'} pump={state.pump} onClose={ui.close} />}

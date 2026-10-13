@@ -1,4 +1,5 @@
 import { PhotoUsage } from '@/features/photos/PhotoSettings';
+import { speechRecognition } from '@/features/log/QuickTextSheet';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -68,6 +69,16 @@ export function SettingsPage() {
           />
           <p className="text-sm text-muted">{t('settings.hapticsHint')}</p>
         </div>
+        {speechRecognition() && (
+          <div>
+            <Toggle
+              label={t('settings.voiceInput')}
+              checked={prefs.voiceInput === true}
+              onChange={(voiceInput) => store.device.update({ voiceInput })}
+            />
+            <p className="text-sm text-muted">{t('settings.voiceInputHint')}</p>
+          </div>
+        )}
       </Section>
 
       <FamilySettings />

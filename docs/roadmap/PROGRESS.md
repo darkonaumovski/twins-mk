@@ -39,12 +39,12 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 
 ## Phase 3: memories and later months
 
-| ID  | Feature                        | Status | Commit  | Notes                                                 |
-| --- | ------------------------------ | ------ | ------- | ----------------------------------------------------- |
-| F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006     |
-| F13 | Journal and keepsake book      | ✅     | b021ef1 | More → Journal, More → Keepsake book                  |
-| F14 | Solids and first foods         | ✅     |         | More → First foods (switch on); Today → More → Solids |
-| F15 | Quick text logging (and voice) | ⬜     |         |                                                       |
+| ID  | Feature                        | Status | Commit  | Notes                                                       |
+| --- | ------------------------------ | ------ | ------- | ----------------------------------------------------------- |
+| F12 | Photos                         | ✅     | cc4b223 | More → Photos; milestone sheet; run migration 006           |
+| F13 | Journal and keepsake book      | ✅     | b021ef1 | More → Journal, More → Keepsake book                        |
+| F14 | Solids and first foods         | ✅     | 7e40cd6 | More → First foods (switch on); Today → More → Solids       |
+| F15 | Quick text logging (and voice) | ✅     |         | Today → keyboard button; Settings → Voice for quick logging |
 
 ## Decisions and deviations
 
@@ -171,9 +171,30 @@ Status: ⬜ not started · 🟨 in progress · ✅ done · ⏸ blocked (see note
 - 2026-10-13 · F14 · The grid shows each twin's latest try (by date, then by when it was entered); a dash means not tried. A cell opens the try sheet for that food with both twins preselected and the history of the tapped twin; Today → More → **Solids** opens the same sheet with a food picker. Reactions are words only (no colours that judge); the cells take the twin colour once tried.
 - 2026-10-13 · F14 · Deleting a food keeps its tries: they stay in the report and the CSV under the food's name, and the book only lists live foods. Change alerts name the food ("Морков · Ема · Се допадна").
 
+- 2026-10-13 · F15 · `parseQuickLog` returns items of `{ who, draft }` (and a `wake` item for "awake" / "буден", which stops the running sleep timers) instead of plain `LogDraft`s: a draft alone does not say which twin it is for. Saving goes through `buildEntries` for "both". It also returns `hints` ('milk', 'side', 'who') for what it needs before it can save.
+- 2026-10-13 · F15 · "Never guessed": a bottle without a milk word takes that twin's last bottle's milk (the family's own history); with no last bottle, or different milks for "both", it asks. A breastfeed without a side asks for the side. A bare number is not an amount. A phrase that names nobody uses the twin(s) chosen on Today (the picker the parent can see), and the preview shows it. An unknown medicine name is only taken after a medicine word ("лек Пробиотик", "med Calpol"); other unknown words are listed as not understood.
+- 2026-10-13 · F15 · Words before the first twin's name belong to that twin ("мокра Ана полна" = Ана, wet and dirty). "Ема и Ана …" is both twins. "пелена двете" is a wet and dirty diaper; "двете страни" both sides; "и двете" both twins. A time later than now is yesterday. A finished breastfeed or sleep ("15 мин", "2ч") ends at the phrase's time (now by default).
+- 2026-10-13 · F15 · Twin names match in Cyrillic or Latin (a small Macedonian transliteration), case-insensitive, by the first three letters when that fits only one twin. Medicine names match the medicine routines, same script first, then across scripts.
+- 2026-10-13 · F15 · The keyboard button sits next to the twin picker in the Quick Log panel (there is no "Quick Log" heading on Today). Medicines in a phrase go through the same interval check as the medicine form before saving. Voice: per-phone `voiceInput` (off), shown in Settings only where the browser has speech recognition; the recognised text goes into the field (appended), never saved directly; mk-MK or en-US by the app language.
+- 2026-10-13 · F15 · Review fixes (about 120 extra phrases): a lowercase "a" / "а" is a word ("had a wet diaper", "мокра а полна"), and only an uppercase one or one first in the phrase names a twin. A known word is never a name ("Деса десна"), and a typo must be about the name's length ("Emma", "Yana" = Ема, Јана). A phrase that starts with words and ends with a name gives each name the words before it ("wet Ana dirty Ema"). Millilitres next to a medicine are its dose, never a bottle; a medicine word without a name is not understood. "во 14ч", "во 14 часот" are times of day. Minutes that no feed or sleep took are listed as not understood, and "спиеше" without a duration asks for one. A sleep starts only for an awake twin and "буден" stops only a running one (as the sleep button), with a note when there is nothing to do; a wake time before the sleep began ends it now. The preview shows the day for yesterday's times, and Save counts one entry per twin.
+
 ## Phone test checklists
 
 <!-- Per feature: 3–8 steps Darko can follow on his phone. -->
+
+### Phase 3, combined (one session, both phones)
+
+Before: run `supabase/migrations/006_photos_storage.sql` once in the Supabase SQL Editor (a second run must also succeed). Install the `roadmap` build on both phones.
+
+1. **Photos:** More → Photos → **Take photo** (camera) and **Choose photo** (gallery). Add a photo to a milestone (open it from More → Milestones). On phone B the thumbnails appear after a sync and the full image when opened. Delete one (undo works); after a sync it is gone on both.
+2. **Before the birth** (Daily planner off): the countdown has **Bump photos**; the Photos page offers this week's bump photo.
+3. **Settings:** Storage shows the photos' size; Backup → **Download photos (zip)** saves `2026-10-13_<twin>_<kind>.webp` files. A photo taken with location on has no GPS in the file.
+4. **Journal:** Today → More → **Journal entry**; write, keep both twins, **Put in the book**. Reopen it and add a photo.
+5. **Keepsake book** (More): the cover, birth details, milestones with ages and corrected ages, this month's page with the monthly photo and the journal entry, first foods. **Print / Save as PDF** on A4, in black and white, also from Night appearance.
+6. **First foods:** switch on (both phones follow), **Add example foods** on both phones (still one of each), log a try for both twins and one for a single twin; Today → More → **Solids**; the report and `foods.csv` list the tries.
+7. **Write an entry** (keyboard button on Today): "А 90 Б 70 адаптирано", "двете мокра", "Ана лева дојка 15 мин", "спие" / "буден", "Ема 37,8 во 14:30": check the preview, save, undo; an unknown word is listed and nothing is guessed. **Edit** opens the form filled in.
+8. **Voice** (Settings → Voice for quick logging, where offered): the microphone fills the field; nothing is saved without Save.
+9. **Night appearance** and a narrow phone: the photo grid and viewer, the journal, the book, the food grid and the quick-text preview stay readable.
 
 ### Phase 2, combined (one session, both phones)
 
@@ -359,7 +380,24 @@ On the same Wi-Fi: `git checkout roadmap`, then `npm run dev -- --host`, and ope
 7. More → **Report**: "First foods" lists the tries of the period with notes; the spreadsheet zip has `foods.csv`; the keepsake book has the first-foods page.
 8. Switch it off: the page and the Solids button go; switch on again: everything is still there.
 
+### F15 (quick text logging and voice)
+
+1. Today → the keyboard button next to the twin choice: **Write an entry** opens with the keyboard.
+2. Type "А 90 Б 70 адаптирано": the preview shows two bottles, one per twin, at the current time. Save: both appear in the timeline; **Undo** removes them.
+3. Type "двете мокра", "Ана лева дојка 15 мин", "спие", then (later) "буден": diapers for both, a 15-minute breastfeed for Ана, a sleep timer, and the timer stopping.
+4. Type "Ема 37,8 во 14:30" and "Ана витамин Д" (with a Vitamin D routine): a temperature at 14:30 and the medicine (with the interval question if it was given recently).
+5. Type "Ема ракета": "Не е разбрано: ракета", and nothing to save. "Ема дојка" asks for the side.
+6. Tap the pencil on a preview line: the normal form opens filled in.
+7. Settings → **Voice for quick logging** (only on phones that offer it): switch it on, read the note. In Write an entry, tap the microphone and say "Ема мокра": the words appear in the field and the preview; nothing is saved until Save.
+8. Try English: "both 80 breast milk", "B wet 20 min ago", "slept 2h".
+
 ## Follow-ups
+
+All 15 roadmap features are built. Left for later (none of them blocks merging):
+
+- Deploy order when merging: run migrations 005 (already done) and 006, then redeploy `send-reminders` (it reads the mother's doses, F10, and snoozes, F11), then merge `roadmap` into `main`.
+- F15 · Quick text logging could learn the family's own words (e.g. a nickname for a twin, a brand of formula) as a per-family list; today it knows the built-in words, the twins' names and the medicine routines.
+- F13 · The keepsake book could offer a cover photo and a choice of which milestones to include.
 
 - F12 · Build the photo zip in parts (or stream it) for families with many hundreds of photos.
 
